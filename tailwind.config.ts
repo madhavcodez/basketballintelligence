@@ -13,25 +13,23 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        dark: {
-          base: '#0a0a12',
-          surface: '#12121e',
-          elevated: '#1a1a2e',
+        bg: {
+          base: '#FAFAFA',
+          card: '#FFFFFF',
+          secondary: '#F5F5F7',
         },
-        glass: {
-          bg: 'rgba(255,255,255,0.06)',
-          border: 'rgba(255,255,255,0.12)',
-          frosted: 'rgba(255,255,255,0.10)',
+        text: {
+          primary: '#1D1D1F',
+          secondary: '#6E6E73',
+          tertiary: '#86868B',
         },
-        chrome: {
-          light: 'rgba(255,255,255,0.94)',
-          medium: 'rgba(255,255,255,0.70)',
-          dim: 'rgba(255,255,255,0.44)',
-          faint: 'rgba(255,255,255,0.24)',
+        border: {
+          subtle: 'rgba(0,0,0,0.06)',
+          medium: 'rgba(0,0,0,0.12)',
         },
         accent: {
           orange: '#FF6B35',
-          blue: '#4DA6FF',
+          blue: '#0071E3',
           green: '#34D399',
           red: '#F87171',
           gold: '#FBBF24',
@@ -39,12 +37,9 @@ const config: Config = {
         },
       },
       fontFamily: {
-        body: ["'Inter'", 'system-ui', '-apple-system', 'sans-serif'],
-        display: ['system-ui', '-apple-system', "'SF Pro Rounded'", "'Inter'", 'sans-serif'],
-      },
-      backdropBlur: {
-        xs: '4px',
-        '2xl': '64px',
+        body: ['var(--font-inter)', 'Inter', 'system-ui', '-apple-system', 'sans-serif'],
+        display: ['var(--font-syne)', 'Syne', 'system-ui', 'sans-serif'],
+        mono: ['var(--font-jetbrains)', 'JetBrains Mono', 'SF Mono', 'monospace'],
       },
       spacing: {
         '4.5': '18px',
@@ -55,6 +50,10 @@ const config: Config = {
       },
       borderRadius: {
         '2.5xl': '20px',
+      },
+      boxShadow: {
+        card: '0 2px 8px rgba(0, 0, 0, 0.04), 0 12px 40px rgba(0, 0, 0, 0.08)',
+        hover: '0 4px 16px rgba(0, 0, 0, 0.06), 0 20px 60px rgba(0, 0, 0, 0.12)',
       },
       keyframes: {
         fadeIn: {

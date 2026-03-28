@@ -1,50 +1,60 @@
 @import "tailwindcss";
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   Basketball Intelligence — Design Tokens (Tailwind v4 CSS Config)
+   Basketball Intelligence — Apple Light Mode Design Tokens (Tailwind v4)
    ═══════════════════════════════════════════════════════════════════════════ */
 
 @theme inline {
   /* ── Base surfaces ────────────────────────────────────────────────── */
-  --color-dark-base: #0a0a12;
-  --color-dark-surface: #12121e;
-  --color-dark-elevated: #1a1a2e;
+  --color-bg-base: #FAFAFA;
+  --color-bg-card: #FFFFFF;
+  --color-bg-secondary: #F5F5F7;
 
-  /* ── Glass morphism ───────────────────────────────────────────────── */
-  --color-glass-bg: rgba(255, 255, 255, 0.06);
-  --color-glass-border: rgba(255, 255, 255, 0.12);
-  --color-glass-frosted: rgba(255, 255, 255, 0.10);
+  /* ── Text hierarchy ─────────────────────────────────────────────── */
+  --color-text-primary: #1D1D1F;
+  --color-text-secondary: #6E6E73;
+  --color-text-tertiary: #86868B;
 
-  /* ── Chrome (text hierarchy) ──────────────────────────────────────── */
-  --color-chrome-light: rgba(255, 255, 255, 0.94);
-  --color-chrome-medium: rgba(255, 255, 255, 0.70);
-  --color-chrome-dim: rgba(255, 255, 255, 0.44);
-  --color-chrome-faint: rgba(255, 255, 255, 0.24);
+  /* ── Borders ────────────────────────────────────────────────────── */
+  --color-border-subtle: rgba(0, 0, 0, 0.06);
+  --color-border-medium: rgba(0, 0, 0, 0.12);
 
-  /* ── Accent palette ───────────────────────────────────────────────── */
+  /* ── Legacy aliases (keep non-owned pages working) ───────────────── */
+  --color-dark-base: #FAFAFA;
+  --color-dark-surface: #FFFFFF;
+  --color-dark-elevated: #F5F5F7;
+  --color-glass-bg: rgba(0, 0, 0, 0.03);
+  --color-glass-border: rgba(0, 0, 0, 0.06);
+  --color-glass-frosted: rgba(0, 0, 0, 0.02);
+  --color-chrome-light: #1D1D1F;
+  --color-chrome-medium: #6E6E73;
+  --color-chrome-dim: #86868B;
+  --color-chrome-faint: rgba(0, 0, 0, 0.12);
+
+  /* ── Accent palette ─────────────────────────────────────────────── */
   --color-accent-orange: #FF6B35;
-  --color-accent-blue: #4DA6FF;
+  --color-accent-blue: #0071E3;
   --color-accent-green: #34D399;
   --color-accent-red: #F87171;
   --color-accent-gold: #FBBF24;
   --color-accent-violet: #A78BFA;
 
-  /* ── Fonts ────────────────────────────────────────────────────────── */
-  --font-body: 'Inter', system-ui, -apple-system, sans-serif;
-  --font-display: system-ui, -apple-system, 'SF Pro Rounded', 'Inter', sans-serif;
-  --font-mono: 'SF Mono', 'Fira Code', 'Fira Mono', monospace;
+  /* ── Fonts ──────────────────────────────────────────────────────── */
+  --font-body: var(--font-inter), 'Inter', system-ui, -apple-system, sans-serif;
+  --font-display: var(--font-syne), 'Syne', system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains), 'JetBrains Mono', 'SF Mono', monospace;
 
-  /* ── Spacing scale (supplement defaults) ──────────────────────────── */
+  /* ── Spacing scale (supplement defaults) ────────────────────────── */
   --spacing-4_5: 18px;
   --spacing-13: 52px;
   --spacing-15: 60px;
   --spacing-18: 72px;
   --spacing-22: 88px;
 
-  /* ── Border radii ─────────────────────────────────────────────────── */
+  /* ── Border radii ───────────────────────────────────────────────── */
   --radius-2_5xl: 20px;
 
-  /* ── Animations ───────────────────────────────────────────────────── */
+  /* ── Animations ─────────────────────────────────────────────────── */
   --animate-fade-in: fade-in 0.4s ease-out;
   --animate-slide-up: slide-up 0.4s ease-out;
   --animate-shimmer: shimmer 2s ease-in-out infinite;
@@ -81,32 +91,46 @@
 
 :root {
   /* Surfaces */
-  --bg-dark-base: #0a0a12;
-  --bg-dark-surface: #12121e;
-  --bg-dark-elevated: #1a1a2e;
+  --bg-base: #FAFAFA;
+  --bg-card: #FFFFFF;
+  --bg-secondary: #F5F5F7;
 
-  /* Glass */
-  --glass-bg: rgba(255, 255, 255, 0.06);
-  --glass-border: rgba(255, 255, 255, 0.12);
-  --glass-frosted: rgba(255, 255, 255, 0.10);
+  /* Text */
+  --text-primary: #1D1D1F;
+  --text-secondary: #6E6E73;
+  --text-tertiary: #86868B;
 
-  /* Chrome */
-  --chrome-light: rgba(255, 255, 255, 0.94);
-  --chrome-medium: rgba(255, 255, 255, 0.70);
-  --chrome-dim: rgba(255, 255, 255, 0.44);
-  --chrome-faint: rgba(255, 255, 255, 0.24);
+  /* Borders */
+  --border-subtle: rgba(0, 0, 0, 0.06);
+  --border-medium: rgba(0, 0, 0, 0.12);
+
+  /* Legacy aliases */
+  --bg-dark-base: #FAFAFA;
+  --bg-dark-surface: #FFFFFF;
+  --bg-dark-elevated: #F5F5F7;
+  --glass-bg: rgba(0, 0, 0, 0.03);
+  --glass-border: rgba(0, 0, 0, 0.06);
+  --glass-frosted: rgba(0, 0, 0, 0.02);
+  --chrome-light: #1D1D1F;
+  --chrome-medium: #6E6E73;
+  --chrome-dim: #86868B;
+  --chrome-faint: rgba(0, 0, 0, 0.12);
 
   /* Accents */
   --accent-orange: #FF6B35;
-  --accent-blue: #4DA6FF;
+  --accent-blue: #0071E3;
   --accent-green: #34D399;
   --accent-red: #F87171;
   --accent-gold: #FBBF24;
   --accent-violet: #A78BFA;
 
+  /* Shadows */
+  --shadow-card: 0 2px 8px rgba(0, 0, 0, 0.04), 0 12px 40px rgba(0, 0, 0, 0.08);
+  --shadow-hover: 0 4px 16px rgba(0, 0, 0, 0.06), 0 20px 60px rgba(0, 0, 0, 0.12);
+
   /* Nav height for padding offsets */
-  --nav-height: 80px;
-  --nav-height-mobile: 68px;
+  --nav-height: 64px;
+  --nav-height-mobile: 56px;
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -128,25 +152,11 @@ html {
 body {
   margin: 0;
   padding: 0;
-  background: var(--bg-dark-base);
-  color: var(--chrome-light);
+  background: var(--bg-base);
+  color: var(--text-primary);
   font-family: var(--font-body);
   min-height: 100dvh;
   overflow-x: hidden;
-}
-
-/* ── App Backdrop Gradient (ambient glow) ───────────────────────────────── */
-body::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-  background:
-    radial-gradient(ellipse 50% 60% at 20% 10%, rgba(255, 107, 53, 0.08) 0%, transparent 70%),
-    radial-gradient(ellipse 40% 50% at 80% 20%, rgba(77, 166, 255, 0.06) 0%, transparent 70%),
-    radial-gradient(ellipse 60% 40% at 50% 90%, rgba(167, 139, 250, 0.05) 0%, transparent 70%),
-    var(--bg-dark-base);
 }
 
 /* ── Custom Scrollbar ───────────────────────────────────────────────────── */
@@ -160,77 +170,56 @@ body::before {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--chrome-faint);
+  background: rgba(0, 0, 0, 0.15);
   border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--chrome-dim);
+  background: rgba(0, 0, 0, 0.25);
 }
 
 /* Firefox */
 * {
   scrollbar-width: thin;
-  scrollbar-color: var(--chrome-faint) transparent;
+  scrollbar-color: rgba(0, 0, 0, 0.15) transparent;
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
    Utility Classes
    ═══════════════════════════════════════════════════════════════════════════ */
 
-/* ── Glass Card ─────────────────────────────────────────────────────────── */
-.glass-card {
-  background: var(--glass-bg);
-  border: 1px solid var(--glass-border);
+/* ── Apple Card ────────────────────────────────────────────────────────── */
+.apple-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
   border-radius: 20px;
-  backdrop-filter: blur(40px);
-  -webkit-backdrop-filter: blur(40px);
+  box-shadow: var(--shadow-card);
 }
 
-/* ── Glass Border (standalone) ──────────────────────────────────────────── */
-.glass-border {
-  border: 1px solid var(--glass-border);
-}
-
-/* ── Shimmer Effect ─────────────────────────────────────────────────────── */
+/* ── Shimmer Effect ────────────────────────────────────────────────────── */
 .shimmer {
   background: linear-gradient(
     90deg,
-    var(--glass-bg) 0%,
-    rgba(255, 255, 255, 0.10) 50%,
-    var(--glass-bg) 100%
+    var(--bg-secondary) 0%,
+    rgba(0, 0, 0, 0.02) 50%,
+    var(--bg-secondary) 100%
   );
   background-size: 200% 100%;
   animation: shimmer 2s ease-in-out infinite;
 }
 
-/* ── Gradient Text ──────────────────────────────────────────────────────── */
-.gradient-text {
-  background: linear-gradient(135deg, var(--accent-orange), var(--accent-blue));
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
-/* ── Accent Glow Ring ───────────────────────────────────────────────────── */
-.glow-ring {
-  box-shadow:
-    0 0 20px rgba(255, 107, 53, 0.25),
-    0 0 40px rgba(255, 107, 53, 0.12);
-}
-
-/* ── Safe bottom padding for fixed nav ──────────────────────────────────── */
-.pb-nav {
-  padding-bottom: calc(var(--nav-height) + 16px);
+/* ── Safe top padding for fixed nav ────────────────────────────────────── */
+.pt-nav {
+  padding-top: calc(var(--nav-height) + 16px);
 }
 
 @media (max-width: 640px) {
-  .pb-nav {
-    padding-bottom: calc(var(--nav-height-mobile) + 12px);
+  .pt-nav {
+    padding-top: calc(var(--nav-height-mobile) + 12px);
   }
 }
 
-/* ── No-scrollbar utility ───────────────────────────────────────────────── */
+/* ── No-scrollbar utility ──────────────────────────────────────────────── */
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }

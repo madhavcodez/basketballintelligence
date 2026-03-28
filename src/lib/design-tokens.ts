@@ -1,32 +1,42 @@
 // Basketball Intelligence Design Tokens
-// Dark-first glass morphism design system
+// Apple.com-inspired premium light mode design system
 
 // ─── Color System ────────────────────────────────────────────────────────────
 
 export const colors = {
-  // Base surfaces
-  darkBase: '#0a0a12',
-  darkSurface: '#12121e',
-  darkElevated: '#1a1a2e',
+  // Base surfaces (new)
+  bgBase: '#FAFAFA',
+  bgCard: '#FFFFFF',
+  bgSecondary: '#F5F5F7',
 
-  // Glass morphism
-  glassBg: 'rgba(255,255,255,0.06)',
-  glassBorder: 'rgba(255,255,255,0.12)',
-  glassFrosted: 'rgba(255,255,255,0.10)',
+  // Text hierarchy (new)
+  textPrimary: '#1D1D1F',
+  textSecondary: '#6E6E73',
+  textTertiary: '#86868B',
 
-  // Chrome (text hierarchy)
-  chromeLight: 'rgba(255,255,255,0.94)',
-  chromeMedium: 'rgba(255,255,255,0.70)',
-  chromeDim: 'rgba(255,255,255,0.44)',
-  chromeFaint: 'rgba(255,255,255,0.24)',
+  // Borders (new)
+  borderSubtle: 'rgba(0,0,0,0.06)',
+  borderMedium: 'rgba(0,0,0,0.12)',
 
   // Accent palette
   accentOrange: '#FF6B35',
-  accentBlue: '#4DA6FF',
+  accentBlue: '#0071E3',
   accentGreen: '#34D399',
   accentRed: '#F87171',
   accentGold: '#FBBF24',
   accentViolet: '#A78BFA',
+
+  // Backward-compatible aliases (old dark → light equivalents)
+  darkBase: '#FAFAFA',
+  darkSurface: '#FFFFFF',
+  darkElevated: '#F5F5F7',
+  glassBg: 'rgba(0,0,0,0.03)',
+  glassBorder: 'rgba(0,0,0,0.06)',
+  glassFrosted: 'rgba(0,0,0,0.02)',
+  chromeLight: '#1D1D1F',
+  chromeMedium: '#6E6E73',
+  chromeDim: '#86868B',
+  chromeFaint: 'rgba(0,0,0,0.12)',
 } as const;
 
 export type ColorToken = keyof typeof colors;
@@ -62,9 +72,9 @@ export type RadiusToken = keyof typeof radii;
 // ─── Typography ──────────────────────────────────────────────────────────────
 
 export const fontFamily = {
-  body: "'Inter', system-ui, -apple-system, sans-serif",
-  display: "system-ui, -apple-system, 'SF Pro Rounded', 'Inter', sans-serif",
-  mono: "'SF Mono', 'Fira Code', 'Fira Mono', monospace",
+  body: "var(--font-inter), 'Inter', system-ui, -apple-system, sans-serif",
+  display: "var(--font-syne), 'Syne', system-ui, sans-serif",
+  mono: "var(--font-jetbrains), 'JetBrains Mono', 'SF Mono', monospace",
 } as const;
 
 export const fontSize = {
@@ -77,6 +87,7 @@ export const fontSize = {
   '3xl': { size: '2rem', lineHeight: '2.5rem' },       // 32px
   '4xl': { size: '2.5rem', lineHeight: '3rem' },       // 40px
   '5xl': { size: '3rem', lineHeight: '3.5rem' },       // 48px
+  '6xl': { size: '4rem', lineHeight: '4.5rem' },       // 64px
 } as const;
 
 export const fontWeight = {
@@ -119,26 +130,14 @@ export const animation = {
   },
 } as const;
 
-// ─── Backdrop Blur ───────────────────────────────────────────────────────────
-
-export const backdropBlur = {
-  sm: '8px',
-  md: '12px',
-  lg: '20px',
-  xl: '40px',
-  '2xl': '64px',
-} as const;
-
 // ─── Shadows ─────────────────────────────────────────────────────────────────
 
 export const shadows = {
-  glass: '0 4px 30px rgba(0, 0, 0, 0.3)',
-  elevated: '0 8px 40px rgba(0, 0, 0, 0.4)',
-  glow: (color: string) => `0 0 20px ${color}40, 0 0 40px ${color}20`,
-  accentGlow: `0 0 20px rgba(255, 107, 53, 0.25), 0 0 40px rgba(255, 107, 53, 0.12)`,
-  cardHover: '0 8px 40px rgba(0, 0, 0, 0.35), 0 0 1px rgba(255, 255, 255, 0.1)',
-  cardActive: '0 2px 12px rgba(0, 0, 0, 0.3)',
-  navGlow: '0 -4px 30px rgba(0, 0, 0, 0.3), 0 0 20px rgba(255, 107, 53, 0.05)',
+  card: '0 2px 8px rgba(0, 0, 0, 0.04), 0 12px 40px rgba(0, 0, 0, 0.08)',
+  hover: '0 4px 16px rgba(0, 0, 0, 0.06), 0 20px 60px rgba(0, 0, 0, 0.12)',
+  subtle: '0 1px 3px rgba(0, 0, 0, 0.04)',
+  elevated: '0 8px 30px rgba(0, 0, 0, 0.1)',
+  nav: '0 1px 0 rgba(0, 0, 0, 0.06)',
 } as const;
 
 // ─── Motion Presets (Framer Motion) ────────────────────────────────────────

@@ -20,7 +20,11 @@ import SectionHeader from '@/components/ui/SectionHeader';
 import SkeletonLoader from '@/components/ui/SkeletonLoader';
 import Badge from '@/components/ui/Badge';
 import PlayerAvatar from '@/components/ui/PlayerAvatar';
+import PlayoffAccolades from '@/components/ui/PlayoffAccolades';
+import PlayoffEmptyState from '@/components/ui/PlayoffEmptyState';
+import SeasonErrorBoundary from '@/components/ui/SeasonErrorBoundary';
 import BasketballCourt from '@/components/court/BasketballCourt';
+import { useSeasonType } from '@/lib/season-context';
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -35,6 +39,7 @@ interface PlayerInfo {
   readonly active: number;
   readonly fromYear: number;
   readonly toYear: number;
+  readonly personId?: number;
 }
 
 interface SeasonStats {
@@ -67,6 +72,7 @@ interface SeasonStats {
   readonly drb: number;
   readonly fouls: number;
   readonly awards: string | null;
+  readonly [key: string]: unknown;
 }
 
 interface AdvancedStats {
@@ -142,6 +148,7 @@ function zoneColor(fgPct: number): string {
 export default function PlayerLabPage() {
   const params = useParams();
   const playerName = decodeURIComponent(params.name as string);
+  const { seasonType } = useSeasonType();
 
   // State
   const [player, setPlayer] = useState<PlayerInfo | null>(null);
@@ -162,20 +169,21 @@ export default function PlayerLabPage() {
       setLoading(true);
       setError(null);
       try {
-        const res = await fetch(`/api/players/${encodeURIComponent(playerName)}`);
+        const res = await fetch(`/api/v2/players/${encodeURIComponent(playerName)}?seasonType=${seasonType}`);
         if (!res.ok) throw new Error(res.status === 404 ? 'Player not found' : 'Failed to load player');
         const json = await res.json();
         if (cancelled) return;
 
         setPlayer(json.player);
-        setStats(json.stats ?? []);
-        setAdvanced(json.advanced ?? []);
+        setStats(json.stats?.data ?? []);
+        setAdvanced(json.advanced?.data ?? []);
         setAwards(json.awards ?? []);
         setDraft(json.draft ?? null);
 
         // Default to latest season
-        const latestSeason = json.stats?.length > 0
-          ? json.stats[json.stats.length - 1].season
+        const statsData = json.stats?.data ?? [];
+        const latestSeason = statsData.length > 0
+          ? statsData[statsData.length - 1].season
           : '';
         setSelectedSeason(latestSeason);
         setLoading(false);
@@ -188,7 +196,7 @@ export default function PlayerLabPage() {
     }
     load();
     return () => { cancelled = true; };
-  }, [playerName]);
+  }, [playerName, seasonType]);
 
   // Fetch shot zones + similar when season changes
   useEffect(() => {
@@ -198,7 +206,7 @@ export default function PlayerLabPage() {
     async function loadShots() {
       try {
         const res = await fetch(
-          `/api/players/${encodeURIComponent(playerName)}/shots?season=${encodeURIComponent(selectedSeason)}&zones=true`
+          `/api/v2/players/${encodeURIComponent(playerName)}/shots?season=${encodeURIComponent(selectedSeason)}&seasonType=${seasonType}&zones=true`
         );
         if (res.ok) {
           const json = await res.json();
@@ -210,7 +218,7 @@ export default function PlayerLabPage() {
     async function loadSimilar() {
       try {
         const res = await fetch(
-          `/api/players/${encodeURIComponent(playerName)}/similar?season=${encodeURIComponent(selectedSeason)}`
+          `/api/v2/players/${encodeURIComponent(playerName)}/similar?season=${encodeURIComponent(selectedSeason)}&seasonType=${seasonType}`
         );
         if (res.ok) {
           const json = await res.json();
@@ -222,7 +230,7 @@ export default function PlayerLabPage() {
     loadShots();
     loadSimilar();
     return () => { cancelled = true; };
-  }, [playerName, selectedSeason]);
+  }, [playerName, selectedSeason, seasonType]);
 
   // Derived
   const seasons = useMemo(() => stats.map((s) => s.season), [stats]);
@@ -265,10 +273,10 @@ export default function PlayerLabPage() {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] px-6">
         <GlassCard className="p-8 text-center max-w-md">
-          <h2 className="text-lg font-bold text-chrome-light mb-2">
+          <h2 className="text-lg font-bold text-text-primary mb-2">
             {error === 'Player not found' ? 'Player Not Found' : 'Error'}
           </h2>
-          <p className="text-sm text-chrome-dim mb-4">{error}</p>
+          <p className="text-sm text-text-secondary mb-4">{error}</p>
           <Link
             href="/explore"
             className="inline-flex items-center gap-1 text-sm text-accent-orange hover:underline"
@@ -286,7 +294,7 @@ export default function PlayerLabPage() {
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mb-4">
         <Link
           href="/explore"
-          className="inline-flex items-center gap-1 text-xs text-chrome-dim hover:text-chrome-medium transition-colors"
+          className="inline-flex items-center gap-1 text-xs text-text-tertiary hover:text-text-secondary transition-colors no-underline"
         >
           <ArrowLeft size={12} /> Explore
         </Link>
@@ -301,10 +309,10 @@ export default function PlayerLabPage() {
       >
         <GlassCard className="p-6 sm:p-8">
           <motion.div variants={fadeUp} className="flex flex-col sm:flex-row items-start gap-5">
-            <PlayerAvatar name={player.name} size="xl" />
+            <PlayerAvatar name={player.name} playerId={player.personId} size="xl" />
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 flex-wrap mb-1">
-                <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight text-chrome-light font-display">
+                <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight text-text-primary font-display">
                   {player.name}
                 </h1>
                 {player.hof === 1 && (
@@ -317,7 +325,7 @@ export default function PlayerLabPage() {
                 )}
               </div>
 
-              <div className="flex flex-wrap items-center gap-3 text-xs text-chrome-medium mt-2">
+              <div className="flex flex-wrap items-center gap-3 text-xs text-text-secondary mt-2">
                 <span className="flex items-center gap-1">
                   <Star size={11} className="text-accent-orange" />
                   {player.position}
@@ -362,6 +370,33 @@ export default function PlayerLabPage() {
           )}
         </GlassCard>
       </motion.section>
+
+      {/* ── Playoff Accolades ─────────────────────────────────────────── */}
+      {(seasonType === 'playoffs' || seasonType === 'combined') && (
+        <motion.section className="mb-8" initial="hidden" animate="visible" variants={fadeUp}>
+          <PlayoffAccolades
+            playerName={playerName}
+            awards={awards}
+            playoffStats={
+              seasonType === 'combined'
+                ? stats.filter((s: Record<string, unknown>) => s.dataSource === 'playoffs')
+                : stats
+            }
+          />
+        </motion.section>
+      )}
+
+      {seasonType === 'playoffs' && stats.length === 0 && (
+        <motion.section className="mb-8" initial="hidden" animate="visible" variants={fadeUp}>
+          <PlayoffEmptyState
+            title="No Playoff Data"
+            message={`Playoff statistics for ${playerName} are not yet available.`}
+          />
+        </motion.section>
+      )}
+
+      {/* ── Data Sections (wrapped in error boundary) ─────────────────── */}
+      <SeasonErrorBoundary>
 
       {/* ── Season Selector ───────────────────────────────────────────── */}
       <motion.div
@@ -610,6 +645,45 @@ export default function PlayerLabPage() {
         </motion.section>
       )}
 
+      {/* ── Explore More ────────────────────────────────────────────────── */}
+      <motion.section
+        className="mb-8"
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true }}
+        variants={stagger}
+      >
+        <motion.div variants={fadeUp}>
+          <SectionHeader title="Explore More" className="mb-4" />
+        </motion.div>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <motion.div variants={fadeUp}>
+            <Link href={`/player/${encodeURIComponent(playerName)}/timeline`}>
+              <GlassCard hoverable className="p-4">
+                <p className="text-sm font-semibold text-chrome-light mb-1">Career Timeline</p>
+                <p className="text-xs text-chrome-dim">Draft, trades, awards, milestones</p>
+              </GlassCard>
+            </Link>
+          </motion.div>
+          <motion.div variants={fadeUp}>
+            <Link href={`/zones/${encodeURIComponent(playerName)}`}>
+              <GlassCard hoverable className="p-4">
+                <p className="text-sm font-semibold text-chrome-light mb-1">Hot Zones</p>
+                <p className="text-xs text-chrome-dim">Shot heatmap and zone efficiency</p>
+              </GlassCard>
+            </Link>
+          </motion.div>
+          <motion.div variants={fadeUp}>
+            <Link href={`/matchup`}>
+              <GlassCard hoverable className="p-4">
+                <p className="text-sm font-semibold text-chrome-light mb-1">Head-to-Head</p>
+                <p className="text-xs text-chrome-dim">Matchup stats vs top rivals</p>
+              </GlassCard>
+            </Link>
+          </motion.div>
+        </div>
+      </motion.section>
+
       {/* ── Season-by-Season Table ─────────────────────────────────────── */}
       <motion.section
         className="mb-8"
@@ -676,6 +750,8 @@ export default function PlayerLabPage() {
           </GlassCard>
         </motion.div>
       </motion.section>
+
+      </SeasonErrorBoundary>
     </div>
   );
 }
@@ -745,14 +821,14 @@ function CareerTrendsChart({ stats, selectedSeason }: { readonly stats: readonly
                 y1={y}
                 x2={width - padding.right}
                 y2={y}
-                stroke="rgba(255,255,255,0.06)"
+                stroke="rgba(0,0,0,0.06)"
                 strokeWidth={1}
               />
               <text
                 x={padding.left - 6}
                 y={y + 3}
                 textAnchor="end"
-                fill="rgba(255,255,255,0.3)"
+                fill="rgba(0,0,0,0.3)"
                 fontSize={9}
               >
                 {val}
@@ -772,7 +848,7 @@ function CareerTrendsChart({ stats, selectedSeason }: { readonly stats: readonly
               x={xScale(i)}
               y={height - 6}
               textAnchor="middle"
-              fill="rgba(255,255,255,0.3)"
+              fill="rgba(0,0,0,0.3)"
               fontSize={8}
             >
               {s.season.split('-')[0]}

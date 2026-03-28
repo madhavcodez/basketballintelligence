@@ -38,7 +38,7 @@ const sizeStyles: Record<ChipSize, { wrapper: string; value: string; label: stri
 const trendConfig: Record<TrendDirection, { icon: typeof TrendingUp; color: string }> = {
   up: { icon: TrendingUp, color: 'text-accent-green' },
   down: { icon: TrendingDown, color: 'text-accent-red' },
-  neutral: { icon: Minus, color: 'text-chrome-dim' },
+  neutral: { icon: Minus, color: 'text-text-tertiary' },
 };
 
 export default function MetricChip({
@@ -57,15 +57,15 @@ export default function MetricChip({
         styles.wrapper,
         highlight
           ? 'bg-accent-orange/[0.08] border border-accent-orange/20'
-          : 'bg-glass-bg border border-glass-border',
+          : 'bg-bg-secondary border border-black/[0.06]',
       )}
     >
       <div className="flex items-center gap-1">
         <span
           className={clsx(
             styles.value,
-            'font-display leading-none',
-            highlight ? 'text-accent-orange' : 'text-chrome-light',
+            'font-mono leading-none',
+            highlight ? 'text-accent-orange' : 'text-text-primary',
           )}
         >
           {value}
@@ -76,7 +76,7 @@ export default function MetricChip({
         className={clsx(
           styles.label,
           'uppercase font-medium leading-none',
-          highlight ? 'text-accent-orange/70' : 'text-chrome-dim',
+          highlight ? 'text-accent-orange/70' : 'text-text-tertiary',
         )}
       >
         {label}

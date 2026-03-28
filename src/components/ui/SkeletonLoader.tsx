@@ -37,8 +37,8 @@ export default function SkeletonLoader({
           key={i}
           className={clsx(
             'shimmer',
-            'bg-glass-bg',
-            'animate-shimmer bg-[length:200%_100%] bg-gradient-to-r from-transparent via-white/[0.04] to-transparent',
+            'bg-[#F5F5F7]',
+            'animate-shimmer bg-[length:200%_100%] bg-gradient-to-r from-transparent via-black/[0.03] to-transparent',
             roundedMap[rounded],
             className,
           )}

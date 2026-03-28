@@ -14,6 +14,7 @@ import {
 import Link from 'next/link';
 import GlassCard from '@/components/ui/GlassCard';
 import PlayerAvatar from '@/components/ui/PlayerAvatar';
+import TeamLogo from '@/components/ui/TeamLogo';
 import Badge from '@/components/ui/Badge';
 import SectionHeader from '@/components/ui/SectionHeader';
 import SkeletonLoader from '@/components/ui/SkeletonLoader';
@@ -28,6 +29,7 @@ interface FeaturedPlayer {
   readonly points?: number;
   readonly rebounds?: number;
   readonly assists?: number;
+  readonly personId?: number;
 }
 
 interface SearchResult {
@@ -35,6 +37,7 @@ interface SearchResult {
   readonly name: string;
   readonly position: string;
   readonly active: number;
+  readonly personId?: number;
 }
 
 interface Team {
@@ -44,6 +47,7 @@ interface Team {
   readonly nickname: string;
   readonly conference?: string;
   readonly division?: string;
+  readonly teamId?: number;
 }
 
 interface ExploreData {
@@ -159,12 +163,12 @@ export default function ExplorePage() {
         </motion.div>
         <motion.h1
           variants={fadeUp}
-          className="text-3xl sm:text-4xl font-extrabold tracking-tight text-chrome-light mb-2"
+          className="text-3xl sm:text-4xl font-extrabold tracking-tight text-text-primary mb-2 font-display"
         >
           Explore the Database
         </motion.h1>
-        <motion.p variants={fadeUp} className="text-chrome-dim text-sm sm:text-base">
-          {loading ? 'Loading…' : (
+        <motion.p variants={fadeUp} className="text-text-secondary text-sm sm:text-base">
+          {loading ? 'Loading...' : (
             exploreData?.edition
               ? `${exploreData.edition.playerCount.toLocaleString()} players · ${exploreData.edition.shotCount.toLocaleString()} shots · ${exploreData.edition.earliestSeason}–${exploreData.edition.latestSeason}`
               : 'Search players and teams across all seasons'
@@ -183,19 +187,19 @@ export default function ExplorePage() {
         <div className="relative">
           <Search
             size={18}
-            className="absolute left-4 top-1/2 -translate-y-1/2 text-chrome-dim pointer-events-none"
+            className="absolute left-4 top-1/2 -translate-y-1/2 text-text-tertiary pointer-events-none"
           />
           <input
             type="text"
             value={query}
             onChange={(e) => handleSearch(e.target.value)}
-            placeholder="Search players by name…"
-            className="w-full h-12 pl-11 pr-10 rounded-xl bg-glass-bg border border-glass-border text-chrome-light placeholder:text-chrome-dim text-sm focus:outline-none focus:border-accent-orange/60 focus:bg-white/[0.08] transition-all"
+            placeholder="Search players by name..."
+            className="w-full h-12 pl-11 pr-10 rounded-xl bg-white border border-black/[0.12] text-text-primary placeholder:text-text-tertiary text-sm focus:outline-none focus:border-accent-blue/40 focus:shadow-[0_0_0_3px_rgba(0,113,227,0.1)] transition-all"
             aria-label="Search players"
           />
           {query && (
             <button
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-chrome-dim hover:text-chrome-light transition-colors"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-text-tertiary hover:text-text-primary transition-colors"
               onClick={() => { setQuery(''); setSearchResults([]); setSearchOpen(false); }}
               aria-label="Clear search"
             >
@@ -208,7 +212,7 @@ export default function ExplorePage() {
         <AnimatePresence>
           {searchOpen && searchResults.length > 0 && (
             <motion.div
-              className="absolute top-full left-0 right-0 mt-2 z-40 bg-dark-elevated border border-glass-border rounded-xl overflow-hidden shadow-elevated"
+              className="absolute top-full left-0 right-0 mt-2 z-40 bg-white border border-black/[0.08] rounded-xl overflow-hidden shadow-[0_8px_40px_rgba(0,0,0,0.12)]"
               initial={{ opacity: 0, y: -8, scale: 0.98 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -8, scale: 0.98 }}
@@ -219,19 +223,19 @@ export default function ExplorePage() {
                   key={player.id}
                   href={`/player/${encodeURIComponent(player.name)}`}
                   onClick={() => setSearchOpen(false)}
-                  className="flex items-center gap-3 px-4 py-3 hover:bg-white/[0.05] transition-colors group"
+                  className="flex items-center gap-3 px-4 py-3 hover:bg-bg-secondary transition-colors group no-underline"
                 >
-                  <PlayerAvatar name={player.name} size="sm" />
+                  <PlayerAvatar name={player.name} playerId={player.personId} size="sm" />
                   <div className="flex-1 min-w-0">
-                    <div className="text-sm font-medium text-chrome-light group-hover:text-white truncate">
+                    <div className="text-sm font-medium text-text-primary group-hover:text-text-primary truncate">
                       {player.name}
                     </div>
-                    <div className="text-xs text-chrome-dim">{player.position}</div>
+                    <div className="text-xs text-text-tertiary">{player.position}</div>
                   </div>
                   <Badge variant={player.active ? 'accent' : 'default'} className="shrink-0">
                     {player.active ? 'Active' : 'Retired'}
                   </Badge>
-                  <ChevronRight size={14} className="text-chrome-faint group-hover:text-chrome-dim transition-colors" />
+                  <ChevronRight size={14} className="text-text-tertiary group-hover:text-text-secondary transition-colors" />
                 </Link>
               ))}
             </motion.div>
@@ -253,7 +257,7 @@ export default function ExplorePage() {
             className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
               activeTab === tab
                 ? 'bg-accent-orange text-white'
-                : 'bg-glass-bg border border-glass-border text-chrome-dim hover:text-chrome-light hover:bg-white/[0.08]'
+                : 'bg-bg-secondary border border-black/[0.06] text-text-secondary hover:text-text-primary hover:bg-white'
             }`}
           >
             {tab === 'players' ? <Users size={15} /> : <Shield size={15} />}
@@ -272,15 +276,15 @@ export default function ExplorePage() {
         >
           {/* Position filter chips */}
           <div className="flex items-center gap-2 mb-5 flex-wrap">
-            <SlidersHorizontal size={14} className="text-chrome-dim shrink-0" />
+            <SlidersHorizontal size={14} className="text-text-tertiary shrink-0" />
             {POSITIONS.map((pos) => (
               <button
                 key={pos}
                 onClick={() => setPositionFilter(pos)}
                 className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${
                   positionFilter === pos
-                    ? 'bg-accent-orange/20 text-accent-orange border border-accent-orange/40'
-                    : 'bg-glass-bg border border-glass-border text-chrome-dim hover:text-chrome-light'
+                    ? 'bg-accent-orange/10 text-accent-orange border border-accent-orange/30'
+                    : 'bg-bg-secondary border border-black/[0.06] text-text-secondary hover:text-text-primary'
                 }`}
               >
                 {pos}
@@ -296,7 +300,7 @@ export default function ExplorePage() {
               ))}
             </div>
           ) : filteredPlayers.length === 0 ? (
-            <div className="text-center py-16 text-chrome-dim">
+            <div className="text-center py-16 text-text-tertiary">
               <Users size={32} className="mx-auto mb-3 opacity-40" />
               <p className="text-sm">No players found for this position filter.</p>
             </div>
@@ -309,27 +313,27 @@ export default function ExplorePage() {
             >
               {filteredPlayers.map((player) => (
                 <motion.div key={`${player.name}-${player.season}`} variants={fadeUp}>
-                  <Link href={`/player/${encodeURIComponent(player.name)}`}>
+                  <Link href={`/player/${encodeURIComponent(player.name)}`} className="no-underline">
                     <GlassCard hoverable pressable className="p-4 h-full">
                       <div className="flex flex-col gap-2">
-                        <PlayerAvatar name={player.name} size="md" />
+                        <PlayerAvatar name={player.name} playerId={player.personId} size="md" />
                         <div>
-                          <div className="text-sm font-semibold text-chrome-light leading-tight truncate">
+                          <div className="text-sm font-semibold text-text-primary leading-tight truncate">
                             {player.name}
                           </div>
-                          <div className="text-xs text-chrome-dim mt-0.5">
+                          <div className="text-xs text-text-tertiary mt-0.5">
                             {player.position} · {player.team}
                           </div>
                         </div>
-                        {(player.points !== undefined || player.rebounds !== undefined || player.assists !== undefined) && (
+                        {(player.points !== undefined || player.assists !== undefined) && (
                           <div className="flex gap-2 mt-1">
                             {player.points !== undefined && (
-                              <span className="text-xs text-accent-orange font-bold">
+                              <span className="text-xs text-accent-orange font-bold font-mono">
                                 {Number(player.points).toFixed(1)} PPG
                               </span>
                             )}
                             {player.assists !== undefined && (
-                              <span className="text-xs text-chrome-dim">
+                              <span className="text-xs text-text-tertiary font-mono">
                                 {Number(player.assists).toFixed(1)} APG
                               </span>
                             )}
@@ -358,30 +362,30 @@ export default function ExplorePage() {
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: idx * 0.04 }}
                   >
-                    <Link href={`/player/${encodeURIComponent(player.name)}`}>
+                    <Link href={`/player/${encodeURIComponent(player.name)}`} className="no-underline">
                       <GlassCard hoverable className="px-4 py-3">
                         <div className="flex items-center gap-3">
-                          <span className="text-xs font-bold text-chrome-faint w-5 text-right shrink-0">
+                          <span className="text-xs font-bold text-text-tertiary w-5 text-right shrink-0 font-mono">
                             {idx + 1}
                           </span>
-                          <PlayerAvatar name={player.name} size="sm" />
+                          <PlayerAvatar name={player.name} playerId={player.personId} size="sm" />
                           <div className="flex-1 min-w-0">
-                            <div className="text-sm font-medium text-chrome-light truncate">
+                            <div className="text-sm font-medium text-text-primary truncate">
                               {player.name}
                             </div>
-                            <div className="text-xs text-chrome-dim">
+                            <div className="text-xs text-text-tertiary">
                               {player.position} · {player.team}
                             </div>
                           </div>
                           {player.points !== undefined && (
                             <div className="text-right shrink-0">
-                              <div className="text-base font-bold text-accent-orange">
+                              <div className="text-base font-bold text-accent-orange font-mono">
                                 {Number(player.points).toFixed(1)}
                               </div>
-                              <div className="text-xs text-chrome-dim">PPG</div>
+                              <div className="text-xs text-text-tertiary">PPG</div>
                             </div>
                           )}
-                          <ChevronRight size={14} className="text-chrome-faint shrink-0" />
+                          <ChevronRight size={14} className="text-text-tertiary shrink-0" />
                         </div>
                       </GlassCard>
                     </Link>
@@ -408,7 +412,7 @@ export default function ExplorePage() {
               ))}
             </div>
           ) : teams.length === 0 ? (
-            <div className="text-center py-16 text-chrome-dim">
+            <div className="text-center py-16 text-text-tertiary">
               <Shield size={32} className="mx-auto mb-3 opacity-40" />
               <p className="text-sm">No teams found.</p>
             </div>
@@ -421,24 +425,19 @@ export default function ExplorePage() {
             >
               {teams.map((team) => (
                 <motion.div key={team.abbreviation} variants={fadeUp}>
-                  <Link href={`/team/${team.abbreviation}`}>
+                  <Link href={`/team/${team.abbreviation}`} className="no-underline">
                     <GlassCard hoverable pressable className="p-4 h-full">
                       <div className="flex flex-col gap-2">
-                        <div
-                          className="w-10 h-10 rounded-lg flex items-center justify-center text-sm font-extrabold text-white"
-                          style={{ background: 'linear-gradient(135deg, #4DA6FF, #6366F1)' }}
-                        >
-                          {team.abbreviation}
-                        </div>
+                        <TeamLogo teamAbbr={team.abbreviation} teamId={team.teamId} size="lg" />
                         <div>
-                          <div className="text-sm font-semibold text-chrome-light leading-tight">
+                          <div className="text-sm font-semibold text-text-primary leading-tight">
                             {team.nickname}
                           </div>
-                          <div className="text-xs text-chrome-dim mt-0.5">
+                          <div className="text-xs text-text-tertiary mt-0.5">
                             {team.city}
                           </div>
                           {team.conference && (
-                            <div className="text-xs text-chrome-faint mt-0.5">
+                            <div className="text-xs text-text-tertiary mt-0.5">
                               {team.conference} · {team.division}
                             </div>
                           )}

@@ -18,11 +18,11 @@ export default function SectionHeader({
     <div className={clsx('flex items-end justify-between gap-4', className)}>
       <div className="flex flex-col gap-1">
         {eyebrow && (
-          <span className="text-[10px] sm:text-xs font-semibold uppercase tracking-wider text-accent-orange">
+          <span className="text-[10px] sm:text-xs font-semibold uppercase tracking-wider text-text-tertiary">
             {eyebrow}
           </span>
         )}
-        <h2 className="text-lg sm:text-xl font-bold tracking-tight text-chrome-light font-display">
+        <h2 className="text-lg sm:text-xl font-bold tracking-tight text-text-primary font-display">
           {title}
         </h2>
       </div>

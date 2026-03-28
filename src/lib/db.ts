@@ -35,7 +35,8 @@ export function searchPlayers(query: string, limit: number | string = 20, offset
     SELECT DISTINCT p.rowid as id, p.Player as name, p.Pos as position,
            p.Height as height, p.Weight as weight, p.College as college,
            p.BirthDate as birthDate, p.HOF as hof, p.Active as active,
-           p."From" as fromYear, p."To" as toYear
+           p."From" as fromYear, p."To" as toYear,
+           p.person_id as personId
     FROM players p
     WHERE p.Player LIKE ?
     ORDER BY p.Active DESC, p.Player ASC
@@ -48,7 +49,8 @@ export function getPlayer(name: string) {
   const player = db.prepare(`
     SELECT rowid as id, Player as name, Pos as position, Height as height,
            Weight as weight, College as college, BirthDate as birthDate,
-           HOF as hof, Active as active, "From" as fromYear, "To" as toYear
+           HOF as hof, Active as active, "From" as fromYear, "To" as toYear,
+           person_id as personId
     FROM players WHERE Player = ?
   `).get(name);
   return player;
@@ -296,6 +298,7 @@ export function getFeaturedPlayers(limit = 12) {
   const db = getDb();
   return db.prepare(`
     SELECT p.Player as name, p.Pos as position, p.Active as active,
+           p.person_id as personId,
            s.Season as season, s.Tm as team, s.PTS as points, s.TRB as rebounds,
            s.AST as assists, s.G as games
     FROM players p
@@ -312,12 +315,14 @@ export function getTopScorers(season?: string, limit = 10) {
     `SELECT MAX(Season) as s FROM player_stats_pergame`
   ).get() as { s: string })?.s;
   return db.prepare(`
-    SELECT Player as name, Tm as team, Pos as position,
-           G as games, PTS as points, TRB as rebounds, AST as assists,
-           FGPct as fgPct, "3PPct" as fg3Pct
-    FROM player_stats_pergame
-    WHERE Season = ? AND CAST(G as INTEGER) >= 20
-    ORDER BY CAST(PTS as FLOAT) DESC
+    SELECT s.Player as name, s.Tm as team, s.Pos as position,
+           s.G as games, s.PTS as points, s.TRB as rebounds, s.AST as assists,
+           s.FGPct as fgPct, s."3PPct" as fg3Pct,
+           p.person_id as personId
+    FROM player_stats_pergame s
+    LEFT JOIN players p ON s.Player = p.Player
+    WHERE s.Season = ? AND CAST(s.G as INTEGER) >= 20
+    ORDER BY CAST(s.PTS as FLOAT) DESC
     LIMIT ?
   `).all(targetSeason, limit);
 }

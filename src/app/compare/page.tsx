@@ -18,6 +18,7 @@ import SkeletonLoader from '@/components/ui/SkeletonLoader';
 import Badge from '@/components/ui/Badge';
 import PlayerAvatar from '@/components/ui/PlayerAvatar';
 import BasketballCourt from '@/components/court/BasketballCourt';
+import { useSeasonType } from '@/lib/season-context';
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -101,6 +102,7 @@ function zoneColor(fgPct: number): string {
 function ComparePageInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { seasonType } = useSeasonType();
 
   const p1Param = searchParams.get('p1') ?? '';
   const p2Param = searchParams.get('p2') ?? '';
@@ -136,9 +138,10 @@ function ComparePageInner() {
       setLoading(true);
       setError(null);
       try {
-        const url = new URL('/api/compare', window.location.origin);
+        const url = new URL('/api/v2/compare', window.location.origin);
         url.searchParams.set('p1', player1);
         url.searchParams.set('p2', player2);
+        url.searchParams.set('seasonType', seasonType);
         if (season) url.searchParams.set('season', season);
 
         const res = await fetch(url.toString());
@@ -157,7 +160,7 @@ function ComparePageInner() {
     }
     load();
     return () => { cancelled = true; };
-  }, [player1, player2, season]);
+  }, [player1, player2, season, seasonType]);
 
   // Update URL when players change
   useEffect(() => {
@@ -240,7 +243,7 @@ function ComparePageInner() {
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mb-4">
         <Link
           href="/explore"
-          className="inline-flex items-center gap-1 text-xs text-chrome-dim hover:text-chrome-medium transition-colors"
+          className="inline-flex items-center gap-1 text-xs text-text-tertiary hover:text-text-secondary transition-colors no-underline"
         >
           <ArrowLeft size={12} /> Explore
         </Link>
@@ -579,6 +582,20 @@ function ComparePageInner() {
                 </div>
               </motion.div>
             )}
+            {/* Cross-link to matchup */}
+            <motion.div variants={fadeUp} className="mt-6">
+              <Link
+                href={`/matchup/${encodeURIComponent(data.player1.name.toLowerCase().replace(/['.]/g, '').replace(/\s+/g, '-'))}-vs-${encodeURIComponent(data.player2.name.toLowerCase().replace(/['.]/g, '').replace(/\s+/g, '-'))}`}
+                className="block"
+              >
+                <GlassCard hoverable tintColor="#FF6B35" className="p-4 text-center">
+                  <p className="text-sm font-semibold text-chrome-light">
+                    See their actual games against each other &rarr;
+                  </p>
+                  <p className="text-xs text-chrome-dim mt-1">Head-to-head matchup breakdown</p>
+                </GlassCard>
+              </Link>
+            </motion.div>
           </>
         )}
       </motion.div>

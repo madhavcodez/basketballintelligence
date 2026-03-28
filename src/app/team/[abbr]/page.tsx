@@ -21,6 +21,10 @@ import SectionHeader from '@/components/ui/SectionHeader';
 import MetricChip from '@/components/ui/MetricChip';
 import SkeletonLoader from '@/components/ui/SkeletonLoader';
 import Badge from '@/components/ui/Badge';
+import TeamLogo from '@/components/ui/TeamLogo';
+import PlayerAvatar from '@/components/ui/PlayerAvatar';
+import { useSeasonType } from '@/lib/season-context';
+import { NBA_TEAM_IDS } from '@/lib/nba-assets';
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -177,7 +181,7 @@ function RatingBar({
       </div>
       <svg viewBox="0 0 300 16" className="w-full h-4" role="img" aria-label={`${label}: ${value}`}>
         {/* Background track */}
-        <rect x="0" y="4" width="300" height="8" rx="4" fill="rgba(255,255,255,0.06)" />
+        <rect x="0" y="4" width="300" height="8" rx="4" fill="rgba(0,0,0,0.04)" />
         {/* Value bar */}
         <motion.rect
           x="0"
@@ -196,7 +200,7 @@ function RatingBar({
           y1="1"
           x2={(avgPct / 100) * 300}
           y2="15"
-          stroke="rgba(255,255,255,0.5)"
+          stroke="rgba(0,0,0,0.3)"
           strokeWidth="1.5"
           strokeDasharray="2 2"
         />
@@ -204,7 +208,7 @@ function RatingBar({
           x={(avgPct / 100) * 300}
           y="15"
           textAnchor="middle"
-          fill="rgba(255,255,255,0.4)"
+          fill="rgba(0,0,0,0.3)"
           fontSize="6"
           dy="6"
         >
@@ -274,7 +278,7 @@ function SeasonTrendLine({ data }: { readonly data: readonly { season: string; w
           cx={p.x}
           cy={p.y}
           r="4"
-          fill="#0a0a12"
+          fill="#FFFFFF"
           stroke="#FF6B35"
           strokeWidth="2"
           initial={{ scale: 0 }}
@@ -289,7 +293,7 @@ function SeasonTrendLine({ data }: { readonly data: readonly { season: string; w
             x={p.x}
             y={padding.top + chartH + 16}
             textAnchor="middle"
-            fill="rgba(255,255,255,0.44)"
+            fill="rgba(0,0,0,0.3)"
             fontSize="8"
           >
             {p.season.replace(/-.+/, '')}
@@ -298,7 +302,7 @@ function SeasonTrendLine({ data }: { readonly data: readonly { season: string; w
             x={p.x}
             y={p.y - 10}
             textAnchor="middle"
-            fill="rgba(255,255,255,0.7)"
+            fill="rgba(0,0,0,0.6)"
             fontSize="8"
             fontWeight="600"
           >
@@ -346,6 +350,7 @@ function TeamSkeleton() {
 export default function TeamDNAPage() {
   const params = useParams();
   const abbr = (params?.abbr as string)?.toUpperCase() ?? '';
+  const { seasonType } = useSeasonType();
 
   const [data, setData] = useState<TeamData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -364,11 +369,20 @@ export default function TeamDNAPage() {
       setLoading(true);
       setError(null);
       try {
-        const res = await fetch(`/api/teams/${encodeURIComponent(abbr)}`);
-        if (!res.ok) throw new Error(`Failed to load team data (${res.status})`);
-        const json: TeamData = await res.json();
+        const [teamRes, lineupsRes] = await Promise.all([
+          fetch(`/api/v2/teams/${encodeURIComponent(abbr)}?seasonType=${seasonType}`),
+          fetch(`/api/v2/lineups?team=${encodeURIComponent(abbr)}&seasonType=${seasonType}`),
+        ]);
+        if (!teamRes.ok) throw new Error(`Failed to load team data (${teamRes.status})`);
+        const teamJson = await teamRes.json();
+        const lineupsJson = lineupsRes.ok ? await lineupsRes.json() : { data: [] };
         if (!cancelled) {
-          setData(json);
+          setData({
+            stats: teamJson.stats,
+            roster: teamJson.roster.data,
+            lineups: lineupsJson.data,
+            advanced: teamJson.advanced,
+          });
           setLoading(false);
         }
       } catch (err) {
@@ -381,7 +395,7 @@ export default function TeamDNAPage() {
 
     fetchTeam();
     return () => { cancelled = true; };
-  }, [abbr]);
+  }, [abbr, seasonType]);
 
   // Current season derived data
   const currentSeason = data?.stats?.[selectedSeasonIdx] ?? null;
@@ -496,21 +510,19 @@ export default function TeamDNAPage() {
     >
       {/* ── Team Hero ─────────────────────────────────────────────────────── */}
       <motion.div variants={itemVariants}>
-        <GlassCard className="p-6 sm:p-8 shadow-[0_0_40px_rgba(255,107,53,0.06)]" tintColor="#FF6B35">
+        <GlassCard className="p-6 sm:p-8">
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-            <div className="flex items-center justify-center h-16 w-16 sm:h-20 sm:w-20 rounded-2xl bg-accent-orange/[0.12] border border-accent-orange/20">
-              <Shield size={32} className="text-accent-orange" />
-            </div>
+            <TeamLogo teamAbbr={abbr} teamId={NBA_TEAM_IDS[abbr]} size="xl" />
             <div className="flex-1">
               <div className="flex items-center gap-3 flex-wrap">
-                <h1 className="text-3xl sm:text-5xl font-extrabold tracking-[-0.02em] text-chrome-light font-display">
+                <h1 className="text-3xl sm:text-5xl font-extrabold tracking-[-0.02em] text-text-primary font-display">
                   {teamName}
                 </h1>
                 <Badge variant="accent">{abbr}</Badge>
               </div>
-              <p className="mt-1 text-sm text-chrome-medium">
+              <p className="mt-1 text-sm text-text-secondary">
                 {currentSeason.wins}W - {currentSeason.losses}L
-                <span className="text-chrome-dim ml-2">
+                <span className="text-text-tertiary ml-2">
                   ({currentSeason.games} games)
                 </span>
               </p>
@@ -532,8 +544,8 @@ export default function TeamDNAPage() {
                   'shrink-0 px-4 py-2 rounded-xl text-xs font-semibold transition-all duration-200',
                   'border backdrop-blur-xl',
                   idx === selectedSeasonIdx
-                    ? 'bg-accent-orange/[0.15] border-accent-orange/30 text-accent-orange'
-                    : 'bg-white/[0.04] border-white/[0.08] text-chrome-dim hover:text-chrome-medium hover:border-white/[0.16]',
+                    ? 'bg-accent-orange/[0.08] border-accent-orange/30 text-accent-orange'
+                    : 'bg-bg-secondary border-black/[0.06] text-text-secondary hover:text-text-primary',
                 )}
               >
                 {season}
@@ -651,11 +663,12 @@ export default function TeamDNAPage() {
                   >
                     <td className="px-3 py-2.5">
                       <div className="flex items-center gap-2">
+                        <PlayerAvatar name={player.name} size="sm" />
                         <Link
                           href={`/player/${encodeURIComponent(player.name)}`}
                           className={clsx(
-                            'font-medium hover:underline underline-offset-2 transition-colors',
-                            isTopScorer ? 'text-accent-orange hover:text-accent-orange/80' : 'text-chrome-light hover:text-white',
+                            'font-medium hover:underline underline-offset-2 transition-colors no-underline',
+                            isTopScorer ? 'text-accent-orange hover:text-accent-orange/80' : 'text-text-primary hover:text-text-primary',
                           )}
                         >
                           {player.name}

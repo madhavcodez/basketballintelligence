@@ -10,10 +10,10 @@ interface BadgeProps {
 }
 
 const variantStyles: Record<BadgeVariant, string> = {
-  default: 'bg-glass-bg border-glass-border text-chrome-medium',
-  accent: 'bg-accent-orange/[0.10] border-accent-orange/20 text-accent-orange',
-  success: 'bg-accent-green/[0.10] border-accent-green/20 text-accent-green',
-  warning: 'bg-accent-gold/[0.10] border-accent-gold/20 text-accent-gold',
+  default: 'bg-bg-secondary border-black/[0.06] text-text-secondary',
+  accent: 'bg-accent-orange/[0.08] border-accent-orange/20 text-accent-orange',
+  success: 'bg-accent-green/[0.08] border-accent-green/20 text-accent-green',
+  warning: 'bg-accent-gold/[0.08] border-accent-gold/20 text-accent-gold',
 };
 
 export default function Badge({

@@ -47,20 +47,17 @@ export default function SearchBar({
         className={clsx(
           'group relative flex items-center',
           'rounded-full',
-          'bg-glass-frosted backdrop-blur-xl',
-          'border border-glass-border',
+          'bg-white',
+          'border border-black/[0.12]',
           'transition-all duration-200',
-          'focus-within:border-accent-orange/40',
-          'focus-within:shadow-[0_0_16px_rgba(255,107,53,0.12)]',
+          'focus-within:border-accent-blue/40',
+          'focus-within:shadow-[0_0_0_3px_rgba(0,113,227,0.1)]',
         )}
       >
-        {/* Search icon */}
         <Search
           size={16}
-          className="ml-4 shrink-0 text-chrome-dim transition-colors group-focus-within:text-accent-orange"
+          className="ml-4 shrink-0 text-text-tertiary transition-colors group-focus-within:text-accent-blue"
         />
-
-        {/* Input */}
         <input
           ref={inputRef}
           type="text"
@@ -70,12 +67,10 @@ export default function SearchBar({
           className={clsx(
             'flex-1 bg-transparent',
             'px-3 py-3 sm:py-3.5',
-            'text-sm text-chrome-light placeholder:text-chrome-dim',
+            'text-sm text-text-primary placeholder:text-text-tertiary',
             'outline-none',
           )}
         />
-
-        {/* Clear button */}
         {value.length > 0 && (
           <button
             type="button"
@@ -83,8 +78,8 @@ export default function SearchBar({
             className={clsx(
               'mr-3 flex items-center justify-center',
               'h-6 w-6 rounded-full',
-              'bg-chrome-faint/40 text-chrome-medium',
-              'transition-colors hover:bg-chrome-faint hover:text-chrome-light',
+              'bg-black/[0.06] text-text-secondary',
+              'transition-colors hover:bg-black/[0.12] hover:text-text-primary',
             )}
             aria-label="Clear search"
           >

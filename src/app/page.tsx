@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   Search,
   FlaskConical,
@@ -14,6 +14,9 @@ import {
   Trophy,
   TrendingUp,
   Database,
+  Flame,
+  Swords,
+  Film,
 } from 'lucide-react';
 import Link from 'next/link';
 import GlassCard from '@/components/ui/GlassCard';
@@ -22,6 +25,10 @@ import SectionHeader from '@/components/ui/SectionHeader';
 import SkeletonLoader from '@/components/ui/SkeletonLoader';
 import Badge from '@/components/ui/Badge';
 import PlayerAvatar from '@/components/ui/PlayerAvatar';
+import TeamLogo from '@/components/ui/TeamLogo';
+import PlayoffBracket from '@/components/ui/PlayoffBracket';
+import { useSeasonType } from '@/lib/season-context';
+import { NBA_TEAM_IDS } from '@/lib/nba-assets';
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -32,6 +39,7 @@ interface TopScorer {
   readonly points: number;
   readonly rebounds: number;
   readonly assists: number;
+  readonly personId?: number;
 }
 
 interface CareerLeader {
@@ -49,6 +57,7 @@ interface StandingTeam {
   readonly wins: number;
   readonly losses: number;
   readonly pct: number;
+  readonly teamId?: number;
 }
 
 interface DataEdition {
@@ -65,6 +74,7 @@ interface SearchResult {
   readonly name: string;
   readonly position: string;
   readonly active: number;
+  readonly personId?: number;
 }
 
 interface ExploreData {
@@ -89,7 +99,7 @@ const QUICK_LINKS = [
     icon: GitCompareArrows,
     title: 'Compare Studio',
     description: 'Head-to-head comparison of any two players across every stat.',
-    color: '#4DA6FF',
+    color: '#0071E3',
   },
   {
     href: '/shot-lab',
@@ -99,7 +109,7 @@ const QUICK_LINKS = [
     color: '#34D399',
   },
   {
-    href: '/explore',
+    href: '/team/LAL',
     icon: Shield,
     title: 'Team DNA',
     description: 'Team stats, rosters, advanced metrics, and game logs.',
@@ -111,6 +121,27 @@ const QUICK_LINKS = [
     title: 'Stories',
     description: 'Auto-generated narratives about players, seasons, and rivalries.',
     color: '#FBBF24',
+  },
+  {
+    href: '/zones',
+    icon: Flame,
+    title: 'Hot Zones',
+    description: 'Hexbin heatmaps and zone-by-zone shooting efficiency for every player.',
+    color: '#ef4444',
+  },
+  {
+    href: '/matchup',
+    icon: Swords,
+    title: 'Head-to-Head',
+    description: 'Compare how any two players performed in their actual games against each other.',
+    color: '#F87171',
+  },
+  {
+    href: '/film',
+    icon: Film,
+    title: 'Film Room',
+    description: 'Video clip analysis with AI tagging, event detection, and play-by-play alignment.',
+    color: '#60a5fa',
   },
   {
     href: '/play',
@@ -133,9 +164,16 @@ const fadeSlideUp = {
   visible: { opacity: 1, y: 0, transition: { duration: 0.45, ease: [0.4, 0, 0.2, 1] as const } },
 };
 
+// ── Helper to resolve team abbreviation to team ID ──────────────────────────
+
+function teamAbbrToId(abbr: string): number | undefined {
+  return NBA_TEAM_IDS[abbr.toUpperCase()];
+}
+
 // ── Component ────────────────────────────────────────────────────────────────
 
 export default function ExplorePage() {
+  const { seasonType } = useSeasonType();
   const [data, setData] = useState<ExploreData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -150,13 +188,19 @@ export default function ExplorePage() {
   // Fetch explore data
   useEffect(() => {
     let cancelled = false;
+    setLoading(true);
     async function load() {
       try {
-        const res = await fetch('/api/explore');
+        const res = await fetch(`/api/v2/explore?seasonType=${seasonType}`);
         if (!res.ok) throw new Error('Failed to load explore data');
         const json = await res.json();
         if (!cancelled) {
-          setData(json);
+          setData({
+            topScorers: json.topScorers.data,
+            allTimeScorers: json.careerLeaders,
+            standings: json.standings.data,
+            edition: json.dataEdition,
+          });
           setLoading(false);
         }
       } catch (err) {
@@ -168,7 +212,7 @@ export default function ExplorePage() {
     }
     load();
     return () => { cancelled = true; };
-  }, []);
+  }, [seasonType]);
 
   // Debounced player search
   const handleSearch = useCallback((value: string) => {
@@ -211,8 +255,8 @@ export default function ExplorePage() {
       <div className="flex flex-col items-center justify-center min-h-[60vh] px-6">
         <GlassCard className="p-8 text-center max-w-md">
           <Database size={40} className="mx-auto mb-4 text-accent-red" />
-          <h2 className="text-lg font-bold text-chrome-light mb-2">Something went wrong</h2>
-          <p className="text-sm text-chrome-dim">{error}</p>
+          <h2 className="text-lg font-bold text-text-primary mb-2">Something went wrong</h2>
+          <p className="text-sm text-text-secondary">{error}</p>
         </GlassCard>
       </div>
     );
@@ -238,7 +282,7 @@ export default function ExplorePage() {
       >
         <motion.div variants={fadeSlideUp}>
           {data?.edition && (
-            <Badge variant="accent" className="mb-4">
+            <Badge variant="default" className="mb-4">
               <Database size={10} className="mr-1" />
               {data.edition.playerCount.toLocaleString()} players &middot;{' '}
               {data.edition.shotCount.toLocaleString()} shots &middot;{' '}
@@ -249,23 +293,16 @@ export default function ExplorePage() {
 
         <motion.h1
           variants={fadeSlideUp}
-          className="text-3xl sm:text-5xl font-extrabold tracking-tight leading-tight font-display mb-3"
+          className="text-4xl sm:text-6xl font-extrabold tracking-tight leading-tight font-display mb-3 text-text-primary"
         >
-          <span
-            className="bg-clip-text text-transparent"
-            style={{
-              backgroundImage: 'linear-gradient(135deg, #FF6B35, #FBBF24)',
-            }}
-          >
-            Basketball Intelligence
-          </span>
+          Basketball Intelligence
           <br />
-          <span className="text-chrome-light">Playground</span>
+          <span className="text-text-secondary font-bold">Playground</span>
         </motion.h1>
 
         <motion.p
           variants={fadeSlideUp}
-          className="text-sm sm:text-base text-chrome-medium max-w-xl mx-auto leading-relaxed"
+          className="text-sm sm:text-base text-text-secondary max-w-xl mx-auto leading-relaxed"
         >
           The most beautiful way to explore how basketball players and teams actually play.
         </motion.p>
@@ -276,10 +313,10 @@ export default function ExplorePage() {
           className="mt-8 max-w-lg mx-auto relative"
           ref={searchRef}
         >
-          <div className="group relative flex items-center rounded-full bg-glass-frosted backdrop-blur-xl border border-glass-border transition-all duration-200 focus-within:border-accent-orange/40 focus-within:shadow-[0_0_16px_rgba(255,107,53,0.12)]">
+          <div className="group relative flex items-center rounded-full bg-white border border-black/[0.12] transition-all duration-200 focus-within:border-accent-blue/40 focus-within:shadow-[0_0_0_3px_rgba(0,113,227,0.1)]">
             <Search
               size={16}
-              className="ml-4 shrink-0 text-chrome-dim transition-colors group-focus-within:text-accent-orange"
+              className="ml-4 shrink-0 text-text-tertiary transition-colors group-focus-within:text-accent-blue"
             />
             <input
               type="text"
@@ -288,7 +325,7 @@ export default function ExplorePage() {
               onChange={(e) => handleSearch(e.target.value)}
               onFocus={() => { if (results.length > 0) setSearchOpen(true); }}
               placeholder="Search players, teams, stats..."
-              className="flex-1 bg-transparent px-3 py-3 sm:py-3.5 text-sm text-chrome-light placeholder:text-chrome-dim outline-none"
+              className="flex-1 bg-transparent px-3 py-3 sm:py-3.5 text-sm text-text-primary placeholder:text-text-tertiary outline-none"
             />
           </div>
 
@@ -297,19 +334,19 @@ export default function ExplorePage() {
             <motion.div
               initial={{ opacity: 0, y: -4 }}
               animate={{ opacity: 1, y: 0 }}
-              className="absolute z-30 mt-2 w-full rounded-2xl bg-dark-elevated/95 backdrop-blur-xl border border-glass-border shadow-[0_8px_40px_rgba(0,0,0,0.4)] overflow-hidden"
+              className="absolute z-30 mt-2 w-full rounded-2xl bg-white border border-black/[0.08] shadow-[0_8px_40px_rgba(0,0,0,0.12)] overflow-hidden"
             >
               {results.map((r) => (
                 <Link
                   key={r.id}
                   href={`/player/${encodeURIComponent(r.name)}`}
-                  className="flex items-center gap-3 px-4 py-3 hover:bg-glass-frosted transition-colors"
+                  className="flex items-center gap-3 px-4 py-3 hover:bg-bg-secondary transition-colors no-underline"
                   onClick={() => setSearchOpen(false)}
                 >
-                  <PlayerAvatar name={r.name} size="sm" />
+                  <PlayerAvatar name={r.name} playerId={r.personId} size="sm" />
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-chrome-light truncate">{r.name}</p>
-                    <p className="text-xs text-chrome-dim">{r.position}</p>
+                    <p className="text-sm font-medium text-text-primary truncate">{r.name}</p>
+                    <p className="text-xs text-text-tertiary">{r.position}</p>
                   </div>
                   {r.active === 1 && (
                     <Badge variant="success" className="text-[9px]">Active</Badge>
@@ -322,6 +359,8 @@ export default function ExplorePage() {
       </motion.section>
 
       {/* ── Top Scorers Carousel ──────────────────────────────────────── */}
+      <AnimatePresence mode="wait">
+      <motion.div key={seasonType} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }}>
       <motion.section
         className="mb-10"
         initial="hidden"
@@ -334,7 +373,7 @@ export default function ExplorePage() {
             title="Top Scorers"
             eyebrow="Current Season"
             action={
-              <Link href="/explore" className="text-xs text-accent-orange flex items-center gap-0.5 hover:underline">
+              <Link href="/explore" className="text-xs text-accent-blue flex items-center gap-0.5 hover:underline no-underline">
                 See all <ChevronRight size={12} />
               </Link>
             }
@@ -355,15 +394,15 @@ export default function ExplorePage() {
                   variants={fadeSlideUp}
                   className="shrink-0"
                 >
-                  <Link href={`/player/${encodeURIComponent(player.name)}`}>
+                  <Link href={`/player/${encodeURIComponent(player.name)}`} className="no-underline">
                     <GlassCard hoverable className="w-[180px] p-4">
                       <div className="flex items-center gap-2 mb-3">
-                        <PlayerAvatar name={player.name} size="sm" />
+                        <PlayerAvatar name={player.name} playerId={player.personId} size="sm" />
                         <div className="min-w-0">
-                          <p className="text-sm font-semibold text-chrome-light truncate">
+                          <p className="text-sm font-semibold text-text-primary truncate">
                             {player.name}
                           </p>
-                          <p className="text-[10px] text-chrome-dim uppercase tracking-wide">
+                          <p className="text-[10px] text-text-tertiary uppercase tracking-wide">
                             {player.team} &middot; {player.position}
                           </p>
                         </div>
@@ -412,13 +451,13 @@ export default function ExplorePage() {
                   <motion.div key={leader.name} variants={fadeSlideUp}>
                     <Link
                       href={`/player/${encodeURIComponent(leader.name)}`}
-                      className="flex items-center gap-3 px-2 py-2 rounded-xl hover:bg-glass-frosted transition-colors"
+                      className="flex items-center gap-3 px-2 py-2 rounded-xl hover:bg-bg-secondary transition-colors no-underline"
                     >
-                      <span className="w-7 text-right text-sm font-bold text-chrome-dim font-mono">
+                      <span className="w-7 text-right text-sm font-bold text-text-tertiary font-mono">
                         {leader.rank}
                       </span>
                       <PlayerAvatar name={leader.name} size="sm" />
-                      <span className="flex-1 text-sm font-medium text-chrome-light truncate">
+                      <span className="flex-1 text-sm font-medium text-text-primary truncate">
                         {leader.name}
                       </span>
                       <div className="flex items-center gap-2">
@@ -428,7 +467,7 @@ export default function ExplorePage() {
                         {leader.active === 1 && (
                           <Badge variant="success" className="text-[9px]">Active</Badge>
                         )}
-                        <span className="text-sm font-bold text-chrome-light font-mono">
+                        <span className="text-sm font-bold text-text-primary font-mono">
                           {Number(leader.value).toLocaleString()}
                         </span>
                       </div>
@@ -440,84 +479,108 @@ export default function ExplorePage() {
           </GlassCard>
         </motion.section>
 
-        {/* Standings */}
-        <motion.section
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, margin: '-40px' }}
-          variants={stagger}
-        >
-          <motion.div variants={fadeSlideUp}>
-            <SectionHeader
-              title="Standings"
-              eyebrow="Current Season"
-              action={
-                <Link href="/explore" className="text-xs text-accent-orange flex items-center gap-0.5 hover:underline">
-                  Full standings <ChevronRight size={12} />
-                </Link>
-              }
-              className="mb-4"
-            />
-          </motion.div>
-          <div className="grid grid-cols-2 gap-3">
-            {/* East */}
-            <GlassCard className="p-4">
-              <h3 className="text-xs font-semibold uppercase tracking-wider text-accent-blue mb-3">
-                Eastern
-              </h3>
-              {loading ? (
-                <div className="flex flex-col gap-2">
-                  <SkeletonLoader height={24} count={5} rounded="sm" className="w-full" />
-                </div>
-              ) : (
-                <div className="flex flex-col gap-1.5">
-                  {eastTeams.map((t, i) => (
-                    <motion.div
-                      key={t.team}
-                      variants={fadeSlideUp}
-                      className="flex items-center gap-2 text-xs"
-                    >
-                      <span className="w-4 text-right font-bold text-chrome-dim">{i + 1}</span>
-                      <span className="flex-1 text-chrome-light truncate">{t.team}</span>
-                      <span className="text-chrome-medium font-mono">
-                        {t.wins}-{t.losses}
-                      </span>
-                    </motion.div>
-                  ))}
-                </div>
-              )}
-            </GlassCard>
+        {/* Standings / Playoff Bracket */}
+        {seasonType === 'playoffs' ? (
+          <motion.section
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: '-40px' }}
+            variants={stagger}
+          >
+            <motion.div variants={fadeSlideUp}>
+              <SectionHeader
+                title="Playoff Bracket"
+                eyebrow="Postseason"
+                className="mb-4"
+              />
+            </motion.div>
+            <motion.div variants={fadeSlideUp}>
+              <PlayoffBracket />
+            </motion.div>
+          </motion.section>
+        ) : (
+          <motion.section
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: '-40px' }}
+            variants={stagger}
+          >
+            <motion.div variants={fadeSlideUp}>
+              <SectionHeader
+                title="Standings"
+                eyebrow="Current Season"
+                action={
+                  <Link href="/explore" className="text-xs text-accent-blue flex items-center gap-0.5 hover:underline no-underline">
+                    Full standings <ChevronRight size={12} />
+                  </Link>
+                }
+                className="mb-4"
+              />
+            </motion.div>
+            <div className="grid grid-cols-2 gap-3">
+              {/* East */}
+              <GlassCard className="p-4">
+                <h3 className="text-xs font-semibold uppercase tracking-wider text-accent-blue mb-3">
+                  Eastern
+                </h3>
+                {loading ? (
+                  <div className="flex flex-col gap-2">
+                    <SkeletonLoader height={24} count={5} rounded="sm" className="w-full" />
+                  </div>
+                ) : (
+                  <div className="flex flex-col gap-1.5">
+                    {eastTeams.map((t, i) => (
+                      <motion.div
+                        key={t.team}
+                        variants={fadeSlideUp}
+                        className="flex items-center gap-2 text-xs"
+                      >
+                        <span className="w-4 text-right font-bold text-text-tertiary">{i + 1}</span>
+                        <TeamLogo teamAbbr={t.team} size="sm" />
+                        <span className="flex-1 text-text-primary truncate">{t.team}</span>
+                        <span className="text-text-secondary font-mono">
+                          {t.wins}-{t.losses}
+                        </span>
+                      </motion.div>
+                    ))}
+                  </div>
+                )}
+              </GlassCard>
 
-            {/* West */}
-            <GlassCard className="p-4">
-              <h3 className="text-xs font-semibold uppercase tracking-wider text-accent-orange mb-3">
-                Western
-              </h3>
-              {loading ? (
-                <div className="flex flex-col gap-2">
-                  <SkeletonLoader height={24} count={5} rounded="sm" className="w-full" />
-                </div>
-              ) : (
-                <div className="flex flex-col gap-1.5">
-                  {westTeams.map((t, i) => (
-                    <motion.div
-                      key={t.team}
-                      variants={fadeSlideUp}
-                      className="flex items-center gap-2 text-xs"
-                    >
-                      <span className="w-4 text-right font-bold text-chrome-dim">{i + 1}</span>
-                      <span className="flex-1 text-chrome-light truncate">{t.team}</span>
-                      <span className="text-chrome-medium font-mono">
-                        {t.wins}-{t.losses}
-                      </span>
-                    </motion.div>
-                  ))}
-                </div>
-              )}
-            </GlassCard>
-          </div>
-        </motion.section>
+              {/* West */}
+              <GlassCard className="p-4">
+                <h3 className="text-xs font-semibold uppercase tracking-wider text-accent-orange mb-3">
+                  Western
+                </h3>
+                {loading ? (
+                  <div className="flex flex-col gap-2">
+                    <SkeletonLoader height={24} count={5} rounded="sm" className="w-full" />
+                  </div>
+                ) : (
+                  <div className="flex flex-col gap-1.5">
+                    {westTeams.map((t, i) => (
+                      <motion.div
+                        key={t.team}
+                        variants={fadeSlideUp}
+                        className="flex items-center gap-2 text-xs"
+                      >
+                        <span className="w-4 text-right font-bold text-text-tertiary">{i + 1}</span>
+                        <TeamLogo teamAbbr={t.team} size="sm" />
+                        <span className="flex-1 text-text-primary truncate">{t.team}</span>
+                        <span className="text-text-secondary font-mono">
+                          {t.wins}-{t.losses}
+                        </span>
+                      </motion.div>
+                    ))}
+                  </div>
+                )}
+              </GlassCard>
+            </div>
+          </motion.section>
+        )}
       </div>
+      </motion.div>
+      </AnimatePresence>
 
       {/* ── Quick Links Grid ──────────────────────────────────────────── */}
       <motion.section
@@ -534,8 +597,8 @@ export default function ExplorePage() {
           {QUICK_LINKS.map((link) => {
             const Icon = link.icon;
             return (
-              <motion.div key={link.href} variants={fadeSlideUp}>
-                <Link href={link.href}>
+              <motion.div key={link.title} variants={fadeSlideUp}>
+                <Link href={link.href} className="no-underline">
                   <GlassCard
                     hoverable
                     tintColor={link.color}
@@ -544,15 +607,15 @@ export default function ExplorePage() {
                     <div className="flex items-start gap-3">
                       <div
                         className="flex items-center justify-center h-10 w-10 rounded-xl shrink-0"
-                        style={{ background: `${link.color}18` }}
+                        style={{ background: `${link.color}12` }}
                       >
                         <Icon size={20} style={{ color: link.color }} />
                       </div>
                       <div className="min-w-0">
-                        <h3 className="text-sm font-bold text-chrome-light mb-1">
+                        <h3 className="text-sm font-bold text-text-primary mb-1">
                           {link.title}
                         </h3>
-                        <p className="text-xs text-chrome-dim leading-relaxed">
+                        <p className="text-xs text-text-secondary leading-relaxed">
                           {link.description}
                         </p>
                       </div>
@@ -567,13 +630,13 @@ export default function ExplorePage() {
 
       {/* ── Footer ────────────────────────────────────────────────────── */}
       <motion.footer
-        className="text-center py-6 border-t border-glass-border"
+        className="text-center py-6 border-t border-black/[0.06]"
         initial={{ opacity: 0 }}
         whileInView={{ opacity: 1 }}
         viewport={{ once: true }}
         transition={{ delay: 0.2 }}
       >
-        <div className="flex items-center justify-center gap-2 text-xs text-chrome-dim">
+        <div className="flex items-center justify-center gap-2 text-xs text-text-tertiary">
           <TrendingUp size={12} />
           <span>
             Basketball Intelligence &middot; Data Edition: {data?.edition?.edition ?? '...'} &middot; Updated {data?.edition?.lastUpdated ?? '...'}
