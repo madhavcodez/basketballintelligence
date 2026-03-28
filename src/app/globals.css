@@ -65,6 +65,28 @@
    Keyframe Definitions
    ═══════════════════════════════════════════════════════════════════════════ */
 
+/* Dark mode Tailwind token overrides */
+.dark {
+  --color-bg-base: #0A0A0A;
+  --color-bg-card: #141414;
+  --color-bg-secondary: #1C1C1E;
+  --color-text-primary: #F5F5F7;
+  --color-text-secondary: #A1A1A6;
+  --color-text-tertiary: #86868B;
+  --color-border-subtle: rgba(255, 255, 255, 0.08);
+  --color-border-medium: rgba(255, 255, 255, 0.14);
+  --color-dark-base: #0A0A0A;
+  --color-dark-surface: #141414;
+  --color-dark-elevated: #1C1C1E;
+  --color-glass-bg: rgba(255, 255, 255, 0.04);
+  --color-glass-border: rgba(255, 255, 255, 0.08);
+  --color-glass-frosted: rgba(255, 255, 255, 0.03);
+  --color-chrome-light: #F5F5F7;
+  --color-chrome-medium: #A1A1A6;
+  --color-chrome-dim: #86868B;
+  --color-chrome-faint: rgba(255, 255, 255, 0.12);
+}
+
 @keyframes fade-in {
   from { opacity: 0; }
   to   { opacity: 1; }
@@ -131,6 +153,39 @@
   /* Nav height for padding offsets */
   --nav-height: 64px;
   --nav-height-mobile: 56px;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Dark Mode Overrides
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+html.dark {
+  color-scheme: dark;
+
+  --bg-base: #0A0A0A;
+  --bg-card: #141414;
+  --bg-secondary: #1C1C1E;
+
+  --text-primary: #F5F5F7;
+  --text-secondary: #A1A1A6;
+  --text-tertiary: #86868B;
+
+  --border-subtle: rgba(255, 255, 255, 0.08);
+  --border-medium: rgba(255, 255, 255, 0.14);
+
+  --bg-dark-base: #0A0A0A;
+  --bg-dark-surface: #141414;
+  --bg-dark-elevated: #1C1C1E;
+  --glass-bg: rgba(255, 255, 255, 0.04);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --glass-frosted: rgba(255, 255, 255, 0.03);
+  --chrome-light: #F5F5F7;
+  --chrome-medium: #A1A1A6;
+  --chrome-dim: #86868B;
+  --chrome-faint: rgba(255, 255, 255, 0.12);
+
+  --shadow-card: 0 2px 8px rgba(0, 0, 0, 0.3), 0 12px 40px rgba(0, 0, 0, 0.4);
+  --shadow-hover: 0 4px 16px rgba(0, 0, 0, 0.4), 0 20px 60px rgba(0, 0, 0, 0.5);
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════

@@ -19,8 +19,10 @@ import {
   LayoutGrid,
   Bot,
 } from 'lucide-react';
+import { Sun, Moon } from 'lucide-react';
 import clsx from 'clsx';
 import { SeasonTypeProvider, useSeasonType } from '@/lib/season-context';
+import { ThemeProvider, useTheme } from '@/lib/theme-context';
 import SeasonTypeToggle from '@/components/ui/SeasonTypeToggle';
 
 // ─── Nav Link Definitions ──────────────────────────────────────────────────
@@ -52,6 +54,30 @@ function isActiveLink(link: NavLink, pathname: string): boolean {
   if (link.id === 'explore') return pathname.startsWith('/explore') || pathname.startsWith('/player');
   if (link.id === 'teams') return pathname.startsWith('/team');
   return pathname.startsWith(link.href.split('/').slice(0, 2).join('/'));
+}
+
+// ─── Theme Toggle Button ──────────────────────────────────────────────────
+
+function ThemeToggleButton() {
+  const { theme, toggleTheme } = useTheme();
+  const isDark = theme === 'dark';
+
+  return (
+    <button
+      type="button"
+      onClick={toggleTheme}
+      className={clsx(
+        'flex items-center justify-center h-8 w-8 rounded-full transition-all duration-200',
+        isDark
+          ? 'bg-accent-gold/15 text-accent-gold hover:bg-accent-gold/25'
+          : 'bg-bg-secondary text-text-secondary hover:text-text-primary hover:bg-black/[0.08]',
+      )}
+      aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+      title={isDark ? 'Light mode' : 'Dark mode'}
+    >
+      {isDark ? <Sun size={16} /> : <Moon size={16} />}
+    </button>
+  );
 }
 
 // ─── Season Toggle ─────────────────────────────────────────────────────────
@@ -168,8 +194,8 @@ function AppShellInner({
         className={clsx(
           'sticky top-0 z-50',
           'h-14 sm:h-16',
-          'bg-white/80 backdrop-blur-xl',
-          'border-b border-black/[0.06]',
+          'bg-bg-card/80 backdrop-blur-xl',
+          'border-b border-border-subtle',
         )}
       >
         <div className="max-w-7xl mx-auto h-full px-4 sm:px-6 flex items-center justify-between">
@@ -221,6 +247,8 @@ function AppShellInner({
               <SeasonToggleInNav />
             </div>
 
+            <ThemeToggleButton />
+
             <Link
               href="/explore"
               className="flex items-center justify-center h-8 w-8 rounded-full text-text-secondary hover:text-text-primary hover:bg-bg-secondary transition-colors no-underline"
@@ -263,8 +291,10 @@ export default function AppShell({ children }: AppShellProps) {
   const pathname = usePathname();
 
   return (
-    <SeasonTypeProvider>
-      <AppShellInner pathname={pathname}>{children}</AppShellInner>
-    </SeasonTypeProvider>
+    <ThemeProvider>
+      <SeasonTypeProvider>
+        <AppShellInner pathname={pathname}>{children}</AppShellInner>
+      </SeasonTypeProvider>
+    </ThemeProvider>
   );
 }

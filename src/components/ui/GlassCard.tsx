@@ -57,9 +57,9 @@ export default function GlassCard({
       ref={cardRef}
       className={clsx(
         'relative overflow-hidden',
-        'bg-white rounded-2xl',
-        'border border-black/[0.06]',
-        'shadow-[0_2px_8px_rgba(0,0,0,0.04),0_12px_40px_rgba(0,0,0,0.08)]',
+        'bg-bg-card rounded-2xl',
+        'border border-border-subtle',
+        'shadow-[var(--shadow-card)]',
         isInteractive && 'cursor-pointer',
         hoverable && 'transition-shadow duration-300 hover:shadow-[0_4px_16px_rgba(0,0,0,0.06),0_20px_60px_rgba(0,0,0,0.12)]',
         className,
