@@ -144,37 +144,63 @@ export function getShotZoneStats(playerName: string, season?: string) {
   `).all(...params);
 }
 
+// Standard NBA abbreviation ↔ team name map
+const TEAM_ABBR_MAP: Record<string, string> = {
+  ATL: 'Atlanta Hawks', BOS: 'Boston Celtics', BKN: 'Brooklyn Nets',
+  CHA: 'Charlotte Hornets', CHI: 'Chicago Bulls', CLE: 'Cleveland Cavaliers',
+  DAL: 'Dallas Mavericks', DEN: 'Denver Nuggets', DET: 'Detroit Pistons',
+  GSW: 'Golden State Warriors', HOU: 'Houston Rockets', IND: 'Indiana Pacers',
+  LAC: 'LA Clippers', LAL: 'Los Angeles Lakers', MEM: 'Memphis Grizzlies',
+  MIA: 'Miami Heat', MIL: 'Milwaukee Bucks', MIN: 'Minnesota Timberwolves',
+  NOP: 'New Orleans Pelicans', NYK: 'New York Knicks', OKC: 'Oklahoma City Thunder',
+  ORL: 'Orlando Magic', PHI: 'Philadelphia 76ers', PHX: 'Phoenix Suns',
+  POR: 'Portland Trail Blazers', SAC: 'Sacramento Kings', SAS: 'San Antonio Spurs',
+  TOR: 'Toronto Raptors', UTA: 'Utah Jazz', WAS: 'Washington Wizards',
+};
+
+const TEAM_NAME_TO_ABBR: Record<string, string> = Object.fromEntries(
+  Object.entries(TEAM_ABBR_MAP).map(([abbr, name]) => [name, abbr])
+);
+
+export function resolveTeamName(abbr: string): string {
+  return TEAM_ABBR_MAP[abbr.toUpperCase()] ?? abbr;
+}
+
 // Team queries
 export function getTeams() {
   const db = getDb();
-  return db.prepare(`
-    SELECT DISTINCT TEAM_ABBREVIATION as abbr, TEAM_NAME as name, TEAM_ID as teamId
-    FROM team_game_logs
-    WHERE SEASON_ID = (SELECT MAX(SEASON_ID) FROM team_game_logs)
-    ORDER BY TEAM_NAME ASC
-  `).all();
+  const teams = db.prepare(`
+    SELECT DISTINCT team_id as teamId, team_name as name
+    FROM team_traditional_regular
+    WHERE season = (SELECT MAX(season) FROM team_traditional_regular)
+    ORDER BY team_name ASC
+  `).all() as Array<{ teamId: string; name: string }>;
+  return teams.map(t => ({
+    ...t,
+    abbr: TEAM_NAME_TO_ABBR[t.name] ?? '',
+  }));
 }
 
 export function getTeamStats(teamAbbr: string) {
   const db = getDb();
+  const teamName = resolveTeamName(teamAbbr);
   return db.prepare(`
-    SELECT SEASON_ID as seasonId, TEAM_NAME as teamName,
-           COUNT(*) as games,
-           SUM(CASE WHEN WL = 'W' THEN 1 ELSE 0 END) as wins,
-           SUM(CASE WHEN WL = 'L' THEN 1 ELSE 0 END) as losses,
-           ROUND(AVG(CAST(PTS as FLOAT)), 1) as ppg,
-           ROUND(AVG(CAST(REB as FLOAT)), 1) as rpg,
-           ROUND(AVG(CAST(AST as FLOAT)), 1) as apg,
-           ROUND(AVG(CAST(STL as FLOAT)), 1) as spg,
-           ROUND(AVG(CAST(BLK as FLOAT)), 1) as bpg,
-           ROUND(AVG(CAST(FG_PCT as FLOAT)) * 100, 1) as fgPct,
-           ROUND(AVG(CAST(FG3_PCT as FLOAT)) * 100, 1) as fg3Pct,
-           ROUND(AVG(CAST(FT_PCT as FLOAT)) * 100, 1) as ftPct
-    FROM team_game_logs
-    WHERE TEAM_ABBREVIATION = ?
-    GROUP BY SEASON_ID
-    ORDER BY SEASON_ID DESC
-  `).all(teamAbbr);
+    SELECT season as seasonId, team_name as teamName,
+           CAST(gp as INTEGER) as games,
+           CAST(w as INTEGER) as wins,
+           CAST(l as INTEGER) as losses,
+           ROUND(CAST(pts as FLOAT), 1) as ppg,
+           ROUND(CAST(reb as FLOAT), 1) as rpg,
+           ROUND(CAST(ast as FLOAT), 1) as apg,
+           ROUND(CAST(stl as FLOAT), 1) as spg,
+           ROUND(CAST(blk as FLOAT), 1) as bpg,
+           ROUND(CAST(fg_pct as FLOAT) * 100, 1) as fgPct,
+           ROUND(CAST(fg3_pct as FLOAT) * 100, 1) as fg3Pct,
+           ROUND(CAST(ft_pct as FLOAT) * 100, 1) as ftPct
+    FROM team_traditional_regular
+    WHERE team_name = ?
+    ORDER BY season DESC
+  `).all(teamName);
 }
 
 export function getTeamAdvanced(teamName: string) {
@@ -207,23 +233,9 @@ export function getTeamRoster(teamAbbr: string, season?: string) {
   `).all(teamAbbr, seasonFilter);
 }
 
-// Lineup queries
-export function getLineups(teamAbbr: string, season?: string) {
-  const db = getDb();
-  const whereClause = season
-    ? 'WHERE TEAM_ABBREVIATION = ? AND season = ?'
-    : 'WHERE TEAM_ABBREVIATION = ?';
-  const params = season ? [teamAbbr, season] : [teamAbbr];
-  return db.prepare(`
-    SELECT GROUP_NAME as players, GP as gp, W as wins, L as losses,
-           MIN as minutes, PTS as points, AST as assists, REB as rebounds,
-           STL as steals, BLK as blocks, TOV as turnovers,
-           FG_PCT as fgPct, FG3_PCT as fg3Pct, FT_PCT as ftPct,
-           PLUS_MINUS as plusMinus, season
-    FROM lineups ${whereClause}
-    ORDER BY CAST(MIN as FLOAT) DESC
-    LIMIT 50
-  `).all(...params);
+// Lineup queries — lineups table not yet populated; return empty gracefully
+export function getLineups(_teamAbbr: string, _season?: string): unknown[] {
+  return [];
 }
 
 // Compare queries
