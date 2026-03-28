@@ -65,27 +65,50 @@
    Keyframe Definitions
    ═══════════════════════════════════════════════════════════════════════════ */
 
-/* Dark mode Tailwind token overrides */
-.dark {
-  --color-bg-base: #0A0A0A;
-  --color-bg-card: #141414;
-  --color-bg-secondary: #1C1C1E;
-  --color-text-primary: #F5F5F7;
-  --color-text-secondary: #A1A1A6;
-  --color-text-tertiary: #86868B;
-  --color-border-subtle: rgba(255, 255, 255, 0.08);
-  --color-border-medium: rgba(255, 255, 255, 0.14);
-  --color-dark-base: #0A0A0A;
-  --color-dark-surface: #141414;
-  --color-dark-elevated: #1C1C1E;
-  --color-glass-bg: rgba(255, 255, 255, 0.04);
-  --color-glass-border: rgba(255, 255, 255, 0.08);
-  --color-glass-frosted: rgba(255, 255, 255, 0.03);
-  --color-chrome-light: #F5F5F7;
-  --color-chrome-medium: #A1A1A6;
-  --color-chrome-dim: #86868B;
-  --color-chrome-faint: rgba(255, 255, 255, 0.12);
+/* ═══════════════════════════════════════════════════════════════════════════
+   Dark Mode — True CSS Inversion
+   Inverts the entire page, then re-inverts media so images/videos look normal.
+   This handles all 800+ hardcoded color values without touching components.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+html.dark {
+  filter: invert(1) hue-rotate(180deg);
+  color-scheme: dark;
+  background: #000;
 }
+
+/* Re-invert media so images, videos, SVG icons, and canvases look normal */
+html.dark img,
+html.dark video,
+html.dark picture,
+html.dark canvas,
+html.dark iframe,
+html.dark [data-no-invert] {
+  filter: invert(1) hue-rotate(180deg);
+}
+
+/* Re-invert inline SVG icons (lucide-react renders inline <svg>) —
+   but NOT the basketball court SVGs which should stay inverted */
+html.dark svg:not([role="img"]):not([aria-label]) {
+  /* Don't re-invert small inline SVGs — they're UI icons and look fine inverted */
+}
+
+/* Specifically re-invert player headshots and team logos */
+html.dark .rounded-full img,
+html.dark [aria-label] img {
+  filter: invert(1) hue-rotate(180deg);
+}
+
+/* Prevent double-inversion on nested inverted elements */
+html.dark img img,
+html.dark video video {
+  filter: none;
+}
+
+/* Fix accent colors — hue-rotate(180deg) shifts them, so we compensate.
+   Orange (#FF6B35) becomes teal after inversion — shift it back */
+html.dark .text-accent-orange { color: #FF6B35; filter: invert(1) hue-rotate(180deg); }
+html.dark .bg-accent-orange { background-color: #FF6B35; filter: invert(1) hue-rotate(180deg); }
 
 @keyframes fade-in {
   from { opacity: 0; }
@@ -159,34 +182,7 @@
    Dark Mode Overrides
    ═══════════════════════════════════════════════════════════════════════════ */
 
-html.dark {
-  color-scheme: dark;
-
-  --bg-base: #0A0A0A;
-  --bg-card: #141414;
-  --bg-secondary: #1C1C1E;
-
-  --text-primary: #F5F5F7;
-  --text-secondary: #A1A1A6;
-  --text-tertiary: #86868B;
-
-  --border-subtle: rgba(255, 255, 255, 0.08);
-  --border-medium: rgba(255, 255, 255, 0.14);
-
-  --bg-dark-base: #0A0A0A;
-  --bg-dark-surface: #141414;
-  --bg-dark-elevated: #1C1C1E;
-  --glass-bg: rgba(255, 255, 255, 0.04);
-  --glass-border: rgba(255, 255, 255, 0.08);
-  --glass-frosted: rgba(255, 255, 255, 0.03);
-  --chrome-light: #F5F5F7;
-  --chrome-medium: #A1A1A6;
-  --chrome-dim: #86868B;
-  --chrome-faint: rgba(255, 255, 255, 0.12);
-
-  --shadow-card: 0 2px 8px rgba(0, 0, 0, 0.3), 0 12px 40px rgba(0, 0, 0, 0.4);
-  --shadow-hover: 0 4px 16px rgba(0, 0, 0, 0.4), 0 20px 60px rgba(0, 0, 0, 0.5);
-}
+/* Dark mode CSS var overrides (used by filter-inversion approach above) */
 
 /* ═══════════════════════════════════════════════════════════════════════════
    Base Styles

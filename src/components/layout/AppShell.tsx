@@ -194,8 +194,8 @@ function AppShellInner({
         className={clsx(
           'sticky top-0 z-50',
           'h-14 sm:h-16',
-          'bg-bg-card/80 backdrop-blur-xl',
-          'border-b border-border-subtle',
+          'bg-white/80 backdrop-blur-xl',
+          'border-b border-black/[0.06]',
         )}
       >
         <div className="max-w-7xl mx-auto h-full px-4 sm:px-6 flex items-center justify-between">
