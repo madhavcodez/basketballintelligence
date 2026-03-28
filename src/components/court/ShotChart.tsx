@@ -6,7 +6,7 @@ import * as d3Scale from 'd3-scale';
 import { hexbin as d3Hexbin } from 'd3-hexbin';
 import clsx from 'clsx';
 import BasketballCourt, { type ShotZone } from './BasketballCourt';
-import { colors, animation } from '@/lib/design-tokens';
+import { animation } from '@/lib/design-tokens';
 
 // ── Types ─────────────────────────────────────────────────────────
 
@@ -91,13 +91,13 @@ function classifyZone(nx: number, ny: number): ShotZone {
 // ── Zone colours ──────────────────────────────────────────────────
 
 const ZONE_COLORS: Record<ShotZone, string> = {
-  'Restricted Area': colors.accentRed,
-  'In The Paint': colors.accentOrange,
-  'Mid-Range': colors.accentGold,
-  'Left Corner 3': colors.accentGreen,
-  'Right Corner 3': colors.accentGreen,
-  'Above the Break 3': colors.accentBlue,
-  'Backcourt': colors.accentViolet,
+  'Restricted Area': '#EF4444',
+  'In The Paint': '#F97316',
+  'Mid-Range': '#F59E0B',
+  'Left Corner 3': '#22C55E',
+  'Right Corner 3': '#22C55E',
+  'Above the Break 3': '#3B82F6',
+  'Backcourt': '#86868B',
 };
 
 // ── Component ─────────────────────────────────────────────────────
@@ -171,13 +171,13 @@ export default function ShotChart({
     (s: (typeof mapped)[number]) => {
       switch (colorBy) {
         case 'result':
-          return s.made ? colors.accentGreen : colors.accentRed;
+          return s.made ? '#22C55E' : '#EF4444';
         case 'zone':
           return ZONE_COLORS[s.zone];
         case 'frequency':
-          return colors.accentOrange;
+          return '#FF6B35';
         default:
-          return colors.chromeDim;
+          return '#86868B';
       }
     },
     [colorBy],
@@ -200,10 +200,7 @@ export default function ShotChart({
     return (
       <div className={clsx('relative flex items-center justify-center', className)}>
         <BasketballCourt showZones />
-        <p
-          className="absolute text-sm"
-          style={{ color: colors.chromeDim }}
-        >
+        <p className="absolute text-sm text-[#86868B]">
           No shot data available
         </p>
       </div>
@@ -216,10 +213,7 @@ export default function ShotChart({
     <div className={clsx('relative', className)}>
       {/* Season label */}
       {season && (
-        <p
-          className="absolute top-2 left-3 z-10 text-xs font-medium"
-          style={{ color: colors.chromeMedium }}
-        >
+        <p className="absolute top-2 left-3 z-10 text-xs font-medium text-[#6E6E73]">
           {season}
         </p>
       )}
@@ -238,7 +232,7 @@ export default function ShotChart({
             <path
               key={i}
               d={hexagonPath(bin.x, bin.y, HEXBIN_RADIUS)}
-              fill={colors.accentOrange}
+              fill="#FF6B35"
               opacity={hexOpacityScale(bin.length)}
             />
           ))}
@@ -253,7 +247,7 @@ export default function ShotChart({
               r={hoveredIdx === i ? DOT_RADIUS * 1.8 : DOT_RADIUS}
               fill={shotColor(s)}
               fillOpacity={showHeatmap ? 0.5 : 0.85}
-              stroke={hoveredIdx === i ? colors.chromeLight : 'none'}
+              stroke={hoveredIdx === i ? '#1D1D1F' : 'none'}
               strokeWidth={hoveredIdx === i ? 1 : 0}
               initial={{ r: 0, opacity: 0 }}
               animate={{
@@ -285,7 +279,7 @@ export default function ShotChart({
                 y={center.y}
                 textAnchor="middle"
                 dominantBaseline="central"
-                fill={colors.chromeLight}
+                fill="#1D1D1F"
                 fontSize={12}
                 fontWeight={600}
               >
@@ -303,10 +297,10 @@ export default function ShotChart({
             left: `${(tooltipPos.x / VB_W) * 100}%`,
             top: `${(tooltipPos.y / VB_H) * 100}%`,
             transform: 'translate(-50%, -120%)',
-            background: colors.darkElevated,
-            border: `1px solid ${colors.glassBorder}`,
-            color: colors.chromeLight,
-            backdropFilter: 'blur(12px)',
+            background: '#FFFFFF',
+            border: '1px solid rgba(0,0,0,0.12)',
+            color: '#1D1D1F',
+            boxShadow: '0 4px 16px rgba(0,0,0,0.12)',
           }}
         >
           {hoveredShot.playerName && (

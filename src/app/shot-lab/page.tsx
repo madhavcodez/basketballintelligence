@@ -86,7 +86,7 @@ const RESTRICTED_RADIUS = 40;
 const BACKBOARD_W = 60;
 const BACKBOARD_Y = 40;
 const RIM_RADIUS = 9;
-const LINE_COLOR = 'rgba(255,255,255,0.44)';
+const LINE_COLOR = 'rgba(0,0,0,0.18)';
 const LINE_W = 1.5;
 
 // ── Coordinate mapping ──────────────────────────────────────────────────────
@@ -346,7 +346,7 @@ export default function ShotLabPage() {
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mb-4">
         <Link
           href="/explore"
-          className="inline-flex items-center gap-1 text-xs text-chrome-dim hover:text-chrome-medium transition-colors"
+          className="inline-flex items-center gap-1 text-xs text-[#86868B] hover:text-[#6E6E73] transition-colors"
         >
           <ArrowLeft size={12} /> Explore
         </Link>
@@ -354,17 +354,17 @@ export default function ShotLabPage() {
 
       <motion.div initial="hidden" animate="visible" variants={stagger}>
         <motion.div variants={fadeUp}>
-          <SectionHeader title="Shot Lab" eyebrow="Interactive" className="mb-6" />
+          <h1 className="font-display font-extrabold text-4xl md:text-5xl text-[#1D1D1F] mb-6">Shot Lab</h1>
         </motion.div>
 
         {/* ── Player Search ───────────────────────────────────────────── */}
         <motion.div variants={fadeUp} className="mb-6 max-w-lg" ref={searchRef}>
-          <label className="text-[10px] uppercase tracking-wider text-chrome-dim font-medium mb-1 block">
+          <label className="text-[10px] uppercase tracking-wider text-[#86868B] font-medium mb-1 block">
             Player
           </label>
           <div className="relative">
-            <div className="group relative flex items-center rounded-full bg-glass-frosted backdrop-blur-xl border border-glass-border transition-all focus-within:border-accent-green/40 focus-within:shadow-[0_0_16px_rgba(52,211,153,0.12)]">
-              <Search size={14} className="ml-3 shrink-0 text-chrome-dim group-focus-within:text-accent-green" />
+            <div className="group relative flex items-center rounded-full bg-white border border-black/[0.06] transition-all focus-within:border-[#22C55E]/40 focus-within:shadow-[0_0_16px_rgba(52,211,153,0.12)]">
+              <Search size={14} className="ml-3 shrink-0 text-[#86868B] group-focus-within:text-[#22C55E]" />
               <input
                 type="text"
                 aria-label="Search player for shot chart"
@@ -372,21 +372,21 @@ export default function ShotLabPage() {
                 onChange={(e) => handleSearchInput(e.target.value)}
                 onFocus={() => { if (searchResults.length > 0) setSearchOpen(true); }}
                 placeholder="Search for a player..."
-                className="flex-1 bg-transparent px-2 py-2.5 text-sm text-chrome-light placeholder:text-chrome-dim outline-none"
+                className="flex-1 bg-transparent px-2 py-2.5 text-sm text-[#1D1D1F] placeholder:text-[#86868B] outline-none"
               />
             </div>
             {searchOpen && searchResults.length > 0 && (
-              <div className="absolute z-30 mt-1 w-full rounded-xl bg-dark-elevated/95 backdrop-blur-xl border border-glass-border shadow-[0_8px_40px_rgba(0,0,0,0.4)] overflow-hidden">
+              <div className="absolute z-30 mt-1 w-full rounded-xl bg-white border border-black/[0.06] shadow-[0_8px_40px_rgba(0,0,0,0.08)] overflow-hidden">
                 {searchResults.map((r) => (
                   <button
                     key={r.id}
                     type="button"
                     onClick={() => selectPlayer(r.name)}
-                    className="flex items-center gap-2 w-full px-3 py-2 hover:bg-glass-frosted transition-colors text-left"
+                    className="flex items-center gap-2 w-full px-3 py-2 hover:bg-[#F5F5F7] transition-colors text-left"
                   >
                     <PlayerAvatar name={r.name} size="sm" />
-                    <span className="text-sm text-chrome-light truncate">{r.name}</span>
-                    <span className="text-[10px] text-chrome-dim ml-auto">{r.position}</span>
+                    <span className="text-sm text-[#1D1D1F] truncate">{r.name}</span>
+                    <span className="text-[10px] text-[#86868B] ml-auto">{r.position}</span>
                   </button>
                 ))}
               </div>
@@ -397,7 +397,7 @@ export default function ShotLabPage() {
         {/* ── Season Selector ─────────────────────────────────────────── */}
         {seasons.length > 0 && (
           <motion.div variants={fadeUp} className="mb-6">
-            <label className="text-[10px] uppercase tracking-wider text-chrome-dim font-medium mb-1 block">
+            <label className="text-[10px] uppercase tracking-wider text-[#86868B] font-medium mb-1 block">
               Season
             </label>
             <div className="flex gap-1.5 overflow-x-auto no-scrollbar pb-1">
@@ -408,8 +408,8 @@ export default function ShotLabPage() {
                   onClick={() => setSelectedSeason(season)}
                   className={`shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-200 ${
                     selectedSeason === season
-                      ? 'bg-accent-green/20 text-accent-green border border-accent-green/30'
-                      : 'bg-glass-bg text-chrome-dim border border-glass-border hover:text-chrome-medium'
+                      ? 'bg-[#22C55E]/10 text-[#22C55E] border border-[#22C55E]/30'
+                      : 'bg-white text-[#86868B] border border-black/[0.06] hover:text-[#6E6E73]'
                   }`}
                 >
                   {season}
@@ -430,16 +430,16 @@ export default function ShotLabPage() {
         {/* ── Error ───────────────────────────────────────────────────── */}
         {error && (
           <GlassCard className="p-6 text-center">
-            <p className="text-sm text-accent-red">{error}</p>
+            <p className="text-sm text-[#EF4444]">{error}</p>
           </GlassCard>
         )}
 
         {/* ── Empty state ─────────────────────────────────────────────── */}
         {!loading && !error && !playerName && (
           <GlassCard className="p-8 text-center">
-            <Target size={40} className="mx-auto mb-3 text-chrome-dim" />
-            <h3 className="text-lg font-bold text-chrome-light mb-1">Select a Player</h3>
-            <p className="text-sm text-chrome-dim">
+            <Target size={40} className="mx-auto mb-3 text-[#86868B]" />
+            <h3 className="text-lg font-bold text-[#1D1D1F] mb-1">Select a Player</h3>
+            <p className="text-sm text-[#86868B]">
               Search for a player above to explore their shot chart.
             </p>
           </GlassCard>
@@ -451,14 +451,14 @@ export default function ShotLabPage() {
             {/* View mode + Zone filters */}
             <motion.div variants={fadeUp} className="flex flex-wrap items-center gap-2 mb-4">
               {/* View mode toggle */}
-              <div className="flex rounded-full bg-glass-bg border border-glass-border overflow-hidden">
+              <div className="flex rounded-full bg-white border border-black/[0.06] overflow-hidden">
                 <button
                   type="button"
                   onClick={() => setViewMode('dots')}
                   className={`flex items-center gap-1 px-3 py-1.5 text-xs font-medium transition-colors ${
                     viewMode === 'dots'
-                      ? 'bg-accent-green/20 text-accent-green'
-                      : 'text-chrome-dim hover:text-chrome-medium'
+                      ? 'bg-[#22C55E]/10 text-[#22C55E]'
+                      : 'text-[#86868B] hover:text-[#6E6E73]'
                   }`}
                 >
                   <Circle size={10} /> Dots
@@ -468,8 +468,8 @@ export default function ShotLabPage() {
                   onClick={() => setViewMode('heatmap')}
                   className={`flex items-center gap-1 px-3 py-1.5 text-xs font-medium transition-colors ${
                     viewMode === 'heatmap'
-                      ? 'bg-accent-orange/20 text-accent-orange'
-                      : 'text-chrome-dim hover:text-chrome-medium'
+                      ? 'bg-[#FF6B35]/10 text-[#FF6B35]'
+                      : 'text-[#86868B] hover:text-[#6E6E73]'
                   }`}
                 >
                   <Flame size={10} /> Heat Map
@@ -485,10 +485,10 @@ export default function ShotLabPage() {
                     onClick={() => toggleZone(zf.key)}
                     className={`px-2.5 py-1 rounded-full text-[10px] font-medium border transition-all ${
                       activeZones.has(zf.key)
-                        ? 'bg-accent-green/20 text-accent-green border-accent-green/30'
+                        ? 'bg-[#22C55E]/10 text-[#22C55E] border-[#22C55E]/30'
                         : activeZones.size > 0
-                          ? 'bg-glass-bg text-chrome-faint border-glass-border'
-                          : 'bg-glass-bg text-chrome-dim border-glass-border hover:text-chrome-medium'
+                          ? 'bg-white text-[#86868B]/50 border-black/[0.06]'
+                          : 'bg-white text-[#86868B] border-black/[0.06] hover:text-[#6E6E73]'
                     }`}
                   >
                     {zf.label}
@@ -567,12 +567,12 @@ export default function ShotLabPage() {
                 {/* Legend */}
                 <div className="flex items-center justify-center gap-4 mt-3">
                   <div className="flex items-center gap-1.5">
-                    <span className="w-2.5 h-2.5 rounded-full bg-accent-green" />
-                    <span className="text-[10px] text-chrome-dim">Made</span>
+                    <span className="w-2.5 h-2.5 rounded-full bg-[#22C55E]" />
+                    <span className="text-[10px] text-[#86868B]">Made</span>
                   </div>
                   <div className="flex items-center gap-1.5">
-                    <span className="w-2.5 h-2.5 rounded-full bg-accent-red" />
-                    <span className="text-[10px] text-chrome-dim">Missed</span>
+                    <span className="w-2.5 h-2.5 rounded-full bg-[#EF4444]" />
+                    <span className="text-[10px] text-[#86868B]">Missed</span>
                   </div>
                 </div>
               </GlassCard>
@@ -612,26 +612,26 @@ export default function ShotLabPage() {
                 <GlassCard className="overflow-x-auto">
                   <table className="w-full text-xs">
                     <thead>
-                      <tr className="border-b border-glass-border">
-                        <th className="text-left px-3 py-2 text-chrome-dim font-medium">Zone</th>
-                        <th className="text-left px-3 py-2 text-chrome-dim font-medium">Area</th>
-                        <th className="text-right px-3 py-2 text-chrome-dim font-medium">FG%</th>
-                        <th className="text-right px-3 py-2 text-chrome-dim font-medium">Makes</th>
-                        <th className="text-right px-3 py-2 text-chrome-dim font-medium">Att</th>
-                        <th className="text-right px-3 py-2 text-chrome-dim font-medium">Avg Dist</th>
+                      <tr className="border-b border-black/[0.06]">
+                        <th className="text-left px-3 py-2 text-[#86868B] font-medium">Zone</th>
+                        <th className="text-left px-3 py-2 text-[#86868B] font-medium">Area</th>
+                        <th className="text-right px-3 py-2 text-[#86868B] font-medium">FG%</th>
+                        <th className="text-right px-3 py-2 text-[#86868B] font-medium">Makes</th>
+                        <th className="text-right px-3 py-2 text-[#86868B] font-medium">Att</th>
+                        <th className="text-right px-3 py-2 text-[#86868B] font-medium">Avg Dist</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {zones.map((z) => (
-                        <tr key={`${z.zone}-${z.area}`} className="border-b border-glass-border/30 hover:bg-glass-frosted transition-colors">
-                          <td className="px-3 py-2 text-chrome-light">{z.zone}</td>
-                          <td className="px-3 py-2 text-chrome-medium">{z.area}</td>
+                      {zones.map((z, i) => (
+                        <tr key={`${z.zone}-${z.area}`} className={`border-b border-black/[0.04] hover:bg-[#F5F5F7] transition-colors ${i % 2 === 1 ? 'bg-[#F5F5F7]' : 'bg-white'}`}>
+                          <td className="px-3 py-2 text-[#1D1D1F]">{z.zone}</td>
+                          <td className="px-3 py-2 text-[#6E6E73]">{z.area}</td>
                           <td className="text-right px-3 py-2 font-mono font-bold" style={{ color: Number(z.fgPct) >= 50 ? '#34D399' : Number(z.fgPct) >= 35 ? '#FBBF24' : '#F87171' }}>
                             {z.fgPct}%
                           </td>
-                          <td className="text-right px-3 py-2 text-chrome-medium font-mono">{z.makes}</td>
-                          <td className="text-right px-3 py-2 text-chrome-medium font-mono">{z.attempts}</td>
-                          <td className="text-right px-3 py-2 text-chrome-medium font-mono">{z.avgDistance} ft</td>
+                          <td className="text-right px-3 py-2 text-[#6E6E73] font-mono">{z.makes}</td>
+                          <td className="text-right px-3 py-2 text-[#6E6E73] font-mono">{z.attempts}</td>
+                          <td className="text-right px-3 py-2 text-[#6E6E73] font-mono">{z.avgDistance} ft</td>
                         </tr>
                       ))}
                     </tbody>
@@ -652,10 +652,10 @@ export default function ShotLabPage() {
                       const barColor = fgVal >= 50 ? '#34D399' : fgVal >= 35 ? '#FBBF24' : '#F87171';
                       return (
                         <div key={action.label} className="flex items-center gap-3">
-                          <span className="text-[10px] text-chrome-medium w-36 truncate text-right shrink-0">
+                          <span className="text-[10px] text-[#6E6E73] w-36 truncate text-right shrink-0">
                             {action.label}
                           </span>
-                          <div className="flex-1 h-4 rounded-full bg-glass-bg overflow-hidden relative">
+                          <div className="flex-1 h-4 rounded-full bg-[#F5F5F7] overflow-hidden relative">
                             <motion.div
                               className="h-full rounded-full"
                               style={{ background: barColor }}
@@ -664,10 +664,10 @@ export default function ShotLabPage() {
                               transition={{ duration: 0.6, delay: i * 0.04, ease: [0.4, 0, 0.2, 1] }}
                             />
                           </div>
-                          <span className="text-[10px] text-chrome-light font-mono font-bold w-10 text-right shrink-0">
+                          <span className="text-[10px] text-[#1D1D1F] font-mono font-bold w-10 text-right shrink-0">
                             {action.fgPct}%
                           </span>
-                          <span className="text-[10px] text-chrome-dim font-mono w-8 text-right shrink-0">
+                          <span className="text-[10px] text-[#86868B] font-mono w-8 text-right shrink-0">
                             ({action.attempts})
                           </span>
                         </div>
@@ -683,9 +683,9 @@ export default function ShotLabPage() {
         {/* No shots found state */}
         {!loading && !error && playerName && shots.length === 0 && !loading && (
           <GlassCard className="p-8 text-center">
-            <Target size={40} className="mx-auto mb-3 text-chrome-dim" />
-            <h3 className="text-lg font-bold text-chrome-light mb-1">No Shot Data</h3>
-            <p className="text-sm text-chrome-dim">
+            <Target size={40} className="mx-auto mb-3 text-[#86868B]" />
+            <h3 className="text-lg font-bold text-[#1D1D1F] mb-1">No Shot Data</h3>
+            <p className="text-sm text-[#86868B]">
               No shot data found for {playerName}{selectedSeason ? ` (${selectedSeason})` : ''}.
             </p>
           </GlassCard>

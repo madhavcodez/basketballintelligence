@@ -20,6 +20,7 @@ import {
 import clsx from 'clsx';
 import GlassCard from '@/components/ui/GlassCard';
 import SkeletonLoader from '@/components/ui/SkeletonLoader';
+import { useSeasonType } from '@/lib/season-context';
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -342,30 +343,30 @@ function ScoreBar({
 }) {
   return (
     <div className="space-y-2">
-      <div className="flex items-center justify-between gap-3 px-4 py-2.5 rounded-2xl bg-white/[0.04] border border-white/[0.08] backdrop-blur-xl">
+      <div className="flex items-center justify-between gap-3 px-4 py-2.5 rounded-2xl bg-white border border-black/[0.06]">
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-1.5">
-            <Target size={14} className="text-chrome-dim" />
-            <span className="text-xs text-chrome-dim">Q</span>
-            <span className="text-sm font-bold text-chrome-light font-display">
+            <Target size={14} className="text-[#86868B]" />
+            <span className="text-xs text-[#86868B]">Q</span>
+            <span className="text-sm font-bold text-[#1D1D1F] font-display font-mono">
               {questionNumber}/{TOTAL_QUESTIONS}
             </span>
           </div>
-          <div className="w-px h-4 bg-glass-border" />
+          <div className="w-px h-4 bg-black/[0.06]" />
           <div className="flex items-center gap-1.5">
-            <Trophy size={14} className="text-accent-gold" />
-            <span className="text-sm font-bold text-accent-gold font-display">{score}</span>
+            <Trophy size={14} className="text-[#F59E0B]" />
+            <span className="text-sm font-bold text-[#F59E0B] font-display font-mono">{score}</span>
           </div>
         </div>
         {streak > 1 && (
           <motion.div
-            className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-accent-orange/10 border border-accent-orange/20 shadow-[0_0_16px_rgba(255,107,53,0.2)]"
+            className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#FF6B35]/10 border border-[#FF6B35]/20 shadow-[0_0_16px_rgba(255,107,53,0.2)]"
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
             transition={{ type: 'spring', stiffness: 400, damping: 10 }}
           >
-            <Flame size={14} className="text-accent-orange" />
-            <span className="text-xs font-extrabold text-accent-orange">{streak}</span>
+            <Flame size={14} className="text-[#FF6B35]" />
+            <span className="text-xs font-extrabold text-[#FF6B35] font-mono">{streak}</span>
           </motion.div>
         )}
       </div>
@@ -380,9 +381,9 @@ function ScoreBar({
                 key={`hist-${mode}-${i}`}
                 className={clsx(
                   'h-1.5 flex-1 rounded-full transition-colors',
-                  !answered && 'bg-white/[0.08]',
-                  answered && correct && 'bg-accent-green',
-                  answered && !correct && 'bg-accent-red',
+                  !answered && 'bg-[#F5F5F7]',
+                  answered && correct && 'bg-[#22C55E]',
+                  answered && !correct && 'bg-[#EF4444]',
                 )}
                 initial={answered ? { scale: 0.5, opacity: 0 } : false}
                 animate={answered ? { scale: 1, opacity: 1 } : undefined}
@@ -406,9 +407,9 @@ function TimerRing({ seconds, total }: { readonly seconds: number; readonly tota
   const isLow = seconds <= 5;
 
   return (
-    <div className={clsx('relative flex items-center justify-center w-12 h-12', isLow && 'animate-pulse')}>
+    <div className={clsx('relative flex items-center justify-center w-12 h-12', isLow && '')}>
       <svg width="48" height="48" viewBox="0 0 48 48">
-        <circle cx="24" cy="24" r={r} fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="3" />
+        <circle cx="24" cy="24" r={r} fill="none" stroke="rgba(0,0,0,0.06)" strokeWidth="3" />
         <circle
           cx="24"
           cy="24"
@@ -425,7 +426,7 @@ function TimerRing({ seconds, total }: { readonly seconds: number; readonly tota
       </svg>
       <span className={clsx(
         'absolute text-base font-extrabold font-display',
-        isLow ? 'text-accent-red' : 'text-chrome-light',
+        isLow ? 'text-[#EF4444]' : 'text-[#1D1D1F]',
       )}>
         {seconds}
       </span>
@@ -440,7 +441,7 @@ function FeedbackFlash({ correct }: { readonly correct: boolean }) {
     <motion.div
       className={clsx(
         'fixed inset-0 z-50 pointer-events-none',
-        correct ? 'bg-accent-green/10' : 'bg-accent-red/10',
+        correct ? 'bg-[#22C55E]/10' : 'bg-[#EF4444]/10',
       )}
       initial={{ opacity: 1 }}
       animate={{ opacity: 0 }}
@@ -452,6 +453,7 @@ function FeedbackFlash({ correct }: { readonly correct: boolean }) {
 // ── Guess The Player Game ────────────────────────────────────────────────────
 
 function GuessThePlayerGame({ onBack }: { readonly onBack: () => void }) {
+  const { seasonType } = useSeasonType();
   const [state, dispatch] = useReducer(guessReducer, initialGuessState);
   const [showFeedback, setShowFeedback] = useState<boolean | null>(null);
   const [leaderboard, setLeaderboard] = useState<readonly LeaderboardEntry[]>([]);
@@ -465,16 +467,17 @@ function GuessThePlayerGame({ onBack }: { readonly onBack: () => void }) {
   // Fetch question
   const fetchQuestion = useCallback(async () => {
     try {
-      const res = await fetch('/api/quiz?mode=guess');
+      const res = await fetch(`/api/v2/quiz?mode=guess&seasonType=${seasonType}`);
       if (!res.ok) throw new Error('Failed to fetch');
-      const player: QuizPlayer = await res.json();
+      const json = await res.json();
+      const player: QuizPlayer = json.data;
       const options = generateOptions(player.name);
       dispatch({ type: 'LOAD_QUESTION', player, options });
     } catch {
       // Retry after a short delay
       setTimeout(fetchQuestion, 1000);
     }
-  }, []);
+  }, [seasonType]);
 
   // Load first question and subsequent ones
   useEffect(() => {
@@ -550,29 +553,29 @@ function GuessThePlayerGame({ onBack }: { readonly onBack: () => void }) {
         transition={{ type: 'spring', stiffness: 120, damping: 14 }}
       >
         <GlassCard className="p-8 sm:p-10 text-center" tintColor="#FF6B35">
-          <Crown size={48} className="text-accent-gold mx-auto mb-4" />
-          <h2 className="text-3xl sm:text-4xl font-extrabold tracking-[-0.02em] text-chrome-light font-display">Game Over!</h2>
+          <Crown size={48} className="text-[#F59E0B] mx-auto mb-4" />
+          <h2 className="text-3xl sm:text-4xl font-extrabold tracking-[-0.02em] text-[#1D1D1F] font-display">Game Over!</h2>
           <div className="mt-6 flex items-center justify-center gap-8">
             <div className="text-center">
-              <div className="text-4xl sm:text-5xl font-extrabold font-display bg-gradient-to-b from-accent-orange to-accent-gold bg-clip-text text-transparent">{state.score}</div>
-              <div className="text-xs text-chrome-dim uppercase tracking-wider mt-1.5">Score</div>
+              <div className="text-4xl sm:text-5xl font-extrabold font-display text-[#FF6B35]">{state.score}</div>
+              <div className="text-xs text-[#86868B] uppercase tracking-wider mt-1.5">Score</div>
             </div>
-            <div className="w-px h-14 bg-glass-border" />
+            <div className="w-px h-14 bg-black/[0.06]" />
             <div className="text-center">
-              <div className="text-4xl sm:text-5xl font-extrabold text-accent-blue font-display">{accuracy}%</div>
-              <div className="text-xs text-chrome-dim uppercase tracking-wider mt-1.5">Accuracy</div>
+              <div className="text-4xl sm:text-5xl font-extrabold text-[#0071E3] font-display">{accuracy}%</div>
+              <div className="text-xs text-[#86868B] uppercase tracking-wider mt-1.5">Accuracy</div>
             </div>
-            <div className="w-px h-14 bg-glass-border" />
+            <div className="w-px h-14 bg-black/[0.06]" />
             <div className="text-center">
-              <div className="text-4xl sm:text-5xl font-extrabold text-accent-green font-display">{state.maxStreak}</div>
-              <div className="text-xs text-chrome-dim uppercase tracking-wider mt-1.5">Best Streak</div>
+              <div className="text-4xl sm:text-5xl font-extrabold text-[#22C55E] font-display">{state.maxStreak}</div>
+              <div className="text-xs text-[#86868B] uppercase tracking-wider mt-1.5">Best Streak</div>
             </div>
           </div>
           <div className="mt-8 flex gap-3 justify-center">
             <button
               type="button"
               onClick={handleReset}
-              className="flex items-center gap-2 px-6 py-3 rounded-xl bg-accent-orange/[0.15] border border-accent-orange/30 text-sm font-semibold text-accent-orange hover:bg-accent-orange/[0.25] transition-colors"
+              className="flex items-center gap-2 px-6 py-3 rounded-xl bg-[#FF6B35]/[0.08] border border-[#FF6B35]/30 text-sm font-semibold text-[#FF6B35] hover:bg-[#FF6B35]/[0.12] transition-colors"
             >
               <RotateCcw size={16} />
               Play Again
@@ -580,7 +583,7 @@ function GuessThePlayerGame({ onBack }: { readonly onBack: () => void }) {
             <button
               type="button"
               onClick={onBack}
-              className="flex items-center gap-2 px-6 py-3 rounded-xl bg-white/[0.04] border border-white/[0.08] text-sm font-semibold text-chrome-medium hover:bg-white/[0.08] transition-colors"
+              className="flex items-center gap-2 px-6 py-3 rounded-xl bg-white border border-black/[0.06] text-sm font-semibold text-[#6E6E73] hover:bg-[#F5F5F7] transition-colors"
             >
               Game Modes
             </button>
@@ -590,17 +593,17 @@ function GuessThePlayerGame({ onBack }: { readonly onBack: () => void }) {
         {/* Leaderboard */}
         {leaderboard.length > 0 && (
           <GlassCard className="p-5">
-            <h3 className="text-sm font-semibold text-chrome-light mb-3 flex items-center gap-2">
-              <Trophy size={16} className="text-accent-gold" />
+            <h3 className="text-sm font-semibold text-[#1D1D1F] mb-3 flex items-center gap-2">
+              <Trophy size={16} className="text-[#F59E0B]" />
               Top Scores - Guess the Player
             </h3>
             <div className="space-y-2">
               {leaderboard.map((entry, i) => (
                 <div key={`${entry.date}-${entry.score}-${i}`} className="flex items-center gap-3 text-xs">
-                  <span className="w-5 text-right text-chrome-dim font-mono font-bold">{i + 1}</span>
-                  <span className="flex-1 text-chrome-light font-medium">{entry.score}/{TOTAL_QUESTIONS}</span>
-                  <span className="text-chrome-medium">{entry.accuracy}%</span>
-                  <span className="text-chrome-dim">{entry.date}</span>
+                  <span className="w-5 text-right text-[#86868B] font-mono font-bold">{i + 1}</span>
+                  <span className="flex-1 text-[#1D1D1F] font-medium">{entry.score}/{TOTAL_QUESTIONS}</span>
+                  <span className="text-[#6E6E73]">{entry.accuracy}%</span>
+                  <span className="text-[#86868B]">{entry.date}</span>
                 </div>
               ))}
             </div>
@@ -644,11 +647,11 @@ function GuessThePlayerGame({ onBack }: { readonly onBack: () => void }) {
       <GlassCard className="p-5" tintColor="#4DA6FF">
         <div className="flex items-start justify-between mb-4">
           <div>
-            <span className="text-xs text-chrome-dim uppercase tracking-wider">Who is this player?</span>
+            <span className="text-xs text-[#86868B] uppercase tracking-wider">Who is this player?</span>
             <div className="mt-1 flex items-center gap-2">
-              <span className="text-sm text-chrome-medium">{p.team}</span>
-              <span className="text-chrome-dim">|</span>
-              <span className="text-sm text-chrome-medium">{p.season}</span>
+              <span className="text-sm text-[#6E6E73]">{p.team}</span>
+              <span className="text-[#86868B]">|</span>
+              <span className="text-sm text-[#6E6E73]">{p.season}</span>
             </div>
           </div>
           {!isAnswered && (
@@ -661,9 +664,9 @@ function GuessThePlayerGame({ onBack }: { readonly onBack: () => void }) {
               transition={{ type: 'spring', stiffness: 400, damping: 10 }}
             >
               {state.selectedAnswer === state.correctAnswer ? (
-                <CheckCircle2 size={36} className="text-accent-green" />
+                <CheckCircle2 size={36} className="text-[#22C55E]" />
               ) : (
-                <XCircle size={36} className="text-accent-red" />
+                <XCircle size={36} className="text-[#EF4444]" />
               )}
             </motion.div>
           )}
@@ -680,8 +683,8 @@ function GuessThePlayerGame({ onBack }: { readonly onBack: () => void }) {
             { label: 'STL', value: Number(p.steals).toFixed(1) },
           ].map((stat) => (
             <div key={stat.label} className="text-center">
-              <div className="text-lg sm:text-xl font-bold text-chrome-light font-display">{stat.value}</div>
-              <div className="text-[10px] text-chrome-dim uppercase tracking-wider mt-0.5">{stat.label}</div>
+              <div className="text-lg sm:text-xl font-bold text-[#1D1D1F] font-display">{stat.value}</div>
+              <div className="text-[10px] text-[#86868B] uppercase tracking-wider mt-0.5">{stat.label}</div>
             </div>
           ))}
         </div>
@@ -695,7 +698,7 @@ function GuessThePlayerGame({ onBack }: { readonly onBack: () => void }) {
               animate={{ opacity: 1, y: 0 }}
               transition={{ type: 'spring', stiffness: 200, damping: 16 }}
             >
-              <span className="text-xl font-extrabold text-accent-orange font-display">{state.correctAnswer}</span>
+              <span className="text-xl font-extrabold text-[#FF6B35] font-display">{state.correctAnswer}</span>
             </motion.div>
           )}
         </AnimatePresence>
@@ -720,10 +723,10 @@ function GuessThePlayerGame({ onBack }: { readonly onBack: () => void }) {
               disabled={isAnswered}
               className={clsx(
                 'relative px-4 py-3 rounded-2xl text-sm font-semibold transition-all duration-200',
-                'border backdrop-blur-xl text-left',
-                variant === 'default' && 'bg-white/[0.04] border-white/[0.08] text-chrome-light hover:bg-white/[0.08] hover:border-white/[0.16]',
-                variant === 'correct' && 'bg-accent-green/[0.15] border-accent-green/40 text-accent-green shadow-[0_0_20px_rgba(52,211,153,0.15)]',
-                variant === 'wrong' && 'bg-accent-red/[0.15] border-accent-red/40 text-accent-red',
+                'border text-left',
+                variant === 'default' && 'bg-white border-black/[0.12] text-[#1D1D1F] hover:bg-[#F5F5F7] hover:border-black/[0.12]',
+                variant === 'correct' && 'bg-[#22C55E] border-[#22C55E] text-white',
+                variant === 'wrong' && 'bg-[#EF4444] border-[#EF4444] text-white',
                 isAnswered && variant === 'default' && 'opacity-50',
               )}
               whileTap={!isAnswered ? { scale: 0.97 } : undefined}
@@ -732,7 +735,7 @@ function GuessThePlayerGame({ onBack }: { readonly onBack: () => void }) {
             >
               {option}
               {isAnswered && isCorrect && (
-                <CheckCircle2 size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-accent-green" />
+                <CheckCircle2 size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#22C55E]" />
               )}
             </motion.button>
           );
@@ -749,7 +752,7 @@ function GuessThePlayerGame({ onBack }: { readonly onBack: () => void }) {
           <button
             type="button"
             onClick={handleNext}
-            className="w-full flex items-center justify-center gap-2 py-3 rounded-2xl bg-accent-orange/[0.15] border border-accent-orange/30 text-sm font-semibold text-accent-orange hover:bg-accent-orange/[0.25] transition-colors"
+            className="w-full flex items-center justify-center gap-2 py-3 rounded-2xl bg-[#FF6B35]/[0.08] border border-[#FF6B35]/30 text-sm font-semibold text-[#FF6B35] hover:bg-[#FF6B35]/[0.12] transition-colors"
           >
             {state.questionNumber >= TOTAL_QUESTIONS ? 'See Results' : 'Next Question'}
             <ChevronRight size={16} />
@@ -763,6 +766,7 @@ function GuessThePlayerGame({ onBack }: { readonly onBack: () => void }) {
 // ── Better Season Game ───────────────────────────────────────────────────────
 
 function BetterSeasonGame({ onBack }: { readonly onBack: () => void }) {
+  const { seasonType } = useSeasonType();
   const [state, dispatch] = useReducer(compareReducer, initialCompareState);
   const [showFeedback, setShowFeedback] = useState<boolean | null>(null);
   const [leaderboard, setLeaderboard] = useState<readonly LeaderboardEntry[]>([]);
@@ -773,16 +777,17 @@ function BetterSeasonGame({ onBack }: { readonly onBack: () => void }) {
 
   const fetchQuestion = useCallback(async () => {
     try {
-      const res = await fetch('/api/quiz?mode=compare');
+      const res = await fetch(`/api/v2/quiz?mode=compare&seasonType=${seasonType}`);
       if (!res.ok) throw new Error('Failed to fetch');
-      const players: ComparePair[] = await res.json();
+      const json = await res.json();
+      const players: ComparePair[] = json.data;
       if (!players || players.length < 2) throw new Error('Invalid data');
       const stat = randomCompareStat();
       dispatch({ type: 'LOAD_QUESTION', players, stat });
     } catch {
       setTimeout(fetchQuestion, 1000);
     }
-  }, []);
+  }, [seasonType]);
 
   useEffect(() => {
     if (state.status === 'loading') {
@@ -835,29 +840,29 @@ function BetterSeasonGame({ onBack }: { readonly onBack: () => void }) {
         transition={{ type: 'spring', stiffness: 120, damping: 14 }}
       >
         <GlassCard className="p-8 sm:p-10 text-center" tintColor="#4DA6FF">
-          <Crown size={48} className="text-accent-gold mx-auto mb-4" />
-          <h2 className="text-3xl sm:text-4xl font-extrabold tracking-[-0.02em] text-chrome-light font-display">Game Over!</h2>
+          <Crown size={48} className="text-[#F59E0B] mx-auto mb-4" />
+          <h2 className="text-3xl sm:text-4xl font-extrabold tracking-[-0.02em] text-[#1D1D1F] font-display">Game Over!</h2>
           <div className="mt-6 flex items-center justify-center gap-8">
             <div className="text-center">
-              <div className="text-4xl sm:text-5xl font-extrabold font-display bg-gradient-to-b from-accent-blue to-accent-violet bg-clip-text text-transparent">{state.score}</div>
-              <div className="text-xs text-chrome-dim uppercase tracking-wider mt-1.5">Score</div>
+              <div className="text-4xl sm:text-5xl font-extrabold font-display text-[#0071E3]">{state.score}</div>
+              <div className="text-xs text-[#86868B] uppercase tracking-wider mt-1.5">Score</div>
             </div>
-            <div className="w-px h-14 bg-glass-border" />
+            <div className="w-px h-14 bg-black/[0.06]" />
             <div className="text-center">
-              <div className="text-4xl sm:text-5xl font-extrabold text-accent-orange font-display">{accuracy}%</div>
-              <div className="text-xs text-chrome-dim uppercase tracking-wider mt-1.5">Accuracy</div>
+              <div className="text-4xl sm:text-5xl font-extrabold text-[#FF6B35] font-display">{accuracy}%</div>
+              <div className="text-xs text-[#86868B] uppercase tracking-wider mt-1.5">Accuracy</div>
             </div>
-            <div className="w-px h-14 bg-glass-border" />
+            <div className="w-px h-14 bg-black/[0.06]" />
             <div className="text-center">
-              <div className="text-4xl sm:text-5xl font-extrabold text-accent-green font-display">{state.maxStreak}</div>
-              <div className="text-xs text-chrome-dim uppercase tracking-wider mt-1.5">Best Streak</div>
+              <div className="text-4xl sm:text-5xl font-extrabold text-[#22C55E] font-display">{state.maxStreak}</div>
+              <div className="text-xs text-[#86868B] uppercase tracking-wider mt-1.5">Best Streak</div>
             </div>
           </div>
           <div className="mt-8 flex gap-3 justify-center">
             <button
               type="button"
               onClick={handleReset}
-              className="flex items-center gap-2 px-6 py-3 rounded-xl bg-accent-blue/[0.15] border border-accent-blue/30 text-sm font-semibold text-accent-blue hover:bg-accent-blue/[0.25] transition-colors"
+              className="flex items-center gap-2 px-6 py-3 rounded-xl bg-[#0071E3]/[0.08] border border-[#0071E3]/30 text-sm font-semibold text-[#0071E3] hover:bg-[#0071E3]/[0.12] transition-colors"
             >
               <RotateCcw size={16} />
               Play Again
@@ -865,7 +870,7 @@ function BetterSeasonGame({ onBack }: { readonly onBack: () => void }) {
             <button
               type="button"
               onClick={onBack}
-              className="flex items-center gap-2 px-6 py-3 rounded-xl bg-white/[0.04] border border-white/[0.08] text-sm font-semibold text-chrome-medium hover:bg-white/[0.08] transition-colors"
+              className="flex items-center gap-2 px-6 py-3 rounded-xl bg-white border border-black/[0.06] text-sm font-semibold text-[#6E6E73] hover:bg-[#F5F5F7] transition-colors"
             >
               Game Modes
             </button>
@@ -874,17 +879,17 @@ function BetterSeasonGame({ onBack }: { readonly onBack: () => void }) {
 
         {leaderboard.length > 0 && (
           <GlassCard className="p-5">
-            <h3 className="text-sm font-semibold text-chrome-light mb-3 flex items-center gap-2">
-              <Trophy size={16} className="text-accent-gold" />
+            <h3 className="text-sm font-semibold text-[#1D1D1F] mb-3 flex items-center gap-2">
+              <Trophy size={16} className="text-[#F59E0B]" />
               Top Scores - Better Season
             </h3>
             <div className="space-y-2">
               {leaderboard.map((entry, i) => (
                 <div key={`${entry.date}-${entry.score}-${i}`} className="flex items-center gap-3 text-xs">
-                  <span className="w-5 text-right text-chrome-dim font-mono font-bold">{i + 1}</span>
-                  <span className="flex-1 text-chrome-light font-medium">{entry.score}/{TOTAL_QUESTIONS}</span>
-                  <span className="text-chrome-medium">{entry.accuracy}%</span>
-                  <span className="text-chrome-dim">{entry.date}</span>
+                  <span className="w-5 text-right text-[#86868B] font-mono font-bold">{i + 1}</span>
+                  <span className="flex-1 text-[#1D1D1F] font-medium">{entry.score}/{TOTAL_QUESTIONS}</span>
+                  <span className="text-[#6E6E73]">{entry.accuracy}%</span>
+                  <span className="text-[#86868B]">{entry.date}</span>
                 </div>
               ))}
             </div>
@@ -924,8 +929,8 @@ function BetterSeasonGame({ onBack }: { readonly onBack: () => void }) {
 
       {/* Question prompt */}
       <div className="text-center py-2">
-        <span className="text-xs text-chrome-dim uppercase tracking-wider">Who had the better</span>
-        <div className="text-xl font-extrabold text-accent-blue font-display mt-0.5">{statLabel}?</div>
+        <span className="text-xs text-[#86868B] uppercase tracking-wider">Who had the better</span>
+        <div className="text-xl font-extrabold text-[#0071E3] font-display mt-0.5">{statLabel}?</div>
       </div>
 
       {/* Player cards side by side */}
@@ -933,18 +938,18 @@ function BetterSeasonGame({ onBack }: { readonly onBack: () => void }) {
         {state.players.map((player, idx) => {
           const isSelected = state.selectedIdx === idx;
           const isCorrectPlayer = idx === state.correctIdx;
-          let borderColor = 'border-white/[0.08]';
-          let bgColor = 'bg-white/[0.04]';
+          let borderColor = 'border-black/[0.06]';
+          let bgColor = 'bg-white';
           let shadowClass = '';
 
           if (isAnswered) {
             if (isCorrectPlayer) {
-              borderColor = 'border-accent-green/40';
-              bgColor = 'bg-accent-green/[0.08]';
+              borderColor = 'border-[#22C55E]/40';
+              bgColor = 'bg-[#22C55E]/[0.06]';
               shadowClass = 'shadow-[0_0_20px_rgba(52,211,153,0.15)]';
             } else if (isSelected) {
-              borderColor = 'border-accent-red/40';
-              bgColor = 'bg-accent-red/[0.08]';
+              borderColor = 'border-[#EF4444]/40';
+              bgColor = 'bg-[#EF4444]/[0.06]';
             }
           }
 
@@ -956,25 +961,25 @@ function BetterSeasonGame({ onBack }: { readonly onBack: () => void }) {
               disabled={isAnswered}
               className={clsx(
                 'relative flex flex-col items-center gap-3 p-4 sm:p-5 rounded-2xl text-center transition-all duration-200',
-                'border backdrop-blur-xl',
+                'border ',
                 bgColor,
                 borderColor,
                 shadowClass,
-                !isAnswered && 'hover:bg-white/[0.08] hover:border-white/[0.16] cursor-pointer',
+                !isAnswered && 'hover:bg-[#F5F5F7] hover:border-black/[0.12] cursor-pointer',
                 isAnswered && !isCorrectPlayer && !isSelected && 'opacity-50',
               )}
               whileTap={!isAnswered ? { scale: 0.97 } : undefined}
               animate={isAnswered && isSelected && !isCorrectPlayer ? { x: [0, -4, 4, -4, 4, 0] } : undefined}
               transition={isAnswered && isSelected && !isCorrectPlayer ? { duration: 0.4 } : undefined}
             >
-              <div className="w-12 h-12 rounded-full bg-white/[0.06] border border-white/[0.08] flex items-center justify-center">
-                <span className="text-lg font-bold text-chrome-light font-display">
+              <div className="w-12 h-12 rounded-full bg-[#F5F5F7] border border-black/[0.06] flex items-center justify-center">
+                <span className="text-lg font-bold text-[#1D1D1F] font-display">
                   {player.name.split(' ').map((n) => n[0]).join('')}
                 </span>
               </div>
               <div>
-                <div className="text-sm font-bold text-chrome-light">{player.name}</div>
-                <div className="text-[10px] text-chrome-dim mt-0.5">
+                <div className="text-sm font-bold text-[#1D1D1F]">{player.name}</div>
+                <div className="text-[10px] text-[#86868B] mt-0.5">
                   {player.team} | {player.season}
                 </div>
               </div>
@@ -989,13 +994,13 @@ function BetterSeasonGame({ onBack }: { readonly onBack: () => void }) {
                   <div key={s.label} className="text-center">
                     <div className={clsx(
                       'text-sm font-bold font-display',
-                      isAnswered && s.isFocused && isCorrectPlayer ? 'text-accent-green' : 'text-chrome-light',
+                      isAnswered && s.isFocused && isCorrectPlayer ? 'text-[#22C55E]' : 'text-[#1D1D1F]',
                     )}>
                       {isAnswered || !s.isFocused ? s.val : '?'}
                     </div>
                     <div className={clsx(
                       'text-[9px] uppercase tracking-wider mt-0.5',
-                      s.isFocused ? 'text-accent-blue' : 'text-chrome-dim',
+                      s.isFocused ? 'text-[#0071E3]' : 'text-[#86868B]',
                     )}>
                       {s.label}
                     </div>
@@ -1011,7 +1016,7 @@ function BetterSeasonGame({ onBack }: { readonly onBack: () => void }) {
                   animate={{ scale: 1 }}
                   transition={{ type: 'spring', stiffness: 400, damping: 10 }}
                 >
-                  <CheckCircle2 size={24} className="text-accent-green bg-dark-base rounded-full" />
+                  <CheckCircle2 size={24} className="text-[#22C55E] bg-[#FAFAFA] rounded-full" />
                 </motion.div>
               )}
             </motion.button>
@@ -1030,13 +1035,13 @@ function BetterSeasonGame({ onBack }: { readonly onBack: () => void }) {
           >
             <GlassCard className="p-4">
               <div className="flex items-center justify-between text-xs mb-2">
-                <span className="text-chrome-medium font-medium">{state.players[0].name.split(' ').pop()}</span>
-                <span className="text-chrome-dim uppercase tracking-wider font-semibold">{statLabel}</span>
-                <span className="text-chrome-medium font-medium">{state.players[1].name.split(' ').pop()}</span>
+                <span className="text-[#6E6E73] font-medium">{state.players[0].name.split(' ').pop()}</span>
+                <span className="text-[#86868B] uppercase tracking-wider font-semibold">{statLabel}</span>
+                <span className="text-[#6E6E73] font-medium">{state.players[1].name.split(' ').pop()}</span>
               </div>
               <div className="flex items-center gap-2">
                 <motion.div
-                  className="h-6 rounded-l-full bg-accent-orange/60"
+                  className="h-6 rounded-l-full bg-[#FF6B35]/60"
                   initial={{ width: 0 }}
                   animate={{
                     width: `${(Number(state.players[0][state.compareStat]) / (Number(state.players[0][state.compareStat]) + Number(state.players[1][state.compareStat]))) * 100}%`,
@@ -1044,7 +1049,7 @@ function BetterSeasonGame({ onBack }: { readonly onBack: () => void }) {
                   transition={{ type: 'spring', stiffness: 120, damping: 14 }}
                 />
                 <motion.div
-                  className="h-6 rounded-r-full bg-accent-blue/60"
+                  className="h-6 rounded-r-full bg-[#0071E3]/60"
                   initial={{ width: 0 }}
                   animate={{
                     width: `${(Number(state.players[1][state.compareStat]) / (Number(state.players[0][state.compareStat]) + Number(state.players[1][state.compareStat]))) * 100}%`,
@@ -1053,8 +1058,8 @@ function BetterSeasonGame({ onBack }: { readonly onBack: () => void }) {
                 />
               </div>
               <div className="flex items-center justify-between text-xs mt-1">
-                <span className="text-accent-orange font-bold">{Number(state.players[0][state.compareStat]).toFixed(1)}</span>
-                <span className="text-accent-blue font-bold">{Number(state.players[1][state.compareStat]).toFixed(1)}</span>
+                <span className="text-[#FF6B35] font-bold">{Number(state.players[0][state.compareStat]).toFixed(1)}</span>
+                <span className="text-[#0071E3] font-bold">{Number(state.players[1][state.compareStat]).toFixed(1)}</span>
               </div>
             </GlassCard>
           </motion.div>
@@ -1071,7 +1076,7 @@ function BetterSeasonGame({ onBack }: { readonly onBack: () => void }) {
           <button
             type="button"
             onClick={handleNext}
-            className="w-full flex items-center justify-center gap-2 py-3 rounded-2xl bg-accent-blue/[0.15] border border-accent-blue/30 text-sm font-semibold text-accent-blue hover:bg-accent-blue/[0.25] transition-colors"
+            className="w-full flex items-center justify-center gap-2 py-3 rounded-2xl bg-[#0071E3]/[0.08] border border-[#0071E3]/30 text-sm font-semibold text-[#0071E3] hover:bg-[#0071E3]/[0.12] transition-colors"
           >
             {state.questionNumber >= TOTAL_QUESTIONS ? 'See Results' : 'Next Round'}
             <ChevronRight size={16} />
@@ -1101,16 +1106,16 @@ function GameModeSelector({ onSelect }: { readonly onSelect: (mode: GameMode) =>
           onClick={() => onSelect('guess')}
         >
           <div className="flex flex-col items-center text-center gap-5">
-            <div className="flex items-center justify-center h-20 w-20 rounded-3xl bg-accent-orange/[0.12] border border-accent-orange/20">
-              <HelpCircle size={36} className="text-accent-orange" />
+            <div className="flex items-center justify-center h-20 w-20 rounded-3xl bg-[#FF6B35]/[0.08] border border-[#FF6B35]/20">
+              <HelpCircle size={36} className="text-[#FF6B35]" />
             </div>
             <div>
-              <h3 className="text-xl font-extrabold tracking-[-0.02em] text-chrome-light font-display">Guess the Player</h3>
-              <p className="mt-2 text-sm text-chrome-dim leading-relaxed">
+              <h3 className="text-xl font-extrabold tracking-[-0.02em] text-[#1D1D1F] font-display">Guess the Player</h3>
+              <p className="mt-2 text-sm text-[#86868B] leading-relaxed">
                 See a player&apos;s stats with their name hidden. Can you identify them from the numbers alone?
               </p>
             </div>
-            <div className="flex items-center gap-3 text-xs text-chrome-dim">
+            <div className="flex items-center gap-3 text-xs text-[#86868B]">
               <div className="flex items-center gap-1">
                 <Timer size={12} />
                 <span>15s per question</span>
@@ -1133,16 +1138,16 @@ function GameModeSelector({ onSelect }: { readonly onSelect: (mode: GameMode) =>
           onClick={() => onSelect('compare')}
         >
           <div className="flex flex-col items-center text-center gap-5">
-            <div className="flex items-center justify-center h-20 w-20 rounded-3xl bg-accent-blue/[0.12] border border-accent-blue/20">
-              <Scale size={36} className="text-accent-blue" />
+            <div className="flex items-center justify-center h-20 w-20 rounded-3xl bg-[#0071E3]/[0.08] border border-[#0071E3]/20">
+              <Scale size={36} className="text-[#0071E3]" />
             </div>
             <div>
-              <h3 className="text-xl font-extrabold tracking-[-0.02em] text-chrome-light font-display">Better Season</h3>
-              <p className="mt-2 text-sm text-chrome-dim leading-relaxed">
+              <h3 className="text-xl font-extrabold tracking-[-0.02em] text-[#1D1D1F] font-display">Better Season</h3>
+              <p className="mt-2 text-sm text-[#86868B] leading-relaxed">
                 Two players, one stat. Pick who had the better season. It&apos;s harder than you think!
               </p>
             </div>
-            <div className="flex items-center gap-3 text-xs text-chrome-dim">
+            <div className="flex items-center gap-3 text-xs text-[#86868B]">
               <div className="flex items-center gap-1">
                 <Zap size={12} />
                 <span>Quick rounds</span>
@@ -1182,12 +1187,12 @@ export default function PlayModePage() {
         transition={{ type: 'spring', stiffness: 120, damping: 14 }}
       >
         <div className="flex items-center gap-3 mb-1">
-          <Gamepad2 size={32} className="text-accent-orange" />
-          <h1 className="text-3xl sm:text-4xl font-extrabold tracking-[-0.02em] text-chrome-light font-display">
+          <Gamepad2 size={32} className="text-[#FF6B35]" />
+          <h1 className="font-display font-extrabold text-4xl md:text-5xl text-[#1D1D1F]">
             Play Mode
           </h1>
         </div>
-        <p className="text-sm sm:text-base text-chrome-dim">
+        <p className="text-sm sm:text-base text-[#86868B]">
           Test your basketball knowledge with interactive trivia games
         </p>
       </motion.div>

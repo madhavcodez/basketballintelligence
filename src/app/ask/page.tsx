@@ -53,12 +53,12 @@ interface ChatMessage {
 type QueryCategory = 'all' | 'leaders' | 'players' | 'teams' | 'comparisons' | 'advanced';
 
 const CATEGORY_CONFIG: Record<QueryCategory, { label: string; icon: typeof Sparkles; color: string }> = {
-  all:         { label: 'All',       icon: Sparkles,         color: 'text-chrome-medium' },
-  leaders:     { label: 'Leaders',   icon: Trophy,           color: 'text-accent-gold' },
-  players:     { label: 'Players',   icon: Activity,         color: 'text-accent-blue' },
-  teams:       { label: 'Teams',     icon: Shield,           color: 'text-accent-green' },
-  comparisons: { label: 'Compare',   icon: GitCompareArrows, color: 'text-accent-violet' },
-  advanced:    { label: 'Advanced',  icon: FlaskConical,     color: 'text-accent-orange' },
+  all:         { label: 'All',       icon: Sparkles,         color: 'text-[#6E6E73]' },
+  leaders:     { label: 'Leaders',   icon: Trophy,           color: 'text-[#F59E0B]' },
+  players:     { label: 'Players',   icon: Activity,         color: 'text-[#0071E3]' },
+  teams:       { label: 'Teams',     icon: Shield,           color: 'text-[#22C55E]' },
+  comparisons: { label: 'Compare',   icon: GitCompareArrows, color: 'text-[#6E6E73]' },
+  advanced:    { label: 'Advanced',  icon: FlaskConical,     color: 'text-[#FF6B35]' },
 };
 
 const INTENT_LABELS: Record<string, string> = {
@@ -135,11 +135,11 @@ function DataTable({
     <div className="overflow-x-auto -mx-4 px-4 mt-3">
       <table className="w-full text-sm">
         <thead>
-          <tr className="border-b border-glass-border">
+          <tr className="border-b border-black/[0.06]">
             {columns.map((col) => (
               <th
                 key={col}
-                className="text-left text-[10px] uppercase tracking-wider font-semibold text-chrome-dim py-2 px-2.5 first:pl-0 whitespace-nowrap"
+                className="text-left text-[10px] uppercase tracking-wider font-semibold text-[#86868B] py-2 px-2.5 first:pl-0 whitespace-nowrap"
               >
                 {formatHeader(col)}
               </th>
@@ -150,14 +150,14 @@ function DataTable({
           {data.slice(0, 25).map((row, i) => (
             <tr
               key={i}
-              className="border-b border-glass-border/30 last:border-0 hover:bg-glass-bg/40 transition-colors"
+              className={clsx('border-b border-black/[0.06] last:border-0 hover:bg-[#F5F5F7] transition-colors', i % 2 === 1 && 'bg-[#F5F5F7]')}
             >
               {columns.map((col, j) => (
                 <td
                   key={col}
                   className={clsx(
                     'py-2 px-2.5 first:pl-0 whitespace-nowrap',
-                    j === 0 ? 'text-chrome-dim font-mono text-xs' : 'text-chrome-light',
+                    j === 0 ? 'text-[#86868B] font-mono text-xs' : 'text-[#1D1D1F]',
                     j === 1 && 'font-medium',
                   )}
                 >
@@ -169,7 +169,7 @@ function DataTable({
         </tbody>
       </table>
       {data.length > 25 && (
-        <p className="text-xs text-chrome-dim mt-2 text-center">Showing 25 of {data.length} results</p>
+        <p className="text-xs text-[#86868B] mt-2 text-center">Showing 25 of {data.length} results</p>
       )}
     </div>
   );
@@ -214,9 +214,9 @@ function QueryDetails({ intent, rowCount }: { readonly intent: string; readonly 
   }
 
   return (
-    <div className="flex flex-wrap gap-x-3 gap-y-1 mt-2 pt-2 border-t border-glass-border/40">
+    <div className="flex flex-wrap gap-x-3 gap-y-1 mt-2 pt-2 border-t border-black/[0.06]/40">
       {notes.map((note) => (
-        <span key={note} className="text-[10px] text-chrome-dim flex items-center gap-1">
+        <span key={note} className="text-[10px] text-[#86868B] flex items-center gap-1">
           <Info size={9} className="shrink-0" />
           {note}
         </span>
@@ -243,14 +243,14 @@ function MessageBubble({
           <div
             className={clsx(
               'px-4 py-3 rounded-2xl rounded-tr-md',
-              'bg-accent-violet/20 border border-accent-violet/20',
-              'text-sm text-chrome-light',
+              'bg-[#F5F5F7] border border-black/[0.06]',
+              'text-sm text-[#1D1D1F]',
             )}
           >
             {message.content}
           </div>
-          <div className="flex items-center justify-center h-8 w-8 rounded-full bg-accent-violet/15 shrink-0">
-            <User size={14} className="text-accent-violet" />
+          <div className="flex items-center justify-center h-8 w-8 rounded-full bg-[#F5F5F7] shrink-0">
+            <User size={14} className="text-[#6E6E73]" />
           </div>
         </div>
       </motion.div>
@@ -262,17 +262,17 @@ function MessageBubble({
   return (
     <motion.div variants={messageVariants} initial="hidden" animate="visible" className="flex justify-start">
       <div className="flex items-start gap-2.5 max-w-[90%] w-full">
-        <div className="flex items-center justify-center h-8 w-8 rounded-full bg-accent-orange/15 shrink-0 mt-0.5">
-          <Database size={14} className="text-accent-orange" />
+        <div className="flex items-center justify-center h-8 w-8 rounded-full bg-[#FF6B35]/10 shrink-0 mt-0.5">
+          <Database size={14} className="text-[#FF6B35]" />
         </div>
         <div className="flex-1 min-w-0 space-y-2">
           {resp?.error ? (
             <GlassCard className="p-4">
               <div className="flex items-center gap-2 mb-2">
-                <AlertTriangle size={14} className="text-accent-gold" />
-                <span className="text-sm font-semibold text-chrome-light">Query Error</span>
+                <AlertTriangle size={14} className="text-[#F59E0B]" />
+                <span className="text-sm font-semibold text-[#1D1D1F]">Query Error</span>
               </div>
-              <p className="text-sm text-chrome-dim">{resp.error}</p>
+              <p className="text-sm text-[#86868B]">{resp.error}</p>
             </GlassCard>
           ) : resp ? (
             <GlassCard className="p-4 overflow-hidden">
@@ -282,15 +282,15 @@ function MessageBubble({
                   <div className="mb-1">
                     <IntentBadge intent={resp.intent} />
                   </div>
-                  <h3 className="text-sm font-bold text-chrome-light leading-snug">{resp.title}</h3>
+                  <h3 className="text-sm font-bold text-[#1D1D1F] leading-snug">{resp.title}</h3>
                 </div>
-                {resp.chartType === 'bar' && <BarChart3 size={14} className="text-accent-blue shrink-0 mt-0.5" />}
-                {resp.chartType === 'comparison' && <GitCompareArrows size={14} className="text-accent-violet shrink-0 mt-0.5" />}
-                {resp.chartType === 'table' && <Table2 size={14} className="text-accent-green shrink-0 mt-0.5" />}
+                {resp.chartType === 'bar' && <BarChart3 size={14} className="text-[#0071E3] shrink-0 mt-0.5" />}
+                {resp.chartType === 'comparison' && <GitCompareArrows size={14} className="text-[#6E6E73] shrink-0 mt-0.5" />}
+                {resp.chartType === 'table' && <Table2 size={14} className="text-[#22C55E] shrink-0 mt-0.5" />}
               </div>
 
               {/* Explanation */}
-              <p className="text-sm text-chrome-medium leading-relaxed mb-1">{resp.explanation}</p>
+              <p className="text-sm text-[#6E6E73] leading-relaxed mb-1">{resp.explanation}</p>
 
               {/* Data table */}
               {resp.data && resp.data.length > 0 && resp.columns.length > 0 && (
@@ -304,7 +304,7 @@ function MessageBubble({
 
               {/* Follow-ups */}
               {resp.followUps && resp.followUps.length > 0 && (
-                <div className="flex flex-wrap gap-1.5 mt-3 pt-3 border-t border-glass-border/50">
+                <div className="flex flex-wrap gap-1.5 mt-3 pt-3 border-t border-black/[0.06]/50">
                   {resp.followUps.map((fu) => (
                     <button
                       key={fu}
@@ -312,8 +312,8 @@ function MessageBubble({
                       onClick={() => onFollowUp(fu)}
                       className={clsx(
                         'px-2.5 py-1 rounded-full text-[11px]',
-                        'bg-accent-violet/[0.06] border border-accent-violet/15',
-                        'text-accent-violet/70 hover:text-accent-violet hover:border-accent-violet/30',
+                        'bg-white border border-black/[0.12]',
+                        'text-[#6E6E73] hover:bg-[#F5F5F7] hover:border-black/[0.12]',
                         'transition-all duration-200 max-w-[260px]',
                       )}
                     >
@@ -327,7 +327,7 @@ function MessageBubble({
               )}
             </GlassCard>
           ) : (
-            <div className="text-sm text-chrome-dim">{message.content}</div>
+            <div className="text-sm text-[#86868B]">{message.content}</div>
           )}
         </div>
       </div>
@@ -356,8 +356,8 @@ function CategoryPill({
         'flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium',
         'border transition-all duration-200',
         active
-          ? 'bg-glass-bg border-chrome-faint text-chrome-light'
-          : 'bg-transparent border-glass-border text-chrome-dim hover:text-chrome-medium hover:border-chrome-faint/50',
+          ? 'bg-[#F5F5F7] border-black/[0.12] text-[#1D1D1F]'
+          : 'bg-transparent border-black/[0.06] text-[#86868B] hover:text-[#6E6E73] hover:border-black/[0.12]',
       )}
     >
       <Icon size={11} className={active ? cfg.color : undefined} />
@@ -484,15 +484,15 @@ export default function AskTheDataPage() {
         <div className="max-w-3xl mx-auto">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2.5">
-              <div className="flex items-center justify-center h-9 w-9 rounded-xl bg-gradient-to-br from-accent-orange/20 to-accent-violet/20 border border-glass-border">
-                <Database size={18} className="text-accent-orange" />
+              <div className="flex items-center justify-center h-9 w-9 rounded-xl bg-[#FF6B35]/10 border border-black/[0.06]">
+                <Database size={18} className="text-[#FF6B35]" />
               </div>
               <div>
-                <h1 className="text-lg sm:text-xl font-extrabold tracking-tight text-chrome-light font-display flex items-center gap-2">
+                <h1 className="font-display font-extrabold text-lg sm:text-xl text-[#1D1D1F] flex items-center gap-2">
                   Ask the Data
                   <Badge variant="warning" className="text-[9px]">Beta</Badge>
                 </h1>
-                <p className="text-[11px] text-chrome-dim">
+                <p className="text-[11px] text-[#86868B]">
                   Structured NBA queries &middot; Powered by live database
                 </p>
               </div>
@@ -501,7 +501,7 @@ export default function AskTheDataPage() {
               <button
                 type="button"
                 onClick={clearChat}
-                className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs text-chrome-dim hover:text-chrome-light hover:bg-glass-bg transition-colors"
+                className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs text-[#86868B] hover:text-[#1D1D1F] hover:bg-white transition-colors"
               >
                 <X size={12} />
                 Clear
@@ -526,23 +526,23 @@ export default function AskTheDataPage() {
               >
                 {/* Hero icon */}
                 <div
-                  className="flex items-center justify-center rounded-2xl mb-5 bg-gradient-to-br from-accent-orange/10 to-accent-violet/10 border border-glass-border"
+                  className="flex items-center justify-center rounded-2xl mb-5 bg-[#FF6B35]/10 border border-black/[0.06]"
                   style={{ height: 72, width: 72 }}
                 >
-                  <Database size={28} className="text-accent-orange" />
+                  <Database size={28} className="text-[#FF6B35]" />
                 </div>
 
-                <h2 className="text-xl sm:text-2xl font-extrabold text-chrome-light font-display mb-1.5 text-center">
+                <h2 className="text-xl sm:text-2xl font-extrabold text-[#1D1D1F] font-display mb-1.5 text-center">
                   Ask the Data
                 </h2>
-                <p className="text-sm text-chrome-dim max-w-sm mx-auto text-center leading-relaxed mb-3">
+                <p className="text-sm text-[#86868B] max-w-sm mx-auto text-center leading-relaxed mb-3">
                   Natural language queries against live NBA stats. Select a category or type your own question.
                 </p>
 
                 {/* Supported query notice */}
-                <div className="flex items-center gap-1.5 mb-6 px-3 py-1.5 rounded-full bg-accent-blue/[0.06] border border-accent-blue/15">
-                  <Info size={11} className="text-accent-blue" />
-                  <span className="text-[11px] text-accent-blue/80 font-medium">
+                <div className="flex items-center gap-1.5 mb-6 px-3 py-1.5 rounded-full bg-[#0071E3]/[0.06] border border-[#0071E3]/15">
+                  <Info size={11} className="text-[#0071E3]" />
+                  <span className="text-[11px] text-[#0071E3]/80 font-medium">
                     Supports: leaders · player stats · team data · comparisons · advanced
                   </span>
                 </div>
@@ -577,21 +577,21 @@ export default function AskTheDataPage() {
                           onClick={() => sendMessage(action.query)}
                           className={clsx(
                             'flex items-center gap-2.5 px-3.5 py-3 rounded-xl text-left',
-                            'bg-glass-bg/60 border border-glass-border',
-                            'hover:border-accent-orange/30 hover:bg-glass-bg',
+                            'bg-white border border-black/[0.12]',
+                            'hover:bg-[#F5F5F7]',
                             'transition-all duration-200 group',
                           )}
                         >
                           <Icon size={14} className={clsx(catCfg.color, 'shrink-0')} />
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm text-chrome-medium group-hover:text-chrome-light transition-colors">
+                            <p className="text-sm text-[#6E6E73] group-hover:text-[#1D1D1F] transition-colors">
                               {action.label}
                             </p>
                             {action.example && (
-                              <p className="text-[10px] text-chrome-dim">{action.example}</p>
+                              <p className="text-[10px] text-[#86868B]">{action.example}</p>
                             )}
                           </div>
-                          <ChevronRight size={12} className="ml-auto text-chrome-dim/50 group-hover:text-chrome-dim transition-colors shrink-0" />
+                          <ChevronRight size={12} className="ml-auto text-[#86868B]/50 group-hover:text-[#86868B] transition-colors shrink-0" />
                         </motion.button>
                       );
                     })}
@@ -614,13 +614,13 @@ export default function AskTheDataPage() {
               className="flex justify-start"
             >
               <div className="flex items-start gap-2.5">
-                <div className="flex items-center justify-center h-8 w-8 rounded-full bg-accent-orange/15 shrink-0">
-                  <Database size={14} className="text-accent-orange" />
+                <div className="flex items-center justify-center h-8 w-8 rounded-full bg-[#FF6B35]/10 shrink-0">
+                  <Database size={14} className="text-[#FF6B35]" />
                 </div>
                 <GlassCard className="px-4 py-3">
                   <div className="flex items-center gap-2">
-                    <Loader2 size={14} className="text-accent-orange animate-spin" />
-                    <span className="text-sm text-chrome-dim">Querying database...</span>
+                    <Loader2 size={14} className="text-[#FF6B35] animate-spin" />
+                    <span className="text-sm text-[#86868B]">Querying database...</span>
                   </div>
                 </GlassCard>
               </div>
@@ -642,9 +642,9 @@ export default function AskTheDataPage() {
             <div
               className={clsx(
                 'group relative flex items-end gap-2 rounded-2xl',
-                'bg-glass-bg/80 backdrop-blur-xl border border-glass-border',
+                'bg-white border border-black/[0.06]',
                 'transition-all duration-200',
-                'focus-within:border-accent-orange/40',
+                'focus-within:border-[#FF6B35]/40',
                 'focus-within:shadow-[0_0_20px_rgba(255,107,53,0.1)]',
                 'px-4 py-3',
               )}
@@ -659,7 +659,7 @@ export default function AskTheDataPage() {
                 rows={1}
                 className={clsx(
                   'flex-1 bg-transparent resize-none outline-none',
-                  'text-sm text-chrome-light placeholder:text-chrome-dim',
+                  'text-sm text-[#1D1D1F] placeholder:text-[#86868B]',
                   'max-h-[120px]',
                 )}
               />
@@ -670,16 +670,16 @@ export default function AskTheDataPage() {
                 className={clsx(
                   'flex items-center justify-center h-8 w-8 rounded-xl shrink-0 transition-all duration-200',
                   input.trim() && !loading
-                    ? 'bg-accent-orange text-white hover:bg-accent-orange/80'
-                    : 'bg-glass-bg text-chrome-dim cursor-not-allowed',
+                    ? 'bg-[#FF6B35] text-white hover:bg-[#FF6B35]/80'
+                    : 'bg-white text-[#86868B] cursor-not-allowed',
                 )}
               >
                 {loading ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />}
               </button>
             </div>
-            <p className="text-[10px] text-chrome-dim/60 mt-1.5 text-center">
+            <p className="text-[10px] text-[#86868B]/60 mt-1.5 text-center">
               Read-only queries &middot; Regular season data &middot;{' '}
-              <Link href="/player/LeBron James" className="hover:text-chrome-dim transition-colors">
+              <Link href="/player/LeBron James" className="hover:text-[#86868B] transition-colors">
                 Try Player Lab
               </Link>
             </p>

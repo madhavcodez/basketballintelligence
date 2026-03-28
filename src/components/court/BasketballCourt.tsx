@@ -2,7 +2,7 @@
 
 import { useMemo } from 'react';
 import clsx from 'clsx';
-import { colors } from '@/lib/design-tokens';
+// Court line color for light mode — no dependency on design-tokens
 
 // ── Zone identifiers ──────────────────────────────────────────────
 export type ShotZone =
@@ -63,7 +63,7 @@ const BACKBOARD_Y = 40; // 4 ft from baseline
 // Rim
 const RIM_RADIUS = 9; // 0.75 ft (18-inch diameter)
 
-const LINE = colors.chromeDim;
+const LINE = '#333333';
 const LINE_WIDTH = 1.5;
 
 // ── Zone paths (SVG clip paths for overlays) ──────────────────────
@@ -190,13 +190,13 @@ export default function BasketballCourt({
   }, []);
 
   const defaultZoneColors: Partial<Record<ShotZone, string>> = {
-    'Restricted Area': `${colors.accentRed}18`,
-    'In The Paint': `${colors.accentOrange}14`,
-    'Mid-Range': `${colors.accentGold}10`,
-    'Left Corner 3': `${colors.accentGreen}14`,
-    'Right Corner 3': `${colors.accentGreen}14`,
-    'Above the Break 3': `${colors.accentBlue}14`,
-    'Backcourt': `${colors.accentViolet}0a`,
+    'Restricted Area': 'rgba(239,68,68,0.10)',
+    'In The Paint': 'rgba(249,115,22,0.08)',
+    'Mid-Range': 'rgba(245,158,11,0.06)',
+    'Left Corner 3': 'rgba(34,197,94,0.08)',
+    'Right Corner 3': 'rgba(34,197,94,0.08)',
+    'Above the Break 3': 'rgba(59,130,246,0.08)',
+    'Backcourt': 'rgba(0,0,0,0.03)',
   };
 
   const mergedZoneColors = { ...defaultZoneColors, ...zoneColors };
