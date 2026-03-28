@@ -415,29 +415,32 @@ export function comparePlayersV2(
   const getStats = (name: string): Record<string, unknown> | undefined => {
     if (season) {
       return db.prepare(`
-        SELECT Player as name, Season as season, Tm as team, Age as age,
-               G as games, MP as minutes, PTS as points, TRB as rebounds,
-               AST as assists, STL as steals, BLK as blocks, TOV as turnovers,
-               FGPct as fgPct, "3PPct" as fg3Pct, FTPct as ftPct, eFGPct as efgPct
-        FROM "${table}" WHERE Player = ? AND Season = ?
+        SELECT s.Player as name, s.Season as season, s.Tm as team, s.Age as age,
+               s.G as games, s.MP as minutes, s.PTS as points, s.TRB as rebounds,
+               s.AST as assists, s.STL as steals, s.BLK as blocks, s.TOV as turnovers,
+               s.FGPct as fgPct, s."3PPct" as fg3Pct, s.FTPct as ftPct, s.eFGPct as efgPct,
+               p.person_id as personId
+        FROM "${table}" s LEFT JOIN players p ON p.Player = s.Player
+        WHERE s.Player = ? AND s.Season = ?
       `).get(name, season) as Record<string, unknown> | undefined;
     }
     return db.prepare(`
-      SELECT Player as name, 'Career' as season,
-             COUNT(DISTINCT Season) as seasons,
-             ROUND(AVG(CAST(G as FLOAT)), 0) as games,
-             ROUND(AVG(CAST(MP as FLOAT)), 1) as minutes,
-             ROUND(AVG(CAST(PTS as FLOAT)), 1) as points,
-             ROUND(AVG(CAST(TRB as FLOAT)), 1) as rebounds,
-             ROUND(AVG(CAST(AST as FLOAT)), 1) as assists,
-             ROUND(AVG(CAST(STL as FLOAT)), 1) as steals,
-             ROUND(AVG(CAST(BLK as FLOAT)), 1) as blocks,
-             ROUND(AVG(CAST(TOV as FLOAT)), 1) as turnovers,
-             ROUND(AVG(CAST(FGPct as FLOAT)), 3) as fgPct,
-             ROUND(AVG(CAST("3PPct" as FLOAT)), 3) as fg3Pct,
-             ROUND(AVG(CAST(FTPct as FLOAT)), 3) as ftPct,
-             ROUND(AVG(CAST(eFGPct as FLOAT)), 3) as efgPct
-      FROM "${table}" WHERE Player = ?
+      SELECT s.Player as name, 'Career' as season,
+             COUNT(DISTINCT s.Season) as seasons,
+             ROUND(AVG(CAST(s.G as FLOAT)), 0) as games,
+             ROUND(AVG(CAST(s.MP as FLOAT)), 1) as minutes,
+             ROUND(AVG(CAST(s.PTS as FLOAT)), 1) as points,
+             ROUND(AVG(CAST(s.TRB as FLOAT)), 1) as rebounds,
+             ROUND(AVG(CAST(s.AST as FLOAT)), 1) as assists,
+             ROUND(AVG(CAST(s.STL as FLOAT)), 1) as steals,
+             ROUND(AVG(CAST(s.BLK as FLOAT)), 1) as blocks,
+             ROUND(AVG(CAST(s.TOV as FLOAT)), 1) as turnovers,
+             ROUND(AVG(CAST(s.FGPct as FLOAT)), 3) as fgPct,
+             ROUND(AVG(CAST(s."3PPct" as FLOAT)), 3) as fg3Pct,
+             ROUND(AVG(CAST(s.FTPct as FLOAT)), 3) as ftPct,
+             ROUND(AVG(CAST(s.eFGPct as FLOAT)), 3) as efgPct,
+             (SELECT person_id FROM players WHERE Player = s.Player LIMIT 1) as personId
+      FROM "${table}" s WHERE s.Player = ?
     `).get(name) as Record<string, unknown> | undefined;
   };
 

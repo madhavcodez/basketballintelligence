@@ -151,7 +151,12 @@ function ComparePageInner() {
         if (!res.ok) throw new Error('Failed to compare players');
         const json = await res.json();
         if (!cancelled) {
-          setData(json);
+          setData({
+            player1: json.player1 ?? null,
+            player2: json.player2 ?? null,
+            zones1: json.shotZones?.player1 ?? [],
+            zones2: json.shotZones?.player2 ?? [],
+          });
           setLoading(false);
         }
       } catch (err) {
