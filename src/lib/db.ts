@@ -97,7 +97,7 @@ export function getPlayerShots(playerName: string, season?: string, limit: numbe
   const safeOffset = clampOffset(offset);
   if (season) {
     return db.prepare(`
-      SELECT LOC_X as x, LOC_Y as y, SHOT_MADE_FLAG as made,
+      SELECT CAST(LOC_X AS REAL) * 10 as x, (CAST(LOC_Y AS REAL) - 5.25) * 10 as y, SHOT_MADE_FLAG as made,
              SHOT_ZONE_BASIC as zoneBasic, SHOT_ZONE_AREA as zoneArea,
              SHOT_ZONE_RANGE as zoneRange, SHOT_DISTANCE as distance,
              ACTION_TYPE as actionType, SHOT_TYPE as shotType,
@@ -109,7 +109,7 @@ export function getPlayerShots(playerName: string, season?: string, limit: numbe
     `).all(playerName, season, safeLimit, safeOffset);
   }
   return db.prepare(`
-    SELECT LOC_X as x, LOC_Y as y, SHOT_MADE_FLAG as made,
+    SELECT CAST(LOC_X AS REAL) * 10 as x, (CAST(LOC_Y AS REAL) - 5.25) * 10 as y, SHOT_MADE_FLAG as made,
            SHOT_ZONE_BASIC as zoneBasic, SHOT_ZONE_AREA as zoneArea,
            SHOT_ZONE_RANGE as zoneRange, SHOT_DISTANCE as distance,
            ACTION_TYPE as actionType, SHOT_TYPE as shotType,
@@ -225,13 +225,15 @@ export function getTeamRoster(teamAbbr: string, season?: string) {
     `SELECT MAX(Season) as s FROM player_stats_pergame`
   ).get() as { s: string })?.s;
   return db.prepare(`
-    SELECT Player as name, Pos as position, Age as age, G as games,
-           GS as gamesStarted, MP as minutes, PTS as points,
-           TRB as rebounds, AST as assists, STL as steals, BLK as blocks,
-           FGPct as fgPct, "3PPct" as fg3Pct, FTPct as ftPct
-    FROM player_stats_pergame
-    WHERE Tm = ? AND Season = ?
-    ORDER BY CAST(PTS as FLOAT) DESC
+    SELECT s.Player as name, s.Pos as position, s.Age as age, s.G as games,
+           s.GS as gamesStarted, s.MP as minutes, s.PTS as points,
+           s.TRB as rebounds, s.AST as assists, s.STL as steals, s.BLK as blocks,
+           s.FGPct as fgPct, s."3PPct" as fg3Pct, s.FTPct as ftPct,
+           p.person_id as personId
+    FROM player_stats_pergame s
+    LEFT JOIN players p ON p.Player = s.Player
+    WHERE s.Tm = ? AND s.Season = ?
+    ORDER BY CAST(s.PTS as FLOAT) DESC
   `).all(teamAbbr, seasonFilter);
 }
 
@@ -244,16 +246,18 @@ export function getLineups(_teamAbbr: string, _season?: string): unknown[] {
 export function comparePlayers(name1: string, name2: string, season?: string) {
   const db = getDb();
   const getStats = (name: string) => {
+    const personId = (db.prepare(`SELECT person_id FROM players WHERE Player = ?`).get(name) as { person_id: string } | undefined)?.person_id ?? null;
     if (season) {
-      return db.prepare(`
+      const row = db.prepare(`
         SELECT Player as name, Season as season, Tm as team, Age as age,
                G as games, MP as minutes, PTS as points, TRB as rebounds,
                AST as assists, STL as steals, BLK as blocks, TOV as turnovers,
                FGPct as fgPct, "3PPct" as fg3Pct, FTPct as ftPct, eFGPct as efgPct
         FROM player_stats_pergame WHERE Player = ? AND Season = ?
-      `).get(name, season);
+      `).get(name, season) as Record<string, unknown> | undefined;
+      return row ? { ...row, personId } : undefined;
     }
-    return db.prepare(`
+    const row = db.prepare(`
       SELECT Player as name, 'Career' as season,
              COUNT(DISTINCT Season) as seasons,
              ROUND(AVG(CAST(G as FLOAT)), 0) as games,
@@ -269,7 +273,8 @@ export function comparePlayers(name1: string, name2: string, season?: string) {
              ROUND(AVG(CAST(FTPct as FLOAT)), 3) as ftPct,
              ROUND(AVG(CAST(eFGPct as FLOAT)), 3) as efgPct
       FROM player_stats_pergame WHERE Player = ?
-    `).get(name);
+    `).get(name) as Record<string, unknown> | undefined;
+    return row ? { ...row, personId } : undefined;
   };
   return { player1: getStats(name1), player2: getStats(name2) };
 }
@@ -382,14 +387,16 @@ export function findSimilarPlayers(playerName: string, season: string, limit = 5
   if (!target) return [];
 
   return db.prepare(`
-    SELECT Player as name, Tm as team, Season as season,
-           CAST(PTS as FLOAT) as points, CAST(TRB as FLOAT) as rebounds,
-           CAST(AST as FLOAT) as assists,
-           ABS(CAST(PTS as FLOAT) - ?) + ABS(CAST(TRB as FLOAT) - ?) +
-           ABS(CAST(AST as FLOAT) - ?) + ABS(CAST(STL as FLOAT) - ?) +
-           ABS(CAST(BLK as FLOAT) - ?) as distance
-    FROM player_stats_pergame
-    WHERE Player != ? AND Season = ? AND CAST(G as INTEGER) >= 20
+    SELECT s.Player as name, s.Tm as team, s.Season as season,
+           CAST(s.PTS as FLOAT) as points, CAST(s.TRB as FLOAT) as rebounds,
+           CAST(s.AST as FLOAT) as assists,
+           ABS(CAST(s.PTS as FLOAT) - ?) + ABS(CAST(s.TRB as FLOAT) - ?) +
+           ABS(CAST(s.AST as FLOAT) - ?) + ABS(CAST(s.STL as FLOAT) - ?) +
+           ABS(CAST(s.BLK as FLOAT) - ?) as distance,
+           p.person_id as personId
+    FROM player_stats_pergame s
+    LEFT JOIN players p ON p.Player = s.Player
+    WHERE s.Player != ? AND s.Season = ? AND CAST(s.G as INTEGER) >= 20
     ORDER BY distance ASC
     LIMIT ?
   `).all(target.pts, target.trb, target.ast, target.stl, target.blk, playerName, season, limit);
@@ -400,11 +407,12 @@ export function getCareerLeaders(stat: string, limit: number | string = 25, leag
   const db = getDb();
   const safeLimit = clampLimit(limit, 25, 100);
   return db.prepare(`
-    SELECT CAST(Rank as REAL) as rank, Player as name, HOF as hof, Active as active,
-           Value as value
-    FROM career_leaders
-    WHERE stat = ? AND league = ? AND Rank IS NOT NULL AND TRIM(Rank) != ''
-    ORDER BY CAST(Rank as REAL) ASC
+    SELECT CAST(cl.Rank as REAL) as rank, cl.Player as name, cl.HOF as hof, cl.Active as active,
+           cl.Value as value, p.person_id as personId
+    FROM career_leaders cl
+    LEFT JOIN players p ON p.Player = cl.Player
+    WHERE cl.stat = ? AND cl.league = ? AND cl.Rank IS NOT NULL AND TRIM(cl.Rank) != ''
+    ORDER BY CAST(cl.Rank as REAL) ASC
     LIMIT ?
   `).all(stat, league, safeLimit);
 }
@@ -452,13 +460,14 @@ export function getPlayerForQuizByDifficulty(difficulty: QuizDifficulty = 'mediu
   const db = getDb();
   const cfg = GUESS_DIFFICULTY[difficulty];
   return db.prepare(`
-    SELECT Player as name, Tm as team, Season as season,
-           PTS as points, TRB as rebounds, AST as assists,
-           STL as steals, BLK as blocks, G as games,
-           FGPct as fgPct, "3PPct" as fg3Pct, FTPct as ftPct,
-           TOV as turnovers
-    FROM player_stats_pergame
-    WHERE CAST(G as INTEGER) >= ? AND CAST(PTS as FLOAT) >= ?
+    SELECT s.Player as name, s.Tm as team, s.Season as season,
+           s.PTS as points, s.TRB as rebounds, s.AST as assists,
+           s.STL as steals, s.BLK as blocks, s.G as games,
+           s.FGPct as fgPct, s."3PPct" as fg3Pct, s.FTPct as ftPct,
+           s.TOV as turnovers, p.person_id as personId
+    FROM player_stats_pergame s
+    LEFT JOIN players p ON p.Player = s.Player
+    WHERE CAST(s.G as INTEGER) >= ? AND CAST(s.PTS as FLOAT) >= ?
       ${cfg.seasonFilter}
     ORDER BY RANDOM()
     LIMIT 1
@@ -490,15 +499,17 @@ export function getBetterSeasonPair(stat: 'PTS' | 'TRB' | 'AST' = 'PTS') {
 
   const pair = db.prepare(`
     WITH ranked AS (
-      SELECT Player as name, Tm as team, Season as season,
-             PTS as points, TRB as rebounds, AST as assists, G as games,
-             CAST(${stat} as FLOAT) as stat_val
-      FROM player_stats_pergame
-      WHERE Season = ? AND CAST(G as INTEGER) >= 40
-        AND CAST(PTS as FLOAT) >= 12
-        AND CAST(${stat} as FLOAT) > 0
+      SELECT s.Player as name, s.Tm as team, s.Season as season,
+             s.PTS as points, s.TRB as rebounds, s.AST as assists, s.G as games,
+             CAST(s.${stat} as FLOAT) as stat_val,
+             p.person_id as personId
+      FROM player_stats_pergame s
+      LEFT JOIN players p ON p.Player = s.Player
+      WHERE s.Season = ? AND CAST(s.G as INTEGER) >= 40
+        AND CAST(s.PTS as FLOAT) >= 12
+        AND CAST(s.${stat} as FLOAT) > 0
     )
-    SELECT a.name, a.team, a.season, a.points, a.rebounds, a.assists, a.games
+    SELECT a.name, a.team, a.season, a.points, a.rebounds, a.assists, a.games, a.personId
     FROM ranked a
     JOIN ranked b ON a.name < b.name
     WHERE a.stat_val > 0 AND b.stat_val > 0
@@ -514,10 +525,12 @@ export function getBetterSeasonPair(stat: 'PTS' | 'TRB' | 'AST' = 'PTS') {
 export function getRandomPairForQuiz() {
   const db = getDb();
   return db.prepare(`
-    SELECT Player as name, Tm as team, Season as season,
-           PTS as points, TRB as rebounds, AST as assists, G as games
-    FROM player_stats_pergame
-    WHERE CAST(G as INTEGER) >= 40 AND CAST(PTS as FLOAT) >= 12
+    SELECT s.Player as name, s.Tm as team, s.Season as season,
+           s.PTS as points, s.TRB as rebounds, s.AST as assists, s.G as games,
+           p.person_id as personId
+    FROM player_stats_pergame s
+    LEFT JOIN players p ON p.Player = s.Player
+    WHERE CAST(s.G as INTEGER) >= 40 AND CAST(s.PTS as FLOAT) >= 12
     ORDER BY RANDOM()
     LIMIT 2
   `).all();
