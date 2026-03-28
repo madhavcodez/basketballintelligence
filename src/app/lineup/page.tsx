@@ -53,6 +53,7 @@ interface RosterPlayer {
   readonly fgPct: number | null;
   readonly fg3Pct: number | null;
   readonly ftPct: number | null;
+  readonly personId?: number | null;
 }
 
 interface Lineup {
@@ -280,7 +281,7 @@ function PlayerSlot({
       {player ? (
         <div className="relative group">
           <div className="transition-transform duration-200 group-hover:scale-105">
-            <PlayerAvatar name={player.name} size="lg" />
+            <PlayerAvatar name={player.name} playerId={player.personId} size="lg" />
           </div>
           <button
             type="button"
@@ -431,7 +432,7 @@ function RosterPickerModal({
                     : 'hover:bg-white cursor-pointer',
                 )}
               >
-                <PlayerAvatar name={player.name} size="sm" />
+                <PlayerAvatar name={player.name} playerId={player.personId} size="sm" />
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-[#1D1D1F] truncate">
                     {player.name}

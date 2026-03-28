@@ -48,6 +48,7 @@ interface CareerLeader {
   readonly value: number;
   readonly hof: number;
   readonly active: number;
+  readonly personId?: number | null;
 }
 
 interface StandingTeam {
@@ -553,7 +554,7 @@ export default function ExplorePage() {
                         <span className="relative w-7 text-right text-sm font-bold text-text-tertiary font-mono">
                           {leader.rank}
                         </span>
-                        <div className="relative"><PlayerAvatar name={leader.name} size="sm" /></div>
+                        <div className="relative"><PlayerAvatar name={leader.name} playerId={leader.personId} size="sm" /></div>
                         <span className="relative flex-1 text-sm font-medium text-text-primary truncate">
                           {leader.name}
                         </span>

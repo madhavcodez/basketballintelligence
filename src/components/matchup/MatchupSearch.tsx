@@ -15,6 +15,7 @@ interface SearchResult {
   readonly name: string;
   readonly position: string;
   readonly active: number;
+  readonly personId?: string | number | null;
 }
 
 interface MatchupSearchProps {
@@ -192,7 +193,7 @@ function PlayerInput({
                 onClick={() => handleSelect(r.name)}
                 className="flex items-center gap-2 w-full px-3 py-2.5 hover:bg-[#F5F5F7] transition-colors text-left"
               >
-                <PlayerAvatar name={r.name} size="sm" />
+                <PlayerAvatar name={r.name} playerId={r.personId} size="sm" />
                 <span className="text-sm text-[#1D1D1F] truncate">
                   {r.name}
                 </span>

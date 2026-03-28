@@ -39,6 +39,7 @@ interface PlayerStats {
   readonly fg3Pct: number;
   readonly ftPct: number;
   readonly efgPct: number;
+  readonly personId?: number | null;
 }
 
 interface ZoneStat {
@@ -61,6 +62,7 @@ interface SearchResult {
   readonly name: string;
   readonly position: string;
   readonly active: number;
+  readonly personId?: number | null;
 }
 
 // ── Animation variants ───────────────────────────────────────────────────────
@@ -283,7 +285,7 @@ function ComparePageInner() {
                     onClick={() => selectPlayer(r.name)}
                     className="flex items-center gap-2 w-full px-3 py-2 hover:bg-white/80 transition-colors text-left"
                   >
-                    <PlayerAvatar name={r.name} size="sm" />
+                    <PlayerAvatar name={r.name} playerId={r.personId} size="sm" />
                     <span className="text-sm text-[#1D1D1F] truncate">{r.name}</span>
                     <span className="text-[10px] text-[#86868B] ml-auto">{r.position}</span>
                   </button>
@@ -318,7 +320,7 @@ function ComparePageInner() {
                     onClick={() => selectPlayer(r.name)}
                     className="flex items-center gap-2 w-full px-3 py-2 hover:bg-white/80 transition-colors text-left"
                   >
-                    <PlayerAvatar name={r.name} size="sm" />
+                    <PlayerAvatar name={r.name} playerId={r.personId} size="sm" />
                     <span className="text-sm text-[#1D1D1F] truncate">{r.name}</span>
                     <span className="text-[10px] text-[#86868B] ml-auto">{r.position}</span>
                   </button>
@@ -389,7 +391,7 @@ function ComparePageInner() {
               <GlassCard className="p-6">
                 <div className="flex items-center justify-between gap-4">
                   <div className="flex items-center gap-3 flex-1 min-w-0">
-                    <PlayerAvatar name={data.player1.name} size="lg" />
+                    <PlayerAvatar name={data.player1.name} playerId={data.player1.personId} size="lg" />
                     <div className="min-w-0">
                       <Link
                         href={`/player/${encodeURIComponent(data.player1.name)}`}
@@ -423,7 +425,7 @@ function ComparePageInner() {
                         {data.player2.team && <TeamLogo teamAbbr={data.player2.team} size="sm" />}
                       </p>
                     </div>
-                    <PlayerAvatar name={data.player2.name} size="lg" />
+                    <PlayerAvatar name={data.player2.name} playerId={data.player2.personId} size="lg" />
                   </div>
                 </div>
               </GlassCard>

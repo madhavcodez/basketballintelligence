@@ -1,0 +1,42 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "basketball-film-ml"
+version = "0.1.0"
+description = "Basketball Film Copilot - Video ML Pipeline"
+requires-python = ">=3.11"
+dependencies = [
+    "opencv-python-headless>=4.8.0",
+    "numpy>=1.24.0",
+    "Pillow>=10.0.0",
+    "pydantic>=2.0.0",
+    "tqdm>=4.65.0",
+    "click>=8.1.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4.0",
+    "pytest-cov>=4.1.0",
+    "ruff>=0.1.0",
+]
+ml = [
+    "torch>=2.0.0",
+    "ultralytics>=8.0.0",
+    "sentence-transformers>=2.2.0",
+]
+
+[project.scripts]
+process-clip = "scripts.process_clip:main"
+process-game = "scripts.process_game:main"
+demo = "scripts.demo:main"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+
+[tool.ruff]
+target-version = "py311"
+line-length = 100

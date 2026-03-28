@@ -369,7 +369,7 @@ export default function TimelinePage() {
             transition={{ ...animation.spring.gentle, delay: 0.1 }}
           >
             <div className="flex items-center gap-3">
-              <PlayerAvatar name={timeline.player} size="xl" />
+              <PlayerAvatar name={timeline.player} playerId={timeline.playerInfo?.personId} size="xl" />
               <h1 className="text-3xl font-extrabold tracking-tight text-[#1D1D1F] font-display sm:text-4xl md:text-5xl">
                 {timeline.player}
               </h1>

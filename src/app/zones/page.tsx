@@ -47,6 +47,7 @@ interface SearchResult {
   name: string;
   position: string;
   active: number;
+  personId?: string | number | null;
 }
 
 interface LeaderEntry {
@@ -303,7 +304,7 @@ export default function ZonesExplorerPage() {
                     onClick={() => selectPlayer(r.name)}
                     className="w-full text-left px-4 py-2.5 hover:bg-[#F5F5F7] transition-colors flex items-center gap-3"
                   >
-                    <PlayerAvatar name={r.name} size="sm" />
+                    <PlayerAvatar name={r.name} playerId={r.personId} size="sm" />
                     <span className="text-sm font-medium text-[#1D1D1F]">{r.name}</span>
                     <span className="text-xs text-[#86868B]">{r.position}</span>
                     {r.active === 1 && <Badge variant="success">Active</Badge>}
@@ -819,7 +820,7 @@ function CompareSearch({
               onClick={() => { onChange(r.name); setQuery(''); setResults([]); setOpen(false); }}
               className="w-full text-left px-3 py-2 text-sm text-[#1D1D1F] hover:bg-[#F5F5F7] transition-colors flex items-center gap-2"
             >
-              <PlayerAvatar name={r.name} size="sm" />
+              <PlayerAvatar name={r.name} playerId={r.personId} size="sm" />
               {r.name}
             </button>
           ))}

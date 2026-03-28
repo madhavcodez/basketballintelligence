@@ -120,6 +120,7 @@ interface SimilarPlayer {
   readonly rebounds: number;
   readonly assists: number;
   readonly distance: number;
+  readonly personId?: number | null;
 }
 
 // ── Animation variants ───────────────────────────────────────────────────────
@@ -626,7 +627,7 @@ export default function PlayerLabPage() {
                 <Link href={`/player/${encodeURIComponent(sp.name)}`}>
                   <GlassCard hoverable className="w-[160px] p-4">
                     <div className="flex items-center gap-2 mb-2">
-                      <PlayerAvatar name={sp.name} size="sm" />
+                      <PlayerAvatar name={sp.name} playerId={sp.personId} size="sm" />
                       <div className="min-w-0">
                         <p className="text-xs font-semibold text-[#1D1D1F] truncate">{sp.name}</p>
                         <p className="text-[9px] text-[#86868B]">{sp.team}</p>

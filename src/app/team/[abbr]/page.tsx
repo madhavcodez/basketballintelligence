@@ -59,6 +59,7 @@ interface RosterPlayer {
   readonly fgPct: number;
   readonly fg3Pct: number;
   readonly ftPct: number;
+  readonly personId?: number | null;
 }
 
 interface Lineup {
@@ -663,7 +664,7 @@ export default function TeamDNAPage() {
                   >
                     <td className="px-3 py-2.5">
                       <div className="flex items-center gap-2">
-                        <PlayerAvatar name={player.name} size="sm" />
+                        <PlayerAvatar name={player.name} playerId={player.personId} size="sm" />
                         <Link
                           href={`/player/${encodeURIComponent(player.name)}`}
                           className={clsx(

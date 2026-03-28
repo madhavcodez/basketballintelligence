@@ -52,6 +52,7 @@ interface SearchResult {
   readonly name: string;
   readonly position: string;
   readonly active: number;
+  readonly personId?: string | number | null;
 }
 
 // ── Constants ────────────────────────────────────────────────────────────────
@@ -384,7 +385,7 @@ export default function ShotLabPage() {
                     onClick={() => selectPlayer(r.name)}
                     className="flex items-center gap-2 w-full px-3 py-2 hover:bg-[#F5F5F7] transition-colors text-left"
                   >
-                    <PlayerAvatar name={r.name} size="sm" />
+                    <PlayerAvatar name={r.name} playerId={r.personId} size="sm" />
                     <span className="text-sm text-[#1D1D1F] truncate">{r.name}</span>
                     <span className="text-[10px] text-[#86868B] ml-auto">{r.position}</span>
                   </button>

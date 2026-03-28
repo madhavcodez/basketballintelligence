@@ -38,6 +38,7 @@ interface QuizPlayer {
   readonly games: number;
   readonly fgPct: number;
   readonly fg3Pct: number;
+  readonly personId?: string | number | null;
 }
 
 interface ComparePair {
@@ -48,6 +49,7 @@ interface ComparePair {
   readonly rebounds: number;
   readonly assists: number;
   readonly games: number;
+  readonly personId?: string | number | null;
 }
 
 type GameMode = 'select' | 'guess' | 'compare';
@@ -974,7 +976,7 @@ function BetterSeasonGame({ onBack }: { readonly onBack: () => void }) {
               animate={isAnswered && isSelected && !isCorrectPlayer ? { x: [0, -4, 4, -4, 4, 0] } : undefined}
               transition={isAnswered && isSelected && !isCorrectPlayer ? { duration: 0.4 } : undefined}
             >
-              <PlayerAvatar name={player.name} size="lg" />
+              <PlayerAvatar name={player.name} playerId={player.personId} size="lg" />
               <div>
                 <div className="text-sm font-bold text-[#1D1D1F]">{player.name}</div>
                 <div className="flex items-center gap-1 text-[10px] text-[#86868B] mt-0.5">

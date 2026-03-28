@@ -39,6 +39,8 @@ interface MatchupHeroProps {
   readonly p1Team: string;
   readonly p2Team: string;
   readonly recentGames?: readonly { readonly p1Won: boolean }[];
+  readonly p1PersonId?: string | number | null;
+  readonly p2PersonId?: string | number | null;
 }
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
@@ -108,6 +110,8 @@ export default function MatchupHero({
   p1Team,
   p2Team,
   recentGames = [],
+  p1PersonId,
+  p2PersonId,
 }: MatchupHeroProps) {
   const p1Leading = p1Wins > p2Wins;
   const p2Leading = p2Wins > p1Wins;
@@ -153,7 +157,7 @@ export default function MatchupHero({
             className="flex flex-col items-center sm:items-start text-center sm:text-left flex-1 min-w-0"
           >
             <div className="flex items-center gap-3 sm:gap-4">
-              <PlayerAvatar name={player1} size="xl" teamColor={p1Color} />
+              <PlayerAvatar name={player1} playerId={p1PersonId} size="xl" teamColor={p1Color} />
               <h2
                 className={clsx(
                   'text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight font-display leading-tight',
@@ -284,7 +288,7 @@ export default function MatchupHero({
             className="flex flex-col items-center sm:items-end text-center sm:text-right flex-1 min-w-0"
           >
             <div className="flex items-center gap-3 sm:gap-4 sm:flex-row-reverse">
-              <PlayerAvatar name={player2} size="xl" teamColor={p2Color} />
+              <PlayerAvatar name={player2} playerId={p2PersonId} size="xl" teamColor={p2Color} />
               <h2
                 className={clsx(
                   'text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight font-display leading-tight',

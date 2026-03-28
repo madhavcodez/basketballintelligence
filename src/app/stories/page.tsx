@@ -38,6 +38,7 @@ interface TopScorer {
   readonly assists: number;
   readonly fgPct: number;
   readonly fg3Pct: number;
+  readonly personId?: number | null;
 }
 
 interface CareerLeader {
@@ -46,6 +47,7 @@ interface CareerLeader {
   readonly hof: string | null;
   readonly active: string | null;
   readonly value: number;
+  readonly personId?: number | null;
 }
 
 interface StandingRow {
@@ -539,7 +541,7 @@ function ThreePointStory({
             {allTimeScorers.slice(0, 5).map((scorer, i) => (
               <div key={scorer.name} className="flex items-center gap-3 text-xs">
                 <span className="w-5 text-right text-[#86868B] font-mono">{i + 1}</span>
-                <PlayerAvatar name={scorer.name} size="sm" />
+                <PlayerAvatar name={scorer.name} playerId={scorer.personId} size="sm" />
                 <span className="flex-1 text-[#1D1D1F] font-medium">{scorer.name}</span>
                 <span className="text-[#6E6E73] font-semibold">{Number(scorer.value).toLocaleString()}</span>
                 {scorer.active === 'Y' && (
@@ -565,13 +567,13 @@ function PaintStory({
   readonly data: Record<string, unknown>;
   readonly color: string;
 }) {
-  const paintData = (data.paintData ?? []) as readonly { name: string; zones: readonly ShotZone[] }[];
+  const paintData = (data.paintData ?? []) as readonly { name: string; personId?: number | null; zones: readonly ShotZone[] }[];
 
   const restrictedAreaStats = paintData
     .map((p) => {
       const zone = p.zones.find((z) => z.zone === 'Restricted Area');
       return zone
-        ? { name: p.name, fgPct: zone.fgPct, attempts: zone.attempts, makes: zone.makes }
+        ? { name: p.name, personId: p.personId, fgPct: zone.fgPct, attempts: zone.attempts, makes: zone.makes }
         : null;
     })
     .filter((r): r is NonNullable<typeof r> => r !== null)
@@ -594,7 +596,7 @@ function PaintStory({
             {restrictedAreaStats.map((player) => (
               <div key={player.name} className="space-y-1">
                 <div className="flex items-center gap-2">
-                  <PlayerAvatar name={player.name} size="sm" />
+                  <PlayerAvatar name={player.name} playerId={player.personId} size="sm" />
                   <div className="flex-1 min-w-0">
                     <StoryBar
                       label={player.name}
