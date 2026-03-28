@@ -126,6 +126,7 @@ export default function FilmLibraryPage() {
   const [showFilters, setShowFilters] = useState(false);
 
   const scrollRowRef = useRef<HTMLDivElement>(null);
+  const searchTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // ── Fetch initial data ──────────────────────────────────────────────────────
 
@@ -133,7 +134,7 @@ export default function FilmLibraryPage() {
     let cancelled = false;
 
     Promise.all([
-      fetch('/api/film/clips?limit=20').then((r) => r.json()).catch(() => ({ clips: [], total: 0 })),
+      fetch('/api/film/clips?limit=50').then((r) => r.json()).catch(() => ({ clips: [], total: 0 })),
       fetch('/api/film/tags').then((r) => r.json()).catch(() => ({ tags: [], categories: [] })),
     ]).then(([clipsData, tagsData]) => {
       if (cancelled) return;
@@ -174,27 +175,32 @@ export default function FilmLibraryPage() {
   // ── Search + filter logic ───────────────────────────────────────────────────
 
   useEffect(() => {
-    let result = [...clips];
-
+    // When search query is long enough, hit the smart search API
     if (searchQuery.trim().length >= 2) {
-      const q = searchQuery.toLowerCase();
-      result = result.filter(
-        (c) =>
-          (c.title?.toLowerCase().includes(q)) ||
-          (c.play_type?.toLowerCase().includes(q)) ||
-          (c.primary_player?.toLowerCase().includes(q)) ||
-          (c.primary_action?.toLowerCase().includes(q)),
-      );
+      if (searchTimeout.current) clearTimeout(searchTimeout.current);
+      searchTimeout.current = setTimeout(async () => {
+        try {
+          const res = await fetch(`/api/film/clips?q=${encodeURIComponent(searchQuery)}&limit=50`);
+          if (res.ok) {
+            const data = await res.json();
+            let result = data.clips ?? [];
+            if (activePlayType) result = result.filter((c: ClipData) => c.play_type === activePlayType);
+            if (activePlayer) result = result.filter((c: ClipData) => c.primary_player === activePlayer);
+            setFilteredClips(result);
+          }
+        } catch { /* silent */ }
+      }, 300);
+      return () => { if (searchTimeout.current) clearTimeout(searchTimeout.current); };
     }
 
+    // No search query — filter locally
+    let result = [...clips];
     if (activePlayType) {
       result = result.filter((c) => c.play_type === activePlayType);
     }
-
     if (activePlayer) {
       result = result.filter((c) => c.primary_player === activePlayer);
     }
-
     setFilteredClips(result);
   }, [clips, searchQuery, activePlayType, activePlayer]);
 

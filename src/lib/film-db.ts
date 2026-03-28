@@ -348,20 +348,118 @@ export function getClip(id: number): ClipRow | undefined {
   return getFilmDb().prepare('SELECT * FROM clips WHERE id = ?').get(id) as ClipRow | undefined;
 }
 
+/**
+ * Smart search: splits query into tokens and requires ALL tokens to match
+ * across any combination of fields. "LeBron dunking" finds clips where
+ * one field matches "LeBron" AND another matches "dunk".
+ *
+ * Also expands common synonyms: dunking→dunk, shooting→shot, threes→three pointer, etc.
+ */
 export function searchClips(query: string, limit?: number): ClipRow[] {
   const safeLimit = clampLimit(limit, 20, 100);
+
+  // Synonym expansion for natural language
+  const SYNONYMS: Record<string, string[]> = {
+    dunking: ['dunk', 'dunk'],
+    dunks: ['dunk'],
+    shooting: ['shot', 'shoot', 'jumper'],
+    shoots: ['shot', 'shoot'],
+    threes: ['three pointer', 'three'],
+    '3s': ['three pointer', 'three'],
+    '3pt': ['three pointer'],
+    layups: ['layup'],
+    blocks: ['block', 'blocked'],
+    blocking: ['block', 'blocked'],
+    steals: ['steal'],
+    stealing: ['steal'],
+    assists: ['assist', 'pass'],
+    passing: ['pass', 'assist'],
+    driving: ['drive'],
+    posting: ['post up'],
+    fastbreak: ['fastbreak', 'transition'],
+    iso: ['isolation'],
+    pnr: ['pick & roll', 'pnr ball handler'],
+    'pick and roll': ['pick & roll'],
+    fadeaways: ['fadeaway'],
+    stepbacks: ['stepback'],
+    rebounds: ['rebound'],
+    rebounding: ['rebound'],
+    makes: ['made'],
+    misses: ['missed'],
+  };
+
+  let normalized = query.toLowerCase().trim();
+  if (!normalized) return [];
+
+  // Multi-word phrase synonyms (replace before tokenizing)
+  const PHRASE_SYNONYMS: Record<string, string> = {
+    'pick and roll': 'pick & roll',
+    'pick n roll': 'pick & roll',
+    'pick and pop': 'pick & pop',
+    'catch and shoot': 'catch & shoot',
+    'post up': 'post up',
+    'off screen': 'off screen',
+    'pull up': 'pull-up',
+    'pull up jumper': 'pull-up jumper',
+  };
+  for (const [phrase, replacement] of Object.entries(PHRASE_SYNONYMS)) {
+    if (normalized.includes(phrase)) {
+      normalized = normalized.replace(phrase, replacement);
+    }
+  }
+
+  // Stopwords to remove
+  const STOPWORDS = new Set(['and', 'the', 'of', 'a', 'an', 'in', 'on', 'for', 'to', 'vs', 'by', 'at', 'is', 'it', 'his', 'her', 'from', 'with']);
+
+  const rawTokens = normalized.split(/\s+/).filter(t => t && !STOPWORDS.has(t));
+  if (rawTokens.length === 0) return [];
+
+  // Expand single-word synonyms
+  const tokens: string[] = [];
+  for (const t of rawTokens) {
+    const expanded = SYNONYMS[t];
+    if (expanded) {
+      tokens.push(expanded[0]);
+    } else {
+      tokens.push(t);
+    }
+  }
+
+  // Build WHERE: every token must match at least one searchable field
+  const searchFields = `(
+    LOWER(COALESCE(c.primary_player, '')) || ' ' ||
+    LOWER(COALESCE(c.play_type, '')) || ' ' ||
+    LOWER(COALESCE(c.primary_action, '')) || ' ' ||
+    LOWER(COALESCE(c.title, '')) || ' ' ||
+    LOWER(COALESCE(c.shot_result, '')) || ' ' ||
+    LOWER(COALESCE(c.secondary_player, '')) || ' ' ||
+    LOWER(COALESCE(c.defender, '')) || ' ' ||
+    LOWER(COALESCE(v.home_team, '')) || ' ' ||
+    LOWER(COALESCE(v.away_team, '')) || ' ' ||
+    LOWER(COALESCE(v.title, ''))
+  )`;
+
+  const conditions = tokens.map(() => `${searchFields} LIKE ?`);
+  const params = tokens.map((t) => `%${t}%`);
+
+  // Relevance scoring: more field matches = higher rank
+  const scoreExpr = tokens.map(() =>
+    `(CASE WHEN LOWER(COALESCE(c.primary_player,'')) LIKE ? THEN 3 ELSE 0 END +
+      CASE WHEN LOWER(COALESCE(c.play_type,'')) LIKE ? THEN 2 ELSE 0 END +
+      CASE WHEN LOWER(COALESCE(c.primary_action,'')) LIKE ? THEN 2 ELSE 0 END +
+      CASE WHEN LOWER(COALESCE(c.shot_result,'')) LIKE ? THEN 1 ELSE 0 END)`
+  ).join(' + ');
+  const scoreParams = tokens.flatMap((t) => [`%${t}%`, `%${t}%`, `%${t}%`, `%${t}%`]);
+
   return getFilmDb().prepare(`
-    SELECT c.* FROM clips c
+    SELECT c.*, (${scoreExpr}) as relevance FROM clips c
     LEFT JOIN videos v ON c.video_id = v.id
-    WHERE c.primary_player LIKE ?
-       OR c.play_type LIKE ?
-       OR c.primary_action LIKE ?
-       OR c.title LIKE ?
-       OR v.title LIKE ?
-    ORDER BY c.created_at DESC
+    WHERE ${conditions.join(' AND ')}
+    ORDER BY relevance DESC, c.confidence DESC
     LIMIT ?
   `).all(
-    `%${query}%`, `%${query}%`, `%${query}%`, `%${query}%`, `%${query}%`,
+    ...scoreParams,
+    ...params,
     safeLimit,
   ) as ClipRow[];
 }
