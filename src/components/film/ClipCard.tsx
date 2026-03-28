@@ -2,27 +2,27 @@
 
 import { useCallback } from 'react';
 import { motion } from 'framer-motion';
-import { Play, Film, Clock } from 'lucide-react';
+import { Play, Clock } from 'lucide-react';
 import clsx from 'clsx';
 import TagBadge from './TagBadge';
 import PlayerAvatar from '@/components/ui/PlayerAvatar';
 
-// ── Play type accent color mapping ──────────────────────────────────────────
+// ── Play type visual identity ────────────────────────────────────────────────
 
-const PLAY_TYPE_ACCENT: Record<string, string> = {
-  isolation: 'bg-[#FF6B35]',
-  'pick-and-roll': 'bg-[#0071E3]',
-  'spot-up': 'bg-[#22C55E]',
-  transition: 'bg-[#8B5CF6]',
-  'post-up': 'bg-[#F59E0B]',
-  'off-screen': 'bg-[#EF4444]',
-  handoff: 'bg-[#0071E3]',
-  cut: 'bg-[#22C55E]',
+const PLAY_TYPE_STYLE: Record<string, { color: string; gradient: string; icon: string }> = {
+  isolation:       { color: '#FF6B35', gradient: 'from-[#FF6B35]/30 to-[#FF6B35]/5', icon: 'ISO' },
+  'pick-and-roll': { color: '#0071E3', gradient: 'from-[#0071E3]/30 to-[#0071E3]/5', icon: 'PNR' },
+  'spot-up':       { color: '#22C55E', gradient: 'from-[#22C55E]/30 to-[#22C55E]/5', icon: 'SPOT' },
+  transition:      { color: '#A78BFA', gradient: 'from-[#A78BFA]/30 to-[#A78BFA]/5', icon: 'TRANS' },
+  'post-up':       { color: '#F59E0B', gradient: 'from-[#F59E0B]/30 to-[#F59E0B]/5', icon: 'POST' },
+  'off-screen':    { color: '#EF4444', gradient: 'from-[#EF4444]/30 to-[#EF4444]/5', icon: 'OFF' },
+  handoff:         { color: '#06B6D4', gradient: 'from-[#06B6D4]/30 to-[#06B6D4]/5', icon: 'HND' },
+  cut:             { color: '#34D399', gradient: 'from-[#34D399]/30 to-[#34D399]/5', icon: 'CUT' },
 };
 
-function getPlayTypeAccent(playType: string | null): string | null {
-  if (!playType) return null;
-  return PLAY_TYPE_ACCENT[playType.toLowerCase()] ?? 'bg-[#86868B]';
+function getStyle(playType: string | null) {
+  if (!playType) return { color: '#86868B', gradient: 'from-[#86868B]/20 to-[#86868B]/5', icon: '---' };
+  return PLAY_TYPE_STYLE[playType.toLowerCase()] ?? { color: '#86868B', gradient: 'from-[#86868B]/20 to-[#86868B]/5', icon: playType.slice(0, 3).toUpperCase() };
 }
 
 type ClipSize = 'sm' | 'md' | 'lg';
@@ -58,198 +58,164 @@ interface ClipCardProps {
 }
 
 const sizeConfig: Record<ClipSize, { card: string; thumb: string; icon: number; text: string; badge: string }> = {
-  sm: {
-    card: 'w-[200px]',
-    thumb: 'h-[112px]',
-    icon: 28,
-    text: 'text-xs',
-    badge: 'text-[9px] px-1.5 py-0.5',
-  },
-  md: {
-    card: 'w-[280px]',
-    thumb: 'h-[158px]',
-    icon: 36,
-    text: 'text-sm',
-    badge: 'text-[10px] px-2 py-0.5',
-  },
-  lg: {
-    card: 'w-[380px]',
-    thumb: 'h-[214px]',
-    icon: 44,
-    text: 'text-base',
-    badge: 'text-[11px] px-2.5 py-1',
-  },
+  sm: { card: 'w-[200px]', thumb: 'h-[112px]', icon: 28, text: 'text-xs', badge: 'text-[9px] px-1.5 py-0.5' },
+  md: { card: 'w-[280px]', thumb: 'h-[158px]', icon: 36, text: 'text-sm', badge: 'text-[10px] px-2 py-0.5' },
+  lg: { card: 'w-[380px]', thumb: 'h-[214px]', icon: 44, text: 'text-base', badge: 'text-[11px] px-2.5 py-1' },
 };
 
 function formatDuration(seconds: number): string {
   const mins = Math.floor(seconds / 60);
   const secs = Math.floor(seconds % 60);
-  if (mins > 0) {
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
-  }
-  return `0:${secs.toString().padStart(2, '0')}`;
+  return mins > 0 ? `${mins}:${secs.toString().padStart(2, '0')}` : `0:${secs.toString().padStart(2, '0')}`;
 }
 
 function resolveTagCategory(category: string): 'action' | 'player' | 'team' | 'context' | 'quality' | 'custom' {
   const valid = ['action', 'player', 'team', 'context', 'quality', 'custom'] as const;
   const lower = category.toLowerCase();
-  for (const c of valid) {
-    if (lower === c) return c;
-  }
+  for (const c of valid) { if (lower === c) return c; }
   return 'custom';
 }
 
 export default function ClipCard({
-  clip,
-  tags = [],
-  size = 'md',
-  showPlayer = true,
-  showTags = true,
-  onClick,
-  className,
+  clip, tags = [], size = 'md', showPlayer = true, showTags = true, onClick, className,
 }: ClipCardProps) {
   const config = sizeConfig[size];
   const isInteractive = !!onClick;
+  const style = getStyle(clip.play_type);
 
-  const handleClick = useCallback(() => {
-    onClick?.();
-  }, [onClick]);
+  const handleClick = useCallback(() => { onClick?.(); }, [onClick]);
+
+  // Build film metadata string like "Q3 · 4:32"
+  const metaParts: string[] = [];
+  if (clip.quarter !== null) metaParts.push(`Q${clip.quarter}`);
+  if (clip.game_clock) metaParts.push(clip.game_clock);
+  const metaLine = metaParts.join(' \u00B7 ');
 
   return (
     <motion.div
       className={clsx(
         'group relative flex flex-col overflow-hidden',
-        'bg-white',
-        'border border-black/[0.06]',
         'rounded-[20px]',
         config.card,
         isInteractive && 'cursor-pointer',
         className,
       )}
-      style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.04), 0 12px 40px rgba(0,0,0,0.08)' }}
+      style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06), 0 16px 48px rgba(0,0,0,0.10)' }}
       onClick={isInteractive ? handleClick : undefined}
-      whileHover={isInteractive ? { y: -4, transition: { type: 'spring', stiffness: 300, damping: 20 } } : undefined}
+      whileHover={{ y: -6, transition: { type: 'spring', stiffness: 300, damping: 20 } }}
       role={isInteractive ? 'button' : undefined}
       tabIndex={isInteractive ? 0 : undefined}
     >
-      {/* Thumbnail area — 16:9 */}
+      {/* ── Cinematic thumbnail area ────────────────────────────────── */}
       <div className={clsx('relative overflow-hidden', config.thumb)}>
-        {/* Play type accent strip at top */}
-        {getPlayTypeAccent(clip.play_type) && (
-          <div className={clsx('absolute top-0 inset-x-0 h-[3px] z-10', getPlayTypeAccent(clip.play_type))} />
-        )}
-
         {clip.thumbnail_path ? (
-          /* Actual thumbnail */
           <motion.img
             src={clip.thumbnail_path}
-            alt={clip.title ?? 'Clip thumbnail'}
+            alt={clip.title ?? 'Clip'}
             className="h-full w-full object-cover"
-            whileHover={{ scale: 1.05 }}
+            whileHover={{ scale: 1.06 }}
             transition={{ type: 'spring', stiffness: 200, damping: 20 }}
           />
         ) : (
-          /* Cinematic placeholder */
-          <motion.div
-            className={clsx(
-              'flex flex-col items-center justify-center gap-2',
-              'h-full w-full',
-              'bg-gradient-to-br from-[#2A2A2E] via-[#1D1D1F] to-[#0A0A0A]',
-            )}
-            whileHover={{ scale: 1.05 }}
-            transition={{ type: 'spring', stiffness: 200, damping: 20 }}
-          >
-            {/* Subtle dot pattern overlay */}
-            <div className="absolute inset-0 opacity-[0.04]" style={{ backgroundImage: 'radial-gradient(circle, white 1px, transparent 1px)', backgroundSize: '16px 16px' }} />
-            <Film size={config.icon * 0.7} className="text-white/25 relative z-[1]" />
-            {clip.play_type && (
-              <span className="text-[10px] font-medium uppercase tracking-widest text-white/30 relative z-[1]">
-                {clip.play_type}
+          /* Film-poster style placeholder */
+          <div className="relative h-full w-full bg-[#0C0C0E] overflow-hidden">
+            {/* Radial gradient wash in play-type color */}
+            <div
+              className="absolute inset-0 opacity-60"
+              style={{
+                background: `radial-gradient(ellipse at 30% 50%, ${style.color}18 0%, transparent 70%)`,
+              }}
+            />
+            {/* Subtle film grain texture */}
+            <div
+              className="absolute inset-0 opacity-[0.06] mix-blend-overlay"
+              style={{
+                backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 256 256\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noise\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.9\' numOctaves=\'4\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noise)\'/%3E%3C/svg%3E")',
+              }}
+            />
+            {/* Large faded play-type abbreviation */}
+            <div className="absolute inset-0 flex items-center justify-center">
+              <span
+                className="text-[42px] sm:text-[56px] font-extrabold font-display tracking-tight select-none"
+                style={{ color: `${style.color}15` }}
+              >
+                {style.icon}
               </span>
+            </div>
+            {/* Bottom metadata overlay */}
+            {metaLine && (
+              <div className="absolute bottom-3 left-3 flex items-center gap-1.5">
+                <span className="text-[10px] font-mono font-medium text-white/40 tracking-wide">
+                  {metaLine}
+                </span>
+              </div>
             )}
-          </motion.div>
+          </div>
         )}
 
-        {/* Dark gradient overlay at bottom of thumbnail */}
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/70 to-transparent" />
+        {/* Gradient vignette */}
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/10" />
 
-        {/* Play icon — centered */}
-        <div
-          className={clsx(
-            'absolute inset-0 flex items-center justify-center',
-            'pointer-events-none',
-          )}
-        >
+        {/* Play button — appears on hover */}
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
           <motion.div
             className={clsx(
-              'flex items-center justify-center',
-              'rounded-full bg-white/20 backdrop-blur-sm',
-              size === 'sm' ? 'h-9 w-9' : size === 'md' ? 'h-11 w-11' : 'h-14 w-14',
-              'opacity-80 transition-opacity duration-200',
-              'group-hover:opacity-100',
+              'flex items-center justify-center rounded-full',
+              'bg-white/15 backdrop-blur-md border border-white/20',
+              size === 'sm' ? 'h-9 w-9' : size === 'md' ? 'h-12 w-12' : 'h-14 w-14',
+              'opacity-0 group-hover:opacity-100 transition-opacity duration-200',
             )}
-            whileHover={{ scale: 1.15 }}
-            transition={{ type: 'spring', stiffness: 300, damping: 15 }}
           >
             <Play
-              size={config.icon * 0.45}
+              size={config.icon * 0.4}
               className="text-white ml-0.5"
               fill="currentColor"
             />
           </motion.div>
         </div>
 
-        {/* Duration badge — bottom-right */}
+        {/* Play-type pill — top-left */}
+        {clip.play_type && (
+          <div
+            className="absolute top-2.5 left-2.5 px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider backdrop-blur-md"
+            style={{ background: `${style.color}30`, color: style.color, borderWidth: 1, borderColor: `${style.color}40` }}
+          >
+            {clip.play_type}
+          </div>
+        )}
+
+        {/* Duration — bottom-right */}
         <div
           className={clsx(
-            'absolute bottom-2 right-2',
-            'flex items-center gap-1',
-            'rounded-full bg-[#1D1D1F] backdrop-blur-sm',
-            config.badge,
-            'font-mono font-medium text-white',
+            'absolute bottom-2 right-2 flex items-center gap-1',
+            'rounded-full bg-black/60 backdrop-blur-sm',
+            config.badge, 'font-mono font-medium text-white/90',
           )}
         >
-          <Clock size={size === 'sm' ? 9 : 10} className="opacity-70" />
+          <Clock size={size === 'sm' ? 9 : 10} className="opacity-60" />
           {formatDuration(clip.duration)}
         </div>
       </div>
 
-      {/* Info area */}
-      <div className="flex flex-col gap-1.5 p-3">
-        {/* Title / play type */}
-        <p
-          className={clsx(
-            config.text,
-            'font-semibold text-[#1D1D1F] leading-snug truncate',
-          )}
-        >
+      {/* ── Info area ──────────────────────────────────────────────── */}
+      <div className="flex flex-col gap-1 p-3 bg-white">
+        {/* Title */}
+        <p className={clsx(config.text, 'font-semibold text-[#1D1D1F] leading-snug truncate')}>
           {clip.title ?? clip.play_type ?? 'Untitled Clip'}
         </p>
 
-        {/* Meta row: player, quarter, clock */}
-        <div className="flex items-center gap-2 flex-wrap">
+        {/* Player + action */}
+        <div className="flex items-center gap-2">
           {showPlayer && clip.primary_player && (
-            <span className="flex items-center gap-1 text-[11px] text-[#6E6E73]">
+            <span className="flex items-center gap-1.5 text-[11px] text-[#6E6E73]">
               <PlayerAvatar name={clip.primary_player} size="sm" className="!h-4 !w-4" />
-              {clip.primary_player}
-            </span>
-          )}
-          {clip.quarter !== null && (
-            <span className="text-[11px] text-[#86868B]">
-              Q{clip.quarter}
-            </span>
-          )}
-          {clip.game_clock && (
-            <span className="text-[10px] font-mono text-[#86868B]">
-              {clip.game_clock}
+              <span className="truncate max-w-[120px]">{clip.primary_player}</span>
             </span>
           )}
           {clip.primary_action && (
             <span
-              className={clsx(
-                'text-[10px] font-medium uppercase tracking-wider',
-                'text-accent-orange/80',
-              )}
+              className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full"
+              style={{ background: `${style.color}10`, color: style.color }}
             >
               {clip.primary_action}
             </span>

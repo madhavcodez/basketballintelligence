@@ -110,6 +110,56 @@ function getPlayTypeGradient(playType: string): string {
   return PLAY_TYPE_COLORS[lower] ?? 'from-black/5 to-black/[0.02]';
 }
 
+// ── Play type visual definitions (court diagram arrows + dots) ──────────────
+
+const PLAY_TYPE_VISUAL: Record<string, { color: string; abbr: string; paths: string[]; dots: [number, number][] }> = {
+  isolation: {
+    color: '#FF6B35', abbr: 'ISO',
+    paths: ['M 50 20 L 50 10'],
+    dots: [[50, 20], [30, 30], [70, 30], [25, 15], [75, 15]],
+  },
+  'pick-and-roll': {
+    color: '#0071E3', abbr: 'PNR',
+    paths: ['M 45 22 L 50 14', 'M 55 22 C 60 18 62 14 58 10'],
+    dots: [[45, 22], [55, 22], [30, 30], [70, 30], [50, 38]],
+  },
+  'spot-up': {
+    color: '#22C55E', abbr: 'SPOT',
+    paths: ['M 50 26 L 22 14', 'M 50 26 L 78 14'],
+    dots: [[50, 26], [22, 14], [78, 14], [18, 32], [82, 32]],
+  },
+  transition: {
+    color: '#A78BFA', abbr: 'TRANS',
+    paths: ['M 50 50 L 50 10', 'M 35 45 L 30 15', 'M 65 45 L 70 15'],
+    dots: [[50, 50], [35, 45], [65, 45]],
+  },
+  'post-up': {
+    color: '#F59E0B', abbr: 'POST',
+    paths: ['M 38 14 L 38 8'],
+    dots: [[38, 14], [62, 14], [50, 30], [25, 25], [75, 25]],
+  },
+  'off-screen': {
+    color: '#EF4444', abbr: 'OFF',
+    paths: ['M 60 24 C 55 20 45 20 40 24', 'M 40 24 L 30 12'],
+    dots: [[60, 24], [40, 24], [50, 36], [25, 12], [75, 18]],
+  },
+  handoff: {
+    color: '#06B6D4', abbr: 'HND',
+    paths: ['M 45 18 L 55 18', 'M 55 18 L 60 10'],
+    dots: [[45, 18], [55, 18], [30, 30], [70, 30], [50, 38]],
+  },
+  cut: {
+    color: '#34D399', abbr: 'CUT',
+    paths: ['M 70 28 L 52 10'],
+    dots: [[70, 28], [50, 20], [30, 28], [25, 14], [75, 14]],
+  },
+  _default: {
+    color: '#86868B', abbr: '---',
+    paths: ['M 50 30 L 50 12'],
+    dots: [[50, 30], [35, 25], [65, 25]],
+  },
+};
+
 // ── Component ────────────────────────────────────────────────────────────────
 
 export default function FilmLibraryPage() {
@@ -527,48 +577,73 @@ export default function FilmLibraryPage() {
           </motion.section>
         )}
 
-        {/* ── By Play Type ──────────────────────────────────────────────── */}
+        {/* ── Playbook — Play Type Cards with Court Diagrams ─────────── */}
         {!hasActiveFilters && playTypeCounts.length > 0 && (
           <motion.section variants={fadeSlideUp} className="mb-10">
-            <h2 className="text-lg font-bold text-[#1D1D1F] tracking-wide mb-4">
-              By Play Type
+            <h2 className="text-lg font-bold text-[#1D1D1F] tracking-wide mb-1">
+              Playbook
             </h2>
+            <p className="text-xs text-[#86868B] mb-4">Tap a play to filter your film library</p>
 
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-              {playTypeCounts.map(({ play_type, count }, idx) => (
-                <motion.div
-                  key={play_type}
-                  initial={{ opacity: 0, y: 12 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: idx * 0.04 }}
-                >
-                  <GlassCard
-                    hoverable
-                    pressable
-                    className="p-4 h-full"
-                    onClick={() => handlePlayTypeFilter(play_type)}
+              {playTypeCounts.map(({ play_type, count }, idx) => {
+                const style = PLAY_TYPE_VISUAL[play_type.toLowerCase()] ?? PLAY_TYPE_VISUAL._default;
+                return (
+                  <motion.div
+                    key={play_type}
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: idx * 0.04, type: 'spring', stiffness: 200, damping: 18 }}
                   >
-                    <div className={clsx(
-                      'absolute inset-0 rounded-[20px] bg-gradient-to-br opacity-40',
-                      getPlayTypeGradient(play_type),
-                    )} />
-                    <div className="relative z-10">
-                      <div className="flex items-center gap-2 mb-2">
-                        <Grid size={14} className="text-[#86868B]" />
-                        <span className="text-xs font-bold uppercase tracking-wider text-[#6E6E73]">
-                          {play_type}
+                    <button
+                      type="button"
+                      onClick={() => handlePlayTypeFilter(play_type)}
+                      className={clsx(
+                        'w-full text-left rounded-2xl overflow-hidden transition-all duration-200',
+                        'border border-black/[0.06] hover:border-black/[0.12]',
+                        'hover:shadow-[0_8px_30px_rgba(0,0,0,0.12)] hover:-translate-y-1',
+                        'active:scale-[0.97]',
+                      )}
+                    >
+                      {/* Mini court diagram header */}
+                      <div className="relative h-[72px] bg-[#0C0C0E] overflow-hidden">
+                        {/* Court outline */}
+                        <svg viewBox="0 0 100 60" className="absolute inset-0 w-full h-full" preserveAspectRatio="xMidYMid meet">
+                          {/* Half court */}
+                          <rect x="10" y="2" width="80" height="56" fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="0.5" rx="1" />
+                          {/* Paint */}
+                          <rect x="34" y="2" width="32" height="24" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="0.5" />
+                          {/* Free throw circle */}
+                          <circle cx="50" cy="26" r="8" fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="0.5" />
+                          {/* 3-point arc */}
+                          <path d="M 18 2 L 18 16 Q 18 42 50 42 Q 82 42 82 16 L 82 2" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="0.5" />
+                          {/* Basket */}
+                          <circle cx="50" cy="6" r="2" fill="none" stroke="rgba(255,255,255,0.12)" strokeWidth="0.5" />
+                          {/* Play arrows */}
+                          {style.paths.map((d: string, i: number) => (
+                            <path key={i} d={d} fill="none" stroke={style.color} strokeWidth="1.2" strokeLinecap="round" strokeDasharray="3 2" opacity="0.7" />
+                          ))}
+                          {/* Player dots */}
+                          {style.dots.map(([cx, cy]: [number, number], i: number) => (
+                            <circle key={i} cx={cx} cy={cy} r="2.5" fill={style.color} opacity={i === 0 ? 0.9 : 0.4} />
+                          ))}
+                        </svg>
+                        {/* Play type abbreviation watermark */}
+                        <span className="absolute bottom-1 right-2 text-[10px] font-mono font-bold tracking-wider" style={{ color: `${style.color}50` }}>
+                          {style.abbr}
                         </span>
                       </div>
-                      <div className="text-2xl font-extrabold text-[#1D1D1F]">
-                        {count}
+                      {/* Label area */}
+                      <div className="bg-white px-3 py-2.5">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-bold text-[#1D1D1F] capitalize">{play_type}</span>
+                          <span className="text-[11px] font-mono font-bold" style={{ color: style.color }}>{count}</span>
+                        </div>
                       </div>
-                      <div className="text-[10px] text-[#86868B] mt-0.5">
-                        clip{count !== 1 ? 's' : ''}
-                      </div>
-                    </div>
-                  </GlassCard>
-                </motion.div>
-              ))}
+                    </button>
+                  </motion.div>
+                );
+              })}
             </div>
           </motion.section>
         )}

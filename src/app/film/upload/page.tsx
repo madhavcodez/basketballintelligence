@@ -2,12 +2,12 @@
 
 import { useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { motion } from 'framer-motion';
-import { ArrowLeft, Upload, Film, Loader2 } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { ArrowLeft, Upload, Film, Loader2, Clapperboard, Sparkles } from 'lucide-react';
 import Link from 'next/link';
 import clsx from 'clsx';
-import GlassCard from '@/components/ui/GlassCard';
 import UploadZone from '@/components/film/UploadZone';
+import TeamLogo from '@/components/ui/TeamLogo';
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -19,59 +19,6 @@ interface GameContext {
   readonly playerFocus: string;
 }
 
-// ── Animation variants ───────────────────────────────────────────────────────
-
-const stagger = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: { staggerChildren: 0.06, delayChildren: 0.1 },
-  },
-};
-
-const fadeSlideUp = {
-  hidden: { opacity: 0, y: 16 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: { type: 'spring' as const, stiffness: 120, damping: 14 },
-  },
-};
-
-// ── Input Field Component ───────────────────────────────────────────────────
-
-interface FieldProps {
-  readonly label: string;
-  readonly value: string;
-  readonly onChange: (value: string) => void;
-  readonly placeholder: string;
-  readonly type?: string;
-}
-
-function GlassInput({ label, value, onChange, placeholder, type = 'text' }: FieldProps) {
-  return (
-    <div className="space-y-1.5">
-      <label className="block text-[10px] uppercase tracking-wider text-[#86868B] font-semibold">
-        {label}
-      </label>
-      <input
-        type={type}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        placeholder={placeholder}
-        className={clsx(
-          'w-full bg-white border border-black/[0.06]',
-          'rounded-xl px-4 py-3',
-          'text-sm text-[#1D1D1F] placeholder:text-[#86868B]/50',
-          'outline-none transition-all duration-200',
-          'focus:border-[#0071E3]/40 focus:bg-[#F5F5F7]',
-          'focus:shadow-[0_0_20px_rgba(77,166,255,0.12)]',
-        )}
-      />
-    </div>
-  );
-}
-
 // ── Component ────────────────────────────────────────────────────────────────
 
 export default function UploadFilmPage() {
@@ -79,17 +26,11 @@ export default function UploadFilmPage() {
 
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [gameContext, setGameContext] = useState<GameContext>({
-    gameDate: '',
-    homeTeam: '',
-    awayTeam: '',
-    season: '',
-    playerFocus: '',
+    gameDate: '', homeTeam: '', awayTeam: '', season: '', playerFocus: '',
   });
   const [uploadProgress, setUploadProgress] = useState<number | undefined>(undefined);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  // ── Handlers ────────────────────────────────────────────────────────────────
 
   const handleFileSelect = useCallback((file: File) => {
     setSelectedFile(file);
@@ -101,212 +42,261 @@ export default function UploadFilmPage() {
   }, []);
 
   const handleSubmit = useCallback(async () => {
-    if (!selectedFile) {
-      setError('Please select a video file first.');
-      return;
-    }
-
+    if (!selectedFile) { setError('Drop a video file onto the stage first.'); return; }
     setIsSubmitting(true);
     setError(null);
     setUploadProgress(0);
-
     try {
       const formData = new FormData();
       formData.append('file', selectedFile);
-
-      // Attach game context metadata
       if (gameContext.gameDate) formData.append('gameDate', gameContext.gameDate);
       if (gameContext.homeTeam) formData.append('homeTeam', gameContext.homeTeam);
       if (gameContext.awayTeam) formData.append('awayTeam', gameContext.awayTeam);
       if (gameContext.season) formData.append('season', gameContext.season);
       if (gameContext.playerFocus) formData.append('playerFocus', gameContext.playerFocus);
 
-      // Simulate progress (real XHR progress would use XMLHttpRequest)
       const progressInterval = setInterval(() => {
         setUploadProgress((prev) => {
           if (prev === undefined) return 10;
-          if (prev >= 85) return prev;
-          return prev + Math.random() * 15;
+          return prev >= 85 ? prev : prev + Math.random() * 15;
         });
       }, 300);
 
-      const res = await fetch('/api/film/upload', {
-        method: 'POST',
-        body: formData,
-      });
-
+      const res = await fetch('/api/film/upload', { method: 'POST', body: formData });
       clearInterval(progressInterval);
 
       if (!res.ok) {
         const errData = await res.json().catch(() => ({}));
-        setError(errData.error ?? 'Upload failed. Please try again.');
+        setError(errData.error ?? 'Upload failed.');
         setUploadProgress(undefined);
         setIsSubmitting(false);
         return;
       }
 
       setUploadProgress(100);
-      const { videoId } = await res.json();
-
-      // Brief pause to show completion state, then redirect
-      setTimeout(() => {
-        router.push('/film');
-      }, 1200);
+      setTimeout(() => router.push('/film'), 1200);
     } catch {
-      setError('Network error. Please check your connection and try again.');
+      setError('Network error. Check your connection.');
       setUploadProgress(undefined);
       setIsSubmitting(false);
     }
   }, [selectedFile, gameContext, router]);
 
-  // ── Render ──────────────────────────────────────────────────────────────────
+  const showContextForm = !!selectedFile;
 
   return (
-    <div className="w-full max-w-3xl mx-auto px-4 sm:px-6 pt-4 pb-24">
-      <motion.div initial="hidden" animate="visible" variants={stagger}>
-        {/* ── Back Button ───────────────────────────────────────────────── */}
-        <motion.div variants={fadeSlideUp} className="mb-6">
-          <Link
-            href="/film"
-            className="inline-flex items-center gap-1 text-xs text-[#86868B] hover:text-[#6E6E73] transition-colors"
-          >
-            <ArrowLeft size={12} /> Back to Film Room
-          </Link>
-        </motion.div>
+    <div className="min-h-[calc(100dvh-4rem)] flex flex-col">
+      {/* ── Back link ──────────────────────────────────────────────── */}
+      <div className="w-full max-w-4xl mx-auto px-4 sm:px-6 pt-4">
+        <Link
+          href="/film"
+          className="inline-flex items-center gap-1 text-xs text-[#86868B] hover:text-[#6E6E73] transition-colors"
+        >
+          <ArrowLeft size={12} /> Film Room
+        </Link>
+      </div>
 
-        {/* ── Title ─────────────────────────────────────────────────────── */}
-        <motion.div variants={fadeSlideUp} className="mb-8">
-          <div className="flex items-center gap-3 mb-2">
-            <Upload size={24} className="text-[#FF6B35]" />
-            <h1 className="font-display font-extrabold text-2xl sm:text-3xl tracking-tight text-[#1D1D1F]">
-              Upload Film
-            </h1>
+      {/* ── Theater Stage ──────────────────────────────────────────── */}
+      <div className="flex-1 flex items-center justify-center px-4 py-8">
+        <motion.div
+          className="w-full max-w-2xl"
+          initial={{ opacity: 0, y: 24 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ type: 'spring', stiffness: 100, damping: 16 }}
+        >
+          {/* Stage container — dark theater look */}
+          <div className="relative rounded-[28px] overflow-hidden">
+            {/* Spotlight gradient behind the stage */}
+            <div
+              className="absolute inset-0"
+              style={{
+                background: 'radial-gradient(ellipse at 50% 30%, rgba(255,107,53,0.08) 0%, rgba(0,0,0,0) 60%), linear-gradient(to bottom, #111113, #0A0A0C)',
+              }}
+            />
+
+            {/* Stage content */}
+            <div className="relative px-6 sm:px-10 pt-10 pb-8">
+              {/* Header */}
+              <div className="text-center mb-8">
+                <motion.div
+                  className="inline-flex items-center justify-center h-16 w-16 rounded-2xl mb-4"
+                  style={{ background: 'linear-gradient(135deg, rgba(255,107,53,0.15), rgba(0,113,227,0.15))' }}
+                  animate={{ boxShadow: ['0 0 20px rgba(255,107,53,0.1)', '0 0 40px rgba(0,113,227,0.15)', '0 0 20px rgba(255,107,53,0.1)'] }}
+                  transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+                >
+                  <Clapperboard size={28} className="text-white/70" />
+                </motion.div>
+                <h1 className="font-display font-extrabold text-2xl sm:text-3xl tracking-tight text-white mb-2">
+                  Add to Film Room
+                </h1>
+                <p className="text-sm text-white/40 max-w-sm mx-auto">
+                  Drop game footage onto the stage. AI will tag plays, detect events, and break it down frame by frame.
+                </p>
+              </div>
+
+              {/* Drop zone — the spotlight area */}
+              <div className="relative mb-6">
+                {/* Spotlight ring */}
+                <div
+                  className="absolute -inset-1 rounded-[20px] opacity-30"
+                  style={{
+                    background: selectedFile
+                      ? 'linear-gradient(135deg, #22C55E40, #22C55E10)'
+                      : 'linear-gradient(135deg, #FF6B3540, #0071E340)',
+                  }}
+                />
+                <div className="relative rounded-[18px] overflow-hidden bg-white/[0.03] border border-white/[0.08]">
+                  <UploadZone onFileSelect={handleFileSelect} progress={uploadProgress} />
+                </div>
+
+                {/* File selected indicator */}
+                {selectedFile && !isSubmitting && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="mt-3 flex items-center justify-center gap-2 text-xs text-[#34D399]"
+                  >
+                    <span className="h-1.5 w-1.5 rounded-full bg-[#34D399] animate-pulse" />
+                    {selectedFile.name} ({(selectedFile.size / 1024 / 1024).toFixed(1)} MB)
+                  </motion.div>
+                )}
+              </div>
+
+              {/* ── Game Context — slides in after file selected ──────── */}
+              <AnimatePresence>
+                {showContextForm && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                    transition={{ type: 'spring', stiffness: 200, damping: 22 }}
+                    className="overflow-hidden"
+                  >
+                    <div className="pt-4 pb-2 border-t border-white/[0.06]">
+                      <div className="flex items-center gap-2 mb-4">
+                        <Sparkles size={12} className="text-white/30" />
+                        <span className="text-[10px] uppercase tracking-wider text-white/30 font-semibold">
+                          Game Context <span className="text-white/15">(optional — improves AI tagging)</span>
+                        </span>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-3">
+                        <StageInput label="Home Team" value={gameContext.homeTeam} onChange={(v) => updateGameContext('homeTeam', v)} placeholder="LAL"
+                          adornment={gameContext.homeTeam.length >= 2 ? <TeamLogo teamAbbr={gameContext.homeTeam} size="sm" /> : undefined}
+                        />
+                        <StageInput label="Away Team" value={gameContext.awayTeam} onChange={(v) => updateGameContext('awayTeam', v)} placeholder="BOS"
+                          adornment={gameContext.awayTeam.length >= 2 ? <TeamLogo teamAbbr={gameContext.awayTeam} size="sm" /> : undefined}
+                        />
+                        <StageInput label="Game Date" type="date" value={gameContext.gameDate} onChange={(v) => updateGameContext('gameDate', v)} placeholder="" />
+                        <StageInput label="Season" value={gameContext.season} onChange={(v) => updateGameContext('season', v)} placeholder="2024-25" />
+                        <div className="col-span-2">
+                          <StageInput label="Player Focus" value={gameContext.playerFocus} onChange={(v) => updateGameContext('playerFocus', v)} placeholder="LeBron James" />
+                        </div>
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              {/* ── Error ──────────────────────────────────────────────── */}
+              {error && (
+                <motion.p
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="text-xs text-[#EF4444] text-center mt-4"
+                >
+                  {error}
+                </motion.p>
+              )}
+
+              {/* ── Submit Button ──────────────────────────────────────── */}
+              <motion.div className="mt-6 flex justify-center">
+                <button
+                  type="button"
+                  onClick={handleSubmit}
+                  disabled={!selectedFile || isSubmitting}
+                  className={clsx(
+                    'relative flex items-center gap-2 px-8 py-3 rounded-full text-sm font-bold transition-all duration-200',
+                    selectedFile && !isSubmitting
+                      ? 'bg-[#FF6B35] text-white hover:bg-[#FF6B35]/90 hover:shadow-[0_0_30px_rgba(255,107,53,0.3)] active:scale-95'
+                      : 'bg-white/[0.06] text-white/20 cursor-not-allowed',
+                  )}
+                >
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 size={16} className="animate-spin" />
+                      Processing...
+                    </>
+                  ) : (
+                    <>
+                      <Upload size={16} />
+                      Analyze Film
+                    </>
+                  )}
+                </button>
+              </motion.div>
+
+              {/* Progress bar */}
+              {uploadProgress !== undefined && (
+                <motion.div
+                  className="mt-4 h-1 rounded-full bg-white/[0.06] overflow-hidden"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                >
+                  <motion.div
+                    className="h-full rounded-full"
+                    style={{ background: uploadProgress >= 100 ? '#34D399' : 'linear-gradient(90deg, #FF6B35, #0071E3)' }}
+                    initial={{ width: 0 }}
+                    animate={{ width: `${uploadProgress}%` }}
+                    transition={{ duration: 0.3 }}
+                  />
+                </motion.div>
+              )}
+            </div>
           </div>
-          <p className="text-sm text-[#86868B]">
-            Add game footage to your library for AI-powered analysis.
+
+          {/* Supported formats hint */}
+          <p className="text-center text-[10px] text-[#86868B]/50 mt-4">
+            MP4, MOV, WebM up to 2 GB
           </p>
         </motion.div>
+      </div>
+    </div>
+  );
+}
 
-        {/* ── Upload Zone ───────────────────────────────────────────────── */}
-        <motion.div variants={fadeSlideUp} className="mb-8">
-          <div className={clsx(
-            'relative rounded-[24px] overflow-hidden',
-            'bg-gradient-to-br from-[#1D1D1F] via-[#2A2A2E] to-[#0A0A0A]',
-            'p-[1px]',
-          )}>
-            {/* Subtle animated border glow */}
-            <div className="absolute inset-0 rounded-[24px] bg-gradient-to-r from-[#FF6B35]/20 via-transparent to-[#0071E3]/20 opacity-50" />
-            <div className="relative rounded-[23px] bg-gradient-to-br from-[#1A1A1E] to-[#111114] p-6 sm:p-8">
-              {/* Dot pattern overlay */}
-              <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'radial-gradient(circle at center, white 1px, transparent 1px)', backgroundSize: '20px 20px' }} />
-              <div className="relative flex flex-col items-center gap-4 mb-6">
-                <div className="flex items-center justify-center h-14 w-14 rounded-2xl bg-white/[0.06] border border-white/[0.08]">
-                  <Film size={24} className="text-white/40" />
-                </div>
-                <div className="text-center">
-                  <p className="text-sm font-semibold text-white/60">Add to Your Film Library</p>
-                  <p className="text-[11px] text-white/30 mt-1">Game footage, highlights, or practice clips</p>
-                </div>
-              </div>
-              <UploadZone
-                onFileSelect={handleFileSelect}
-                progress={uploadProgress}
-              />
-            </div>
-          </div>
-        </motion.div>
+// ── Stage Input — dark-themed input for the theater context ──────────────────
 
-        {/* ── Game Context Form ─────────────────────────────────────────── */}
-        <motion.div variants={fadeSlideUp} className="mb-8">
-          <GlassCard className="p-5 sm:p-6">
-            <div className="flex items-center gap-2 mb-5">
-              <Film size={16} className="text-[#86868B]" />
-              <h2 className="text-sm font-bold text-[#6E6E73] uppercase tracking-wider">
-                Game Context
-              </h2>
-              <span className="text-[10px] text-[#86868B]/50 ml-1">(optional)</span>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <GlassInput
-                label="Game Date"
-                type="date"
-                value={gameContext.gameDate}
-                onChange={(v) => updateGameContext('gameDate', v)}
-                placeholder=""
-              />
-              <GlassInput
-                label="Season"
-                value={gameContext.season}
-                onChange={(v) => updateGameContext('season', v)}
-                placeholder="2024-25"
-              />
-              <GlassInput
-                label="Home Team"
-                value={gameContext.homeTeam}
-                onChange={(v) => updateGameContext('homeTeam', v)}
-                placeholder="Lakers"
-              />
-              <GlassInput
-                label="Away Team"
-                value={gameContext.awayTeam}
-                onChange={(v) => updateGameContext('awayTeam', v)}
-                placeholder="Celtics"
-              />
-              <div className="sm:col-span-2">
-                <GlassInput
-                  label="Player Focus"
-                  value={gameContext.playerFocus}
-                  onChange={(v) => updateGameContext('playerFocus', v)}
-                  placeholder="LeBron James"
-                />
-              </div>
-            </div>
-          </GlassCard>
-        </motion.div>
-
-        {/* ── Error Message ─────────────────────────────────────────────── */}
-        {error && (
-          <motion.div
-            className="mb-6 px-4 py-3 rounded-xl bg-[#EF4444]/[0.06] border border-[#EF4444]/20"
-            initial={{ opacity: 0, y: -8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ type: 'spring', stiffness: 300, damping: 25 }}
-          >
-            <p className="text-sm text-[#EF4444] font-medium">{error}</p>
-          </motion.div>
-        )}
-
-        {/* ── Submit Button ────────────────────────────────────────────── */}
-        <motion.div variants={fadeSlideUp} className="flex justify-center">
-          <motion.button
-            type="button"
-            onClick={handleSubmit}
-            disabled={!selectedFile || isSubmitting}
-            whileHover={selectedFile && !isSubmitting ? { scale: 1.02 } : undefined}
-            whileTap={selectedFile && !isSubmitting ? { scale: 0.97 } : undefined}
-            className={clsx(
-              'flex items-center gap-2.5 px-8 py-3.5 rounded-full',
-              'text-sm font-bold tracking-wide transition-all duration-200',
-              selectedFile && !isSubmitting
-                ? 'bg-[#FF6B35] text-white shadow-[0_0_20px_rgba(255,107,53,0.25)] hover:shadow-[0_0_30px_rgba(255,107,53,0.35)]'
-                : 'bg-white border border-black/[0.06] text-[#86868B] cursor-not-allowed',
-            )}
-          >
-            {isSubmitting ? (
-              <>
-                <Loader2 size={16} className="animate-spin" />
-                {uploadProgress !== undefined && uploadProgress >= 100 ? 'Processing...' : 'Uploading...'}
-              </>
-            ) : (
-              <>
-                <Upload size={16} />
-                Upload &amp; Analyze
-              </>
-            )}
-          </motion.button>
-        </motion.div>
-      </motion.div>
+function StageInput({
+  label, value, onChange, placeholder, type = 'text', adornment,
+}: {
+  readonly label: string;
+  readonly value: string;
+  readonly onChange: (v: string) => void;
+  readonly placeholder: string;
+  readonly type?: string;
+  readonly adornment?: React.ReactNode;
+}) {
+  return (
+    <div>
+      <label className="block text-[9px] uppercase tracking-wider text-white/25 font-semibold mb-1">
+        {label}
+      </label>
+      <div className="relative flex items-center">
+        {adornment && <div className="absolute left-2.5 z-10">{adornment}</div>}
+        <input
+          type={type}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder={placeholder}
+          className={clsx(
+            'w-full bg-white/[0.04] border border-white/[0.08] rounded-xl text-sm text-white/80 placeholder:text-white/15',
+            'outline-none transition-all duration-200',
+            'focus:border-[#FF6B35]/30 focus:bg-white/[0.06]',
+            adornment ? 'pl-9 pr-3 py-2.5' : 'px-3 py-2.5',
+          )}
+        />
+      </div>
     </div>
   );
 }
