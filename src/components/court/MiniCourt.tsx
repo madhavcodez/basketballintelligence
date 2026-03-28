@@ -44,8 +44,8 @@ function buildThreePointArc(): string {
   for (let i = 0; i <= steps; i++) {
     const angle = startAngle + (endAngle - startAngle) * (i / steps);
     const px = BX + THREE_RADIUS * Math.cos(angle);
-    const py = BY - THREE_RADIUS * Math.sin(angle);
-    if (py >= 0) {
+    const py = BY + THREE_RADIUS * Math.sin(angle);
+    if (py <= VB_H) {
       points.push(`${px.toFixed(1)},${py.toFixed(1)}`);
     }
   }
@@ -60,7 +60,7 @@ function buildRestrictedArc(): string {
   for (let i = 0; i <= steps; i++) {
     const angle = Math.PI + (0 - Math.PI) * (i / steps);
     const px = BX + RESTRICTED_RADIUS * Math.cos(angle);
-    const py = BY - RESTRICTED_RADIUS * Math.sin(angle);
+    const py = BY + RESTRICTED_RADIUS * Math.sin(angle);
     points.push(`${px.toFixed(1)},${py.toFixed(1)}`);
   }
 

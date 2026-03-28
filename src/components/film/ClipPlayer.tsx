@@ -215,22 +215,30 @@ export default function ClipPlayer({
         className={clsx(
           'relative flex items-center justify-center',
           'aspect-video w-full rounded-[20px] overflow-hidden',
-          'bg-[#F5F5F7]',
+          'bg-[#1D1D1F]',
           'border border-black/[0.06]',
           className,
         )}
       >
-        <div className="flex flex-col items-center gap-3">
+        {/* Subtle cinematic background pattern */}
+        <div className="absolute inset-0 bg-gradient-to-br from-[#2A2A2E] via-[#1D1D1F] to-[#0A0A0A]" />
+        <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'radial-gradient(circle at 25% 25%, white 1px, transparent 1px)', backgroundSize: '24px 24px' }} />
+
+        <div className="relative flex flex-col items-center gap-4">
           <div
             className={clsx(
               'flex items-center justify-center',
-              'h-16 w-16 rounded-2xl',
-              'bg-white border border-black/[0.06]',
+              'h-20 w-20 rounded-2xl',
+              'bg-white/[0.06] border border-white/[0.08]',
+              'backdrop-blur-sm',
             )}
           >
-            <Film size={28} className="text-[#86868B]" />
+            <Film size={32} className="text-white/30" />
           </div>
-          <p className="text-sm text-[#86868B]">No video file</p>
+          <div className="flex flex-col items-center gap-1">
+            <p className="text-sm font-medium text-white/40">No video file</p>
+            <p className="text-[11px] text-white/20">Upload footage to get started</p>
+          </div>
         </div>
       </div>
     );
@@ -253,13 +261,14 @@ export default function ClipPlayer({
         src={src}
         poster={poster ?? undefined}
         className="h-full w-full object-contain bg-black"
+        preload="metadata"
+        playsInline
         onTimeUpdate={handleTimeUpdate}
         onLoadedMetadata={handleLoadedMetadata}
         onPlay={handlePlay}
         onPause={handlePause}
         onEnded={handleEnded}
         onClick={togglePlay}
-        playsInline
       />
 
       {/* Big center play button */}

@@ -26,6 +26,7 @@ import GlassCard from '@/components/ui/GlassCard';
 import SectionHeader from '@/components/ui/SectionHeader';
 import SkeletonLoader from '@/components/ui/SkeletonLoader';
 import PlayerAvatar from '@/components/ui/PlayerAvatar';
+import TeamLogo from '@/components/ui/TeamLogo';
 import Badge from '@/components/ui/Badge';
 import { useSeasonType } from '@/lib/season-context';
 
@@ -825,7 +826,11 @@ export default function LineupSandboxPage() {
                 'min-w-[200px]',
               )}
             >
-              <Shield size={14} className="text-[#86868B]" />
+              {selectedTeam ? (
+                <TeamLogo teamAbbr={selectedTeam} size="sm" />
+              ) : (
+                <Shield size={14} className="text-[#86868B]" />
+              )}
               <span className="flex-1 text-left truncate">
                 {loading
                   ? 'Loading...'
@@ -856,12 +861,14 @@ export default function LineupSandboxPage() {
                       onClick={() => handleSelectTeam(team.abbr)}
                       className={clsx(
                         'w-full text-left px-4 py-2.5 text-sm',
+                        'flex items-center gap-2',
                         'hover:bg-white transition-colors',
                         selectedTeam === team.abbr
                           ? 'text-[#FF6B35] font-medium'
                           : 'text-[#6E6E73]',
                       )}
                     >
+                      <TeamLogo teamAbbr={team.abbr} size="sm" />
                       {team.name}
                     </button>
                   ))}

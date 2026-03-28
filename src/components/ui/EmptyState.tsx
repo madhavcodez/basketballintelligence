@@ -28,18 +28,18 @@ export default function EmptyState({
           className={clsx(
             'flex items-center justify-center',
             'h-16 w-16 sm:h-20 sm:w-20 rounded-full',
-            'bg-glass-frosted border border-glass-border',
+            'bg-white/80 border border-black/[0.06]',
           )}
         >
-          <Icon size={28} className="text-chrome-dim sm:h-8 sm:w-8" />
+          <Icon size={28} className="text-[#86868B] sm:h-8 sm:w-8" />
         </div>
 
         {/* Text */}
         <div className="flex flex-col gap-1.5">
-          <h3 className="text-lg font-semibold text-chrome-light font-display">
+          <h3 className="text-lg font-semibold text-[#1D1D1F] font-display">
             {title}
           </h3>
-          <p className="text-sm text-chrome-dim max-w-xs leading-relaxed">
+          <p className="text-sm text-[#86868B] max-w-xs leading-relaxed">
             {subtitle}
           </p>
         </div>

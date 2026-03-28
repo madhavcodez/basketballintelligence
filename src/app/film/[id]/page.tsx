@@ -21,6 +21,8 @@ import clsx from 'clsx';
 import GlassCard from '@/components/ui/GlassCard';
 import Badge from '@/components/ui/Badge';
 import SkeletonLoader from '@/components/ui/SkeletonLoader';
+import PlayerAvatar from '@/components/ui/PlayerAvatar';
+import TeamLogo from '@/components/ui/TeamLogo';
 import ClipPlayer from '@/components/film/ClipPlayer';
 import ClipCard from '@/components/film/ClipCard';
 import TagBadge from '@/components/film/TagBadge';
@@ -191,9 +193,10 @@ interface DetailRowProps {
   readonly label: string;
   readonly value: string | number | null;
   readonly accent?: boolean;
+  readonly valueAdornment?: React.ReactNode;
 }
 
-function DetailRow({ icon, label, value, accent = false }: DetailRowProps) {
+function DetailRow({ icon, label, value, accent = false, valueAdornment }: DetailRowProps) {
   if (value === null || value === undefined) return null;
   return (
     <div className="flex items-center gap-3 py-2">
@@ -203,9 +206,10 @@ function DetailRow({ icon, label, value, accent = false }: DetailRowProps) {
           {label}
         </div>
         <div className={clsx(
-          'text-sm font-medium truncate mt-0.5',
+          'flex items-center gap-1.5 text-sm font-medium truncate mt-0.5',
           accent ? 'text-[#FF6B35]' : 'text-[#1D1D1F]',
         )}>
+          {valueAdornment}
           {value}
         </div>
       </div>
@@ -458,25 +462,38 @@ export default function ClipViewerPage() {
                 label="Primary Player"
                 value={clip.primary_player}
                 accent
+                valueAdornment={clip.primary_player ? <PlayerAvatar name={clip.primary_player} size="sm" className="!h-5 !w-5" /> : undefined}
               />
               {clip.secondary_player && (
                 <DetailRow
                   icon={<User size={14} />}
                   label="Secondary Player"
                   value={clip.secondary_player}
+                  valueAdornment={<PlayerAvatar name={clip.secondary_player} size="sm" className="!h-5 !w-5" />}
                 />
               )}
               <DetailRow
                 icon={<Shield size={14} />}
                 label="Defender"
                 value={clip.defender}
+                valueAdornment={clip.defender ? <PlayerAvatar name={clip.defender} size="sm" className="!h-5 !w-5" /> : undefined}
               />
-              {gameInfo && (
-                <DetailRow
-                  icon={<Activity size={14} />}
-                  label="Matchup"
-                  value={gameInfo}
-                />
+              {gameInfo && video?.home_team && video?.away_team && (
+                <div className="flex items-center gap-3 py-2">
+                  <div className="text-[#86868B] shrink-0"><Activity size={14} /></div>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-[10px] uppercase tracking-wider text-[#86868B]/50 font-semibold">
+                      Matchup
+                    </div>
+                    <div className="flex items-center gap-2 text-sm font-medium text-[#1D1D1F] mt-0.5">
+                      <TeamLogo teamAbbr={video.home_team} size="sm" />
+                      <span>{video.home_team}</span>
+                      <span className="text-[#86868B] text-xs">vs</span>
+                      <TeamLogo teamAbbr={video.away_team} size="sm" />
+                      <span>{video.away_team}</span>
+                    </div>
+                  </div>
+                </div>
               )}
               <DetailRow
                 icon={<Calendar size={14} />}

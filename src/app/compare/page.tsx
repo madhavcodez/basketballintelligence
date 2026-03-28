@@ -17,6 +17,7 @@ import SectionHeader from '@/components/ui/SectionHeader';
 import SkeletonLoader from '@/components/ui/SkeletonLoader';
 import Badge from '@/components/ui/Badge';
 import PlayerAvatar from '@/components/ui/PlayerAvatar';
+import TeamLogo from '@/components/ui/TeamLogo';
 import BasketballCourt from '@/components/court/BasketballCourt';
 import { useSeasonType } from '@/lib/season-context';
 
@@ -258,11 +259,11 @@ function ComparePageInner() {
         <motion.div variants={fadeUp} className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
           {/* Player 1 */}
           <div className="relative">
-            <label className="text-[10px] uppercase tracking-wider text-chrome-dim font-medium mb-1 block">
+            <label className="text-[10px] uppercase tracking-wider text-[#86868B] font-medium mb-1 block">
               Player 1
             </label>
-            <div className="group relative flex items-center rounded-full bg-glass-frosted backdrop-blur-xl border border-glass-border transition-all focus-within:border-accent-orange/40">
-              <Search size={14} className="ml-3 shrink-0 text-chrome-dim" />
+            <div className="group relative flex items-center rounded-full bg-white/80 backdrop-blur-xl border border-black/[0.06] transition-all focus-within:border-accent-orange/40">
+              <Search size={14} className="ml-3 shrink-0 text-[#86868B]" />
               <input
                 type="text"
                 aria-label="Search player 1"
@@ -270,21 +271,21 @@ function ComparePageInner() {
                 onChange={(e) => handleSearchInput(e.target.value)}
                 onFocus={() => { setSearchFocus('p1'); setSearchQuery(player1); }}
                 placeholder="Search player..."
-                className="flex-1 bg-transparent px-2 py-2.5 text-sm text-chrome-light placeholder:text-chrome-dim outline-none"
+                className="flex-1 bg-transparent px-2 py-2.5 text-sm text-[#1D1D1F] placeholder:text-[#86868B] outline-none"
               />
             </div>
             {searchFocus === 'p1' && searchResults.length > 0 && (
-              <div className="absolute z-30 mt-1 w-full rounded-xl bg-dark-elevated/95 backdrop-blur-xl border border-glass-border shadow-[0_8px_40px_rgba(0,0,0,0.4)] overflow-hidden">
+              <div className="absolute z-30 mt-1 w-full rounded-xl bg-white backdrop-blur-xl border border-black/[0.06] shadow-[0_8px_40px_rgba(0,0,0,0.12)] overflow-hidden">
                 {searchResults.map((r) => (
                   <button
                     key={r.id}
                     type="button"
                     onClick={() => selectPlayer(r.name)}
-                    className="flex items-center gap-2 w-full px-3 py-2 hover:bg-glass-frosted transition-colors text-left"
+                    className="flex items-center gap-2 w-full px-3 py-2 hover:bg-white/80 transition-colors text-left"
                   >
                     <PlayerAvatar name={r.name} size="sm" />
-                    <span className="text-sm text-chrome-light truncate">{r.name}</span>
-                    <span className="text-[10px] text-chrome-dim ml-auto">{r.position}</span>
+                    <span className="text-sm text-[#1D1D1F] truncate">{r.name}</span>
+                    <span className="text-[10px] text-[#86868B] ml-auto">{r.position}</span>
                   </button>
                 ))}
               </div>
@@ -293,11 +294,11 @@ function ComparePageInner() {
 
           {/* Player 2 */}
           <div className="relative">
-            <label className="text-[10px] uppercase tracking-wider text-chrome-dim font-medium mb-1 block">
+            <label className="text-[10px] uppercase tracking-wider text-[#86868B] font-medium mb-1 block">
               Player 2
             </label>
-            <div className="group relative flex items-center rounded-full bg-glass-frosted backdrop-blur-xl border border-glass-border transition-all focus-within:border-accent-blue/40">
-              <Search size={14} className="ml-3 shrink-0 text-chrome-dim" />
+            <div className="group relative flex items-center rounded-full bg-white/80 backdrop-blur-xl border border-black/[0.06] transition-all focus-within:border-accent-blue/40">
+              <Search size={14} className="ml-3 shrink-0 text-[#86868B]" />
               <input
                 type="text"
                 aria-label="Search player 2"
@@ -305,21 +306,21 @@ function ComparePageInner() {
                 onChange={(e) => handleSearchInput(e.target.value)}
                 onFocus={() => { setSearchFocus('p2'); setSearchQuery(player2); }}
                 placeholder="Search player..."
-                className="flex-1 bg-transparent px-2 py-2.5 text-sm text-chrome-light placeholder:text-chrome-dim outline-none"
+                className="flex-1 bg-transparent px-2 py-2.5 text-sm text-[#1D1D1F] placeholder:text-[#86868B] outline-none"
               />
             </div>
             {searchFocus === 'p2' && searchResults.length > 0 && (
-              <div className="absolute z-30 mt-1 w-full rounded-xl bg-dark-elevated/95 backdrop-blur-xl border border-glass-border shadow-[0_8px_40px_rgba(0,0,0,0.4)] overflow-hidden">
+              <div className="absolute z-30 mt-1 w-full rounded-xl bg-white backdrop-blur-xl border border-black/[0.06] shadow-[0_8px_40px_rgba(0,0,0,0.12)] overflow-hidden">
                 {searchResults.map((r) => (
                   <button
                     key={r.id}
                     type="button"
                     onClick={() => selectPlayer(r.name)}
-                    className="flex items-center gap-2 w-full px-3 py-2 hover:bg-glass-frosted transition-colors text-left"
+                    className="flex items-center gap-2 w-full px-3 py-2 hover:bg-white/80 transition-colors text-left"
                   >
                     <PlayerAvatar name={r.name} size="sm" />
-                    <span className="text-sm text-chrome-light truncate">{r.name}</span>
-                    <span className="text-[10px] text-chrome-dim ml-auto">{r.position}</span>
+                    <span className="text-sm text-[#1D1D1F] truncate">{r.name}</span>
+                    <span className="text-[10px] text-[#86868B] ml-auto">{r.position}</span>
                   </button>
                 ))}
               </div>
@@ -330,7 +331,7 @@ function ComparePageInner() {
         {/* Season selector + Share */}
         <motion.div variants={fadeUp} className="flex items-center gap-3 mb-6">
           <div>
-            <label className="text-[10px] uppercase tracking-wider text-chrome-dim font-medium mb-1 block">
+            <label className="text-[10px] uppercase tracking-wider text-[#86868B] font-medium mb-1 block">
               Season (optional)
             </label>
             <input
@@ -339,14 +340,14 @@ function ComparePageInner() {
               value={season}
               onChange={(e) => setSeason(e.target.value)}
               placeholder="e.g. 2024-25 or leave blank for career"
-              className="bg-glass-frosted backdrop-blur-xl border border-glass-border rounded-full px-3 py-2 text-xs text-chrome-light placeholder:text-chrome-dim outline-none focus:border-accent-orange/40 w-52"
+              className="bg-white/80 backdrop-blur-xl border border-black/[0.06] rounded-full px-3 py-2 text-xs text-[#1D1D1F] placeholder:text-[#86868B] outline-none focus:border-accent-orange/40 w-52"
             />
           </div>
           {data?.player1 && data?.player2 && (
             <button
               type="button"
               onClick={handleShare}
-              className="mt-auto flex items-center gap-1.5 px-3 py-2 rounded-full bg-glass-bg border border-glass-border text-xs text-chrome-medium hover:text-chrome-light transition-colors"
+              className="mt-auto flex items-center gap-1.5 px-3 py-2 rounded-full bg-glass-bg border border-black/[0.06] text-xs text-[#6E6E73] hover:text-[#1D1D1F] transition-colors"
             >
               {copied ? <Check size={12} className="text-accent-green" /> : <Share2 size={12} />}
               {copied ? 'Copied!' : 'Share'}
@@ -372,9 +373,9 @@ function ComparePageInner() {
         {/* ── Empty state ─────────────────────────────────────────────── */}
         {!loading && !error && (!player1 || !player2) && (
           <GlassCard className="p-8 text-center">
-            <Swords size={40} className="mx-auto mb-3 text-chrome-dim" />
-            <h3 className="text-lg font-bold text-chrome-light mb-1">Select Two Players</h3>
-            <p className="text-sm text-chrome-dim">
+            <Swords size={40} className="mx-auto mb-3 text-[#86868B]" />
+            <h3 className="text-lg font-bold text-[#1D1D1F] mb-1">Select Two Players</h3>
+            <p className="text-sm text-[#86868B]">
               Search and select two players above to see a head-to-head comparison.
             </p>
           </GlassCard>
@@ -392,19 +393,20 @@ function ComparePageInner() {
                     <div className="min-w-0">
                       <Link
                         href={`/player/${encodeURIComponent(data.player1.name)}`}
-                        className="text-lg sm:text-xl font-extrabold text-chrome-light hover:text-accent-orange transition-colors truncate block"
+                        className="text-lg sm:text-xl font-extrabold text-[#1D1D1F] hover:text-accent-orange transition-colors truncate block"
                       >
                         {data.player1.name}
                       </Link>
-                      <p className="text-xs text-chrome-dim">
+                      <p className="text-xs text-[#86868B] flex items-center gap-1.5">
+                        {data.player1.team && <TeamLogo teamAbbr={data.player1.team} size="sm" />}
                         {data.player1.team ?? 'Career'} &middot; {data.player1.season}
                       </p>
                     </div>
                   </div>
 
                   <div className="shrink-0">
-                    <div className="flex items-center justify-center w-14 h-14 rounded-full bg-glass-frosted border border-glass-border">
-                      <span className="text-sm font-extrabold text-chrome-medium">VS</span>
+                    <div className="flex items-center justify-center w-14 h-14 rounded-full bg-white/80 border border-black/[0.06]">
+                      <span className="text-sm font-extrabold text-[#6E6E73]">VS</span>
                     </div>
                   </div>
 
@@ -412,12 +414,13 @@ function ComparePageInner() {
                     <div className="min-w-0">
                       <Link
                         href={`/player/${encodeURIComponent(data.player2.name)}`}
-                        className="text-lg sm:text-xl font-extrabold text-chrome-light hover:text-accent-blue transition-colors truncate block"
+                        className="text-lg sm:text-xl font-extrabold text-[#1D1D1F] hover:text-accent-blue transition-colors truncate block"
                       >
                         {data.player2.name}
                       </Link>
-                      <p className="text-xs text-chrome-dim">
+                      <p className="text-xs text-[#86868B] flex items-center gap-1.5 justify-end">
                         {data.player2.team ?? 'Career'} &middot; {data.player2.season}
+                        {data.player2.team && <TeamLogo teamAbbr={data.player2.team} size="sm" />}
                       </p>
                     </div>
                     <PlayerAvatar name={data.player2.name} size="lg" />
@@ -450,7 +453,7 @@ function ComparePageInner() {
                         <div className="flex items-center gap-2">
                           <span
                             className={`text-sm font-bold font-mono min-w-[42px] text-right ${
-                              p1IsWinner ? 'text-accent-orange' : 'text-chrome-medium'
+                              p1IsWinner ? 'text-accent-orange' : 'text-[#6E6E73]'
                             }`}
                           >
                             {cat.format(v1)}
@@ -471,7 +474,7 @@ function ComparePageInner() {
                         </div>
 
                         {/* Category label */}
-                        <span className="text-[10px] uppercase tracking-wider text-chrome-dim font-semibold text-center w-10">
+                        <span className="text-[10px] uppercase tracking-wider text-[#86868B] font-semibold text-center w-10">
                           {cat.label}
                         </span>
 
@@ -492,7 +495,7 @@ function ComparePageInner() {
                           </div>
                           <span
                             className={`text-sm font-bold font-mono min-w-[42px] ${
-                              p2IsWinner ? 'text-accent-blue' : 'text-chrome-medium'
+                              p2IsWinner ? 'text-accent-blue' : 'text-[#6E6E73]'
                             }`}
                           >
                             {cat.format(v2)}
@@ -511,18 +514,18 @@ function ComparePageInner() {
                 <div className="flex items-center gap-3">
                   <Swords size={18} className="text-accent-gold" />
                   {winner ? (
-                    <span className="text-sm font-bold text-chrome-light">
+                    <span className="text-sm font-bold text-[#1D1D1F]">
                       Edge:{' '}
                       <span className={winner === data.player1?.name ? 'text-accent-orange' : 'text-accent-blue'}>
                         {winner}
                       </span>{' '}
-                      <span className="text-chrome-dim font-normal">
+                      <span className="text-[#86868B] font-normal">
                         ({Math.max(p1Wins, p2Wins)}&ndash;{Math.min(p1Wins, p2Wins)} categories)
                       </span>
                     </span>
                   ) : (
-                    <span className="text-sm font-bold text-chrome-light">
-                      Dead Even <span className="text-chrome-dim font-normal">({p1Wins}&ndash;{p2Wins})</span>
+                    <span className="text-sm font-bold text-[#1D1D1F]">
+                      Dead Even <span className="text-[#86868B] font-normal">({p1Wins}&ndash;{p2Wins})</span>
                     </span>
                   )}
                 </div>
@@ -589,10 +592,10 @@ function ComparePageInner() {
                 className="block"
               >
                 <GlassCard hoverable tintColor="#FF6B35" className="p-4 text-center">
-                  <p className="text-sm font-semibold text-chrome-light">
+                  <p className="text-sm font-semibold text-[#1D1D1F]">
                     See their actual games against each other &rarr;
                   </p>
-                  <p className="text-xs text-chrome-dim mt-1">Head-to-head matchup breakdown</p>
+                  <p className="text-xs text-[#86868B] mt-1">Head-to-head matchup breakdown</p>
                 </GlassCard>
               </Link>
             </motion.div>

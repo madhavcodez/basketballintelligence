@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Search, X } from 'lucide-react';
 import clsx from 'clsx';
 import Badge from '@/components/ui/Badge';
+import PlayerAvatar from '@/components/ui/PlayerAvatar';
 import { animation } from '@/lib/design-tokens';
 
 // ── Types ────────────────────────────────────────────────────────────────────
@@ -135,6 +136,7 @@ function PlayerInput({
             'bg-white border border-black/[0.06]',
           )}
         >
+          <PlayerAvatar name={selectedName} size="sm" />
           <span
             className="text-sm font-bold truncate"
             style={{ color: accentColor }}
@@ -190,6 +192,7 @@ function PlayerInput({
                 onClick={() => handleSelect(r.name)}
                 className="flex items-center gap-2 w-full px-3 py-2.5 hover:bg-[#F5F5F7] transition-colors text-left"
               >
+                <PlayerAvatar name={r.name} size="sm" />
                 <span className="text-sm text-[#1D1D1F] truncate">
                   {r.name}
                 </span>

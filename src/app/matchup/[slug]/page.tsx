@@ -10,6 +10,8 @@ import SectionHeader from '@/components/ui/SectionHeader';
 import MetricChip from '@/components/ui/MetricChip';
 import SkeletonLoader from '@/components/ui/SkeletonLoader';
 import Badge from '@/components/ui/Badge';
+import PlayerAvatar from '@/components/ui/PlayerAvatar';
+import TeamLogo from '@/components/ui/TeamLogo';
 import MatchupHero from '@/components/matchup/MatchupHero';
 import MatchupStatBar from '@/components/matchup/MatchupStatBar';
 import MatchupGameLog from '@/components/matchup/MatchupGameLog';
@@ -660,9 +662,12 @@ export default function MatchupSlugPage({
                       {summary.player1.split(' ').pop()} Game
                     </span>
                   </div>
-                  <p className="text-[10px] text-[#86868B] mb-1">
+                  <p className="text-[10px] text-[#86868B] mb-1 flex items-center gap-1">
                     {formatGameDate(summary.bestP1Game.gameDate)} &middot;{' '}
-                    {summary.bestP1Game.p1Team} vs {summary.bestP1Game.p2Team}
+                    <TeamLogo teamAbbr={summary.bestP1Game.p1Team} size="sm" />
+                    {summary.bestP1Game.p1Team} vs{' '}
+                    <TeamLogo teamAbbr={summary.bestP1Game.p2Team} size="sm" />
+                    {summary.bestP1Game.p2Team}
                   </p>
                   <p className="text-xs font-bold text-[#1D1D1F] mb-2">
                     {summary.bestP1Game.p1Team} {summary.bestP1Game.p1Stats.pts + summary.bestP1Game.p1Stats.reb},{' '}
@@ -714,9 +719,12 @@ export default function MatchupSlugPage({
                       {summary.player2.split(' ').pop()} Game
                     </span>
                   </div>
-                  <p className="text-[10px] text-[#86868B] mb-1">
+                  <p className="text-[10px] text-[#86868B] mb-1 flex items-center gap-1">
                     {formatGameDate(summary.bestP2Game.gameDate)} &middot;{' '}
-                    {summary.bestP2Game.p1Team} vs {summary.bestP2Game.p2Team}
+                    <TeamLogo teamAbbr={summary.bestP2Game.p1Team} size="sm" />
+                    {summary.bestP2Game.p1Team} vs{' '}
+                    <TeamLogo teamAbbr={summary.bestP2Game.p2Team} size="sm" />
+                    {summary.bestP2Game.p2Team}
                   </p>
                   <p className="text-xs font-bold text-[#1D1D1F] mb-2">
                     {summary.bestP2Game.p1Team} {summary.bestP2Game.p1Stats.pts + summary.bestP2Game.p1Stats.reb},{' '}
@@ -786,9 +794,12 @@ export default function MatchupSlugPage({
                         href={`/matchup/${toMatchupSlug(summary.player1, rival.rival)}`}
                         className="flex items-center justify-between gap-2 px-2.5 py-2 rounded-xl hover:bg-[#F5F5F7] transition-colors group"
                       >
-                        <span className="text-xs text-[#1D1D1F] font-medium group-hover:text-[#FF6B35] transition-colors truncate">
-                          {rival.rival}
-                        </span>
+                        <div className="flex items-center gap-2 min-w-0">
+                          <PlayerAvatar name={rival.rival} size="sm" />
+                          <span className="text-xs text-[#1D1D1F] font-medium group-hover:text-[#FF6B35] transition-colors truncate">
+                            {rival.rival}
+                          </span>
+                        </div>
                         <div className="flex items-center gap-2 shrink-0">
                           <Badge variant="default">
                             {rival.wins}W-{rival.losses}L
@@ -819,9 +830,12 @@ export default function MatchupSlugPage({
                         href={`/matchup/${toMatchupSlug(summary.player2, rival.rival)}`}
                         className="flex items-center justify-between gap-2 px-2.5 py-2 rounded-xl hover:bg-[#F5F5F7] transition-colors group"
                       >
-                        <span className="text-xs text-[#1D1D1F] font-medium group-hover:text-[#0071E3] transition-colors truncate">
-                          {rival.rival}
-                        </span>
+                        <div className="flex items-center gap-2 min-w-0">
+                          <PlayerAvatar name={rival.rival} size="sm" />
+                          <span className="text-xs text-[#1D1D1F] font-medium group-hover:text-[#0071E3] transition-colors truncate">
+                            {rival.rival}
+                          </span>
+                        </div>
                         <div className="flex items-center gap-2 shrink-0">
                           <Badge variant="default">
                             {rival.wins}W-{rival.losses}L

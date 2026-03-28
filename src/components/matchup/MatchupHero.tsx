@@ -7,6 +7,8 @@ import clsx from 'clsx';
 import Link from 'next/link';
 import { Clock } from 'lucide-react';
 import Badge from '@/components/ui/Badge';
+import PlayerAvatar from '@/components/ui/PlayerAvatar';
+import TeamLogo from '@/components/ui/TeamLogo';
 import { colors } from '@/lib/design-tokens';
 
 // ── Team Color Map ──────────────────────────────────────────────────────────
@@ -150,16 +152,19 @@ export default function MatchupHero({
             transition={{ ...SPRING_SNAPPY, delay: 0 }}
             className="flex flex-col items-center sm:items-start text-center sm:text-left flex-1 min-w-0"
           >
-            <h2
-              className={clsx(
-                'text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight font-display leading-tight',
-              )}
-              style={{
-                color: p1Leading ? p1Color : '#1D1D1F',
-              }}
-            >
-              {player1}
-            </h2>
+            <div className="flex items-center gap-3 sm:gap-4">
+              <PlayerAvatar name={player1} size="xl" teamColor={p1Color} />
+              <h2
+                className={clsx(
+                  'text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight font-display leading-tight',
+                )}
+                style={{
+                  color: p1Leading ? p1Color : '#1D1D1F',
+                }}
+              >
+                {player1}
+              </h2>
+            </div>
 
             {/* Team badge */}
             <motion.div
@@ -168,6 +173,7 @@ export default function MatchupHero({
               transition={{ ...SPRING_SNAPPY, delay: 0.8 }}
               className="mt-2 flex items-center gap-2"
             >
+              <TeamLogo teamAbbr={p1Team} size="sm" />
               <Badge variant={p1Leading ? 'accent' : 'default'}>{p1Team}</Badge>
               <Link
                 href={`/player/${player1.toLowerCase().replace(/\s+/g, '-')}/timeline`}
@@ -277,16 +283,19 @@ export default function MatchupHero({
             transition={{ ...SPRING_SNAPPY, delay: 0 }}
             className="flex flex-col items-center sm:items-end text-center sm:text-right flex-1 min-w-0"
           >
-            <h2
-              className={clsx(
-                'text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight font-display leading-tight',
-              )}
-              style={{
-                color: p2Leading ? p2Color : '#1D1D1F',
-              }}
-            >
-              {player2}
-            </h2>
+            <div className="flex items-center gap-3 sm:gap-4 sm:flex-row-reverse">
+              <PlayerAvatar name={player2} size="xl" teamColor={p2Color} />
+              <h2
+                className={clsx(
+                  'text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight font-display leading-tight',
+                )}
+                style={{
+                  color: p2Leading ? p2Color : '#1D1D1F',
+                }}
+              >
+                {player2}
+              </h2>
+            </div>
 
             {/* Team badge */}
             <motion.div
@@ -301,6 +310,7 @@ export default function MatchupHero({
               >
                 <Clock size={10} /> Timeline
               </Link>
+              <TeamLogo teamAbbr={p2Team} size="sm" />
               <Badge variant={p2Leading ? 'accent' : 'default'}>{p2Team}</Badge>
             </motion.div>
           </motion.div>

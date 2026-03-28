@@ -50,7 +50,7 @@ const FT_RADIUS = 60; // 6 ft
 
 // 3-point arc
 const THREE_RADIUS = 237.5; // 23.75 ft * 10
-const THREE_SIDE_Y = 140; // corner 3 extends 14 ft from baseline
+const THREE_SIDE_Y = 142; // arc-sideline intersection (~14.2 ft from baseline)
 const CORNER_3_X = 30; // 3 ft from sideline * 10
 
 // Restricted area arc
@@ -76,7 +76,7 @@ function restrictedAreaPath(): string {
   for (let i = 0; i <= steps; i++) {
     const angle = startAngle + (endAngle - startAngle) * (i / steps);
     const px = BX + RESTRICTED_RADIUS * Math.cos(angle);
-    const py = BY - RESTRICTED_RADIUS * Math.sin(angle);
+    const py = BY + RESTRICTED_RADIUS * Math.sin(angle);
     d += ` L ${px} ${py}`;
   }
   d += ' Z';
@@ -92,13 +92,13 @@ function threePointArcPath(): string {
   const steps = 80;
   // Start from left corner
   let d = `M ${CORNER_3_X} 0 L ${CORNER_3_X} ${THREE_SIDE_Y}`;
-  // Arc
+  // Arc curves toward half-court (increasing y in SVG)
   for (let i = 0; i <= steps; i++) {
     const angle = Math.PI - Math.acos((CORNER_3_X - BX) / THREE_RADIUS)
       + (2 * Math.acos((CORNER_3_X - BX) / THREE_RADIUS)) * (i / steps);
     const px = BX + THREE_RADIUS * Math.cos(angle);
-    const py = BY - THREE_RADIUS * Math.sin(angle);
-    if (py >= 0) {
+    const py = BY + THREE_RADIUS * Math.sin(angle);
+    if (py <= COURT_H) {
       d += ` L ${px} ${py}`;
     }
   }
@@ -131,7 +131,7 @@ export default function BasketballCourt({
 }: BasketballCourtProps) {
   const zonePaths = useMemo(() => buildZonePaths(), []);
 
-  // Three-point arc line data
+  // Three-point arc line data — curves toward half-court (increasing y)
   const threePointArc = useMemo(() => {
     const steps = 120;
     const startAngle = Math.PI - Math.acos((CORNER_3_X - BX) / THREE_RADIUS);
@@ -140,22 +140,22 @@ export default function BasketballCourt({
     for (let i = 0; i <= steps; i++) {
       const angle = startAngle + (endAngle - startAngle) * (i / steps);
       const px = BX + THREE_RADIUS * Math.cos(angle);
-      const py = BY - THREE_RADIUS * Math.sin(angle);
-      if (py >= 0) {
+      const py = BY + THREE_RADIUS * Math.sin(angle);
+      if (py <= COURT_H) {
         points.push(`${px},${py}`);
       }
     }
     return points.join(' ');
   }, []);
 
-  // Restricted area arc
+  // Restricted area arc — curves toward half-court (increasing y)
   const restrictedArc = useMemo(() => {
     const steps = 60;
     const points: string[] = [];
     for (let i = 0; i <= steps; i++) {
       const angle = Math.PI + (0 - Math.PI) * (i / steps);
       const px = BX + RESTRICTED_RADIUS * Math.cos(angle);
-      const py = BY - RESTRICTED_RADIUS * Math.sin(angle);
+      const py = BY + RESTRICTED_RADIUS * Math.sin(angle);
       points.push(`${px},${py}`);
     }
     return points.join(' ');
@@ -247,21 +247,21 @@ export default function BasketballCourt({
         strokeWidth={LINE_WIDTH}
       />
 
-      {/* ── Free throw circle (top half solid) ──────────── */}
+      {/* ── Free throw circle (toward basket — dashed) ──── */}
       <polyline
         points={ftSemiTop}
         fill="none"
         stroke={line}
         strokeWidth={LINE_WIDTH}
+        strokeDasharray="6 6"
       />
 
-      {/* ── Free throw circle (bottom half dashed) ──────── */}
+      {/* ── Free throw circle (toward half-court — solid) ── */}
       <polyline
         points={ftSemiBottom}
         fill="none"
         stroke={line}
         strokeWidth={LINE_WIDTH}
-        strokeDasharray="6 6"
       />
 
       {/* ── Three-point line ────────────────────────────── */}

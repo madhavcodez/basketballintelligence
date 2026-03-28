@@ -17,6 +17,7 @@ import {
 import clsx from 'clsx';
 import GlassCard from '@/components/ui/GlassCard';
 import SkeletonLoader from '@/components/ui/SkeletonLoader';
+import PlayerAvatar from '@/components/ui/PlayerAvatar';
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -538,6 +539,7 @@ function ThreePointStory({
             {allTimeScorers.slice(0, 5).map((scorer, i) => (
               <div key={scorer.name} className="flex items-center gap-3 text-xs">
                 <span className="w-5 text-right text-[#86868B] font-mono">{i + 1}</span>
+                <PlayerAvatar name={scorer.name} size="sm" />
                 <span className="flex-1 text-[#1D1D1F] font-medium">{scorer.name}</span>
                 <span className="text-[#6E6E73] font-semibold">{Number(scorer.value).toLocaleString()}</span>
                 {scorer.active === 'Y' && (
@@ -591,14 +593,19 @@ function PaintStory({
           <div className="space-y-3">
             {restrictedAreaStats.map((player) => (
               <div key={player.name} className="space-y-1">
-                <StoryBar
-                  label={player.name}
-                  value={player.fgPct}
-                  maxValue={100}
-                  color={color}
-                  suffix="%"
-                />
-                <div className="text-[10px] text-[#86868B] pl-0">
+                <div className="flex items-center gap-2">
+                  <PlayerAvatar name={player.name} size="sm" />
+                  <div className="flex-1 min-w-0">
+                    <StoryBar
+                      label={player.name}
+                      value={player.fgPct}
+                      maxValue={100}
+                      color={color}
+                      suffix="%"
+                    />
+                  </div>
+                </div>
+                <div className="text-[10px] text-[#86868B] pl-10">
                   {player.makes}/{player.attempts} makes
                 </div>
               </div>

@@ -174,7 +174,7 @@ function RatingBar({
   return (
     <div className="flex flex-col gap-1.5">
       <div className="flex items-center justify-between">
-        <span className="text-xs font-medium text-chrome-medium">{label}</span>
+        <span className="text-xs font-medium text-[#6E6E73]">{label}</span>
         <span className={clsx('text-sm font-bold font-display', isAbove ? 'text-accent-green' : 'text-accent-red')}>
           {value.toFixed(1)}
         </span>
@@ -317,7 +317,7 @@ function SeasonTrendLine({ data }: { readonly data: readonly { season: string; w
 // ── Sort Icon ────────────────────────────────────────────────────────────────
 
 function SortIcon({ field, sortField, sortDir }: { readonly field: SortField; readonly sortField: SortField; readonly sortDir: SortDir }) {
-  if (field !== sortField) return <ArrowUpDown size={12} className="text-chrome-dim" />;
+  if (field !== sortField) return <ArrowUpDown size={12} className="text-[#86868B]" />;
   return sortDir === 'asc' ? (
     <ChevronUp size={12} className="text-accent-orange" />
   ) : (
@@ -479,8 +479,8 @@ export default function TeamDNAPage() {
         <GlassCard className="p-8">
           <div className="flex flex-col items-center text-center gap-4">
             <Shield size={40} className="text-accent-red" />
-            <h2 className="text-xl font-bold text-chrome-light font-display">Error Loading Team</h2>
-            <p className="text-sm text-chrome-dim">{error}</p>
+            <h2 className="text-xl font-bold text-[#1D1D1F] font-display">Error Loading Team</h2>
+            <p className="text-sm text-[#86868B]">{error}</p>
           </div>
         </GlassCard>
       </div>
@@ -492,9 +492,9 @@ export default function TeamDNAPage() {
       <div className="px-4 sm:px-6 lg:px-8 py-12 max-w-6xl mx-auto">
         <GlassCard className="p-8">
           <div className="flex flex-col items-center text-center gap-4">
-            <Shield size={40} className="text-chrome-dim" />
-            <h2 className="text-xl font-bold text-chrome-light font-display">Team Not Found</h2>
-            <p className="text-sm text-chrome-dim">No data found for team &quot;{abbr}&quot;</p>
+            <Shield size={40} className="text-[#86868B]" />
+            <h2 className="text-xl font-bold text-[#1D1D1F] font-display">Team Not Found</h2>
+            <p className="text-sm text-[#86868B]">No data found for team &quot;{abbr}&quot;</p>
           </div>
         </GlassCard>
       </div>
@@ -614,7 +614,7 @@ export default function TeamDNAPage() {
           title="Roster"
           eyebrow="Current Season"
           action={
-            <div className="flex items-center gap-1 text-xs text-chrome-dim">
+            <div className="flex items-center gap-1 text-xs text-[#86868B]">
               <Users size={14} />
               <span>{sortedRoster.length} players</span>
             </div>
@@ -623,7 +623,7 @@ export default function TeamDNAPage() {
         <GlassCard className="mt-3 overflow-x-auto">
           <table className="w-full min-w-[640px] text-xs">
             <thead>
-              <tr className="border-b border-glass-border">
+              <tr className="border-b border-black/[0.06]">
                 {([
                   ['name', 'Player'],
                   ['position', 'Pos'],
@@ -635,7 +635,7 @@ export default function TeamDNAPage() {
                 ] as [SortField, string][]).map(([field, label]) => (
                   <th
                     key={field}
-                    className="px-3 py-3 text-left font-semibold text-chrome-dim uppercase tracking-wider cursor-pointer hover:text-chrome-medium transition-colors select-none"
+                    className="px-3 py-3 text-left font-semibold text-[#86868B] uppercase tracking-wider cursor-pointer hover:text-[#6E6E73] transition-colors select-none"
                     onClick={() => handleSort(field)}
                   >
                     <div className="flex items-center gap-1">
@@ -653,7 +653,7 @@ export default function TeamDNAPage() {
                   <motion.tr
                     key={player.name}
                     className={clsx(
-                      'border-b border-glass-border/50 hover:bg-white/[0.05] transition-colors',
+                      'border-b border-black/[0.06]/50 hover:bg-white/[0.05] transition-colors',
                       isTopScorer && 'bg-accent-orange/[0.04]',
                       idx % 2 === 0 && 'bg-white/[0.015]',
                     )}
@@ -676,21 +676,21 @@ export default function TeamDNAPage() {
                         {isTopScorer && <Badge variant="accent">Top</Badge>}
                       </div>
                     </td>
-                    <td className="px-3 py-2.5 text-chrome-medium">{player.position}</td>
-                    <td className="px-3 py-2.5 text-chrome-medium">{player.age}</td>
-                    <td className={clsx('px-3 py-2.5 font-semibold', isTopScorer ? 'text-accent-orange' : 'text-chrome-light')}>
+                    <td className="px-3 py-2.5 text-[#6E6E73]">{player.position}</td>
+                    <td className="px-3 py-2.5 text-[#6E6E73]">{player.age}</td>
+                    <td className={clsx('px-3 py-2.5 font-semibold', isTopScorer ? 'text-accent-orange' : 'text-[#1D1D1F]')}>
                       {formatNum(player.points)}
                     </td>
-                    <td className="px-3 py-2.5 text-chrome-light">{formatNum(player.rebounds)}</td>
-                    <td className="px-3 py-2.5 text-chrome-light">{formatNum(player.assists)}</td>
-                    <td className="px-3 py-2.5 text-chrome-medium">{formatPct(player.fgPct)}</td>
+                    <td className="px-3 py-2.5 text-[#1D1D1F]">{formatNum(player.rebounds)}</td>
+                    <td className="px-3 py-2.5 text-[#1D1D1F]">{formatNum(player.assists)}</td>
+                    <td className="px-3 py-2.5 text-[#6E6E73]">{formatPct(player.fgPct)}</td>
                   </motion.tr>
                 );
               })}
             </tbody>
           </table>
           {sortedRoster.length === 0 && (
-            <div className="p-8 text-center text-sm text-chrome-dim">No roster data available</div>
+            <div className="p-8 text-center text-sm text-[#86868B]">No roster data available</div>
           )}
         </GlassCard>
       </motion.div>
@@ -712,7 +712,7 @@ export default function TeamDNAPage() {
             title="Top Lineups"
             eyebrow="5-Man Units"
             action={
-              <div className="flex items-center gap-1 text-xs text-chrome-dim">
+              <div className="flex items-center gap-1 text-xs text-[#86868B]">
                 <BarChart3 size={14} />
                 <span>By minutes</span>
               </div>
@@ -721,12 +721,12 @@ export default function TeamDNAPage() {
           <GlassCard className="mt-3 overflow-x-auto">
             <table className="w-full min-w-[640px] text-xs">
               <thead>
-                <tr className="border-b border-glass-border">
-                  <th className="px-3 py-3 text-left font-semibold text-chrome-dim uppercase tracking-wider">Lineup</th>
-                  <th className="px-3 py-3 text-right font-semibold text-chrome-dim uppercase tracking-wider">MIN</th>
-                  <th className="px-3 py-3 text-right font-semibold text-chrome-dim uppercase tracking-wider">+/-</th>
-                  <th className="px-3 py-3 text-right font-semibold text-chrome-dim uppercase tracking-wider">PTS</th>
-                  <th className="px-3 py-3 text-right font-semibold text-chrome-dim uppercase tracking-wider">W-L</th>
+                <tr className="border-b border-black/[0.06]">
+                  <th className="px-3 py-3 text-left font-semibold text-[#86868B] uppercase tracking-wider">Lineup</th>
+                  <th className="px-3 py-3 text-right font-semibold text-[#86868B] uppercase tracking-wider">MIN</th>
+                  <th className="px-3 py-3 text-right font-semibold text-[#86868B] uppercase tracking-wider">+/-</th>
+                  <th className="px-3 py-3 text-right font-semibold text-[#86868B] uppercase tracking-wider">PTS</th>
+                  <th className="px-3 py-3 text-right font-semibold text-[#86868B] uppercase tracking-wider">W-L</th>
                 </tr>
               </thead>
               <tbody>
@@ -736,25 +736,25 @@ export default function TeamDNAPage() {
                     <motion.tr
                       key={lineup.players}
                       className={clsx(
-                        'border-b border-glass-border/50 hover:bg-white/[0.05] transition-colors',
+                        'border-b border-black/[0.06]/50 hover:bg-white/[0.05] transition-colors',
                         idx % 2 === 0 && 'bg-white/[0.015]',
                       )}
                       initial={{ opacity: 0, x: -8 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: idx * 0.04 }}
                     >
-                      <td className="px-3 py-2.5 text-chrome-light font-medium max-w-xs">
+                      <td className="px-3 py-2.5 text-[#1D1D1F] font-medium max-w-xs">
                         <span className="line-clamp-1">{lineup.players}</span>
                       </td>
-                      <td className="px-3 py-2.5 text-right text-chrome-medium">{formatNum(lineup.minutes)}</td>
+                      <td className="px-3 py-2.5 text-right text-[#6E6E73]">{formatNum(lineup.minutes)}</td>
                       <td className={clsx(
                         'px-3 py-2.5 text-right font-semibold',
-                        pm > 0 ? 'text-accent-green' : pm < 0 ? 'text-accent-red' : 'text-chrome-dim',
+                        pm > 0 ? 'text-accent-green' : pm < 0 ? 'text-accent-red' : 'text-[#86868B]',
                       )}>
                         {pm > 0 ? '+' : ''}{pm.toFixed(1)}
                       </td>
-                      <td className="px-3 py-2.5 text-right text-chrome-light">{formatNum(lineup.points)}</td>
-                      <td className="px-3 py-2.5 text-right text-chrome-medium">
+                      <td className="px-3 py-2.5 text-right text-[#1D1D1F]">{formatNum(lineup.points)}</td>
+                      <td className="px-3 py-2.5 text-right text-[#6E6E73]">
                         {lineup.wins}-{lineup.losses}
                       </td>
                     </motion.tr>
@@ -790,7 +790,7 @@ export default function TeamDNAPage() {
             action={
               <Link
                 href={`/player/${encodeURIComponent(topScorer.name)}`}
-                className="flex items-center gap-1 text-xs text-chrome-dim hover:text-accent-orange transition-colors"
+                className="flex items-center gap-1 text-xs text-[#86868B] hover:text-accent-orange transition-colors"
               >
                 <ExternalLink size={12} />
                 Full Profile
@@ -812,9 +812,9 @@ export default function TeamDNAPage() {
                     return (
                       <div key={zone.zone + zone.area} className="flex items-center gap-3">
                         <div className="w-32 shrink-0">
-                          <span className="text-xs text-chrome-medium truncate block">{zone.zone}</span>
+                          <span className="text-xs text-[#6E6E73] truncate block">{zone.zone}</span>
                           {zone.area && zone.area !== zone.zone && (
-                            <span className="text-[10px] text-chrome-dim">{zone.area}</span>
+                            <span className="text-[10px] text-[#86868B]">{zone.area}</span>
                           )}
                         </div>
                         <div className="flex-1">
@@ -833,26 +833,26 @@ export default function TeamDNAPage() {
                             </div>
                             <span className={clsx(
                               'text-xs font-semibold w-10 text-right shrink-0',
-                              isHot ? 'text-accent-green' : 'text-chrome-medium',
+                              isHot ? 'text-accent-green' : 'text-[#6E6E73]',
                             )}>
                               {efficiency.toFixed(0)}%
                             </span>
                           </div>
                         </div>
-                        <span className="text-[10px] text-chrome-dim w-12 text-right shrink-0">
+                        <span className="text-[10px] text-[#86868B] w-12 text-right shrink-0">
                           {zone.attempts} FGA
                         </span>
                       </div>
                     );
                   })}
-                <div className="pt-2 border-t border-glass-border flex items-center gap-2 text-[10px] text-chrome-dim">
-                  <Crosshair size={10} className="text-chrome-dim" />
+                <div className="pt-2 border-t border-black/[0.06] flex items-center gap-2 text-[10px] text-[#86868B]">
+                  <Crosshair size={10} className="text-[#86868B]" />
                   <span>Zone FG% — green = hot zone (55%+)</span>
                 </div>
               </div>
             ) : (
-              <div className="flex items-center justify-center py-6 gap-2 text-sm text-chrome-dim">
-                <Crosshair size={16} className="text-chrome-dim animate-pulse" />
+              <div className="flex items-center justify-center py-6 gap-2 text-sm text-[#86868B]">
+                <Crosshair size={16} className="text-[#86868B] animate-pulse" />
                 Loading shot data...
               </div>
             )}
@@ -867,7 +867,7 @@ export default function TeamDNAPage() {
           className={clsx(
             'flex items-center justify-center gap-2 w-full py-3 rounded-2xl',
             'bg-white/[0.04] border border-white/[0.08] backdrop-blur-xl',
-            'text-sm font-semibold text-chrome-medium',
+            'text-sm font-semibold text-[#6E6E73]',
             'hover:bg-white/[0.08] hover:border-white/[0.16] transition-all duration-200',
           )}
         >

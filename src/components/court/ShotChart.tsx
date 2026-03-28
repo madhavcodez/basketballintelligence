@@ -354,7 +354,7 @@ function hexagonPath(cx: number, cy: number, radius: number): string {
 function zoneLabelPosition(zone: ShotZone): { x: number; y: number } {
   switch (zone) {
     case 'Restricted Area':
-      return { x: 250, y: 65 };
+      return { x: 250, y: 78 };
     case 'In The Paint':
       return { x: 250, y: 140 };
     case 'Mid-Range':

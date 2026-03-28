@@ -358,6 +358,79 @@ export default function ExplorePage() {
         </motion.div>
       </motion.section>
 
+      {/* ── Featured Rivalry — storytelling hero ──────────────────────── */}
+      {!loading && data && data.topScorers.length >= 2 && (
+        <motion.section
+          className="mb-10"
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: '-40px' }}
+          variants={stagger}
+        >
+          <motion.div variants={fadeSlideUp}>
+            <Link href={`/matchup/${encodeURIComponent(data.topScorers[0].name.toLowerCase().replace(/\s+/g, '-'))}-vs-${encodeURIComponent(data.topScorers[1].name.toLowerCase().replace(/\s+/g, '-'))}`} className="no-underline">
+              <GlassCard hoverable className="p-6 overflow-hidden relative">
+                <div className="absolute top-3 left-4">
+                  <Badge variant="default" className="text-[9px]">
+                    <Swords size={9} className="mr-1" /> Featured Rivalry
+                  </Badge>
+                </div>
+                <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-4 mt-6">
+                  {/* Player 1 */}
+                  <div className="flex flex-col items-center text-center gap-2">
+                    <PlayerAvatar name={data.topScorers[0].name} playerId={data.topScorers[0].personId} size="xl" />
+                    <div>
+                      <p className="text-sm sm:text-base font-bold text-text-primary font-display">{data.topScorers[0].name}</p>
+                      <div className="flex items-center justify-center gap-1.5 mt-0.5">
+                        <TeamLogo teamAbbr={data.topScorers[0].team} size="sm" />
+                        <p className="text-[11px] text-text-secondary">{data.topScorers[0].team} &middot; {data.topScorers[0].position}</p>
+                      </div>
+                    </div>
+                    <div className="flex gap-2 mt-1">
+                      <MetricChip label="PPG" value={Number(data.topScorers[0].points).toFixed(1)} highlight size="sm" />
+                      <MetricChip label="RPG" value={Number(data.topScorers[0].rebounds).toFixed(1)} size="sm" />
+                      <MetricChip label="APG" value={Number(data.topScorers[0].assists).toFixed(1)} size="sm" />
+                    </div>
+                  </div>
+
+                  {/* VS badge */}
+                  <div className="flex flex-col items-center gap-1">
+                    <div className="h-10 w-10 rounded-full bg-accent-orange/10 flex items-center justify-center">
+                      <span className="text-sm font-extrabold text-accent-orange">VS</span>
+                    </div>
+                    <span className="text-[9px] text-text-tertiary uppercase tracking-widest">Head to Head</span>
+                  </div>
+
+                  {/* Player 2 */}
+                  <div className="flex flex-col items-center text-center gap-2">
+                    <PlayerAvatar name={data.topScorers[1].name} playerId={data.topScorers[1].personId} size="xl" />
+                    <div>
+                      <p className="text-sm sm:text-base font-bold text-text-primary font-display">{data.topScorers[1].name}</p>
+                      <div className="flex items-center justify-center gap-1.5 mt-0.5">
+                        <TeamLogo teamAbbr={data.topScorers[1].team} size="sm" />
+                        <p className="text-[11px] text-text-secondary">{data.topScorers[1].team} &middot; {data.topScorers[1].position}</p>
+                      </div>
+                    </div>
+                    <div className="flex gap-2 mt-1">
+                      <MetricChip label="PPG" value={Number(data.topScorers[1].points).toFixed(1)} highlight size="sm" />
+                      <MetricChip label="RPG" value={Number(data.topScorers[1].rebounds).toFixed(1)} size="sm" />
+                      <MetricChip label="APG" value={Number(data.topScorers[1].assists).toFixed(1)} size="sm" />
+                    </div>
+                  </div>
+                </div>
+                {/* Narrative callout */}
+                <p className="text-center text-xs text-text-secondary mt-4 italic">
+                  {Number(data.topScorers[0].points) > Number(data.topScorers[1].points)
+                    ? `${data.topScorers[0].name.split(' ').pop()} leads by ${(Number(data.topScorers[0].points) - Number(data.topScorers[1].points)).toFixed(1)} PPG this season`
+                    : `Separated by just ${Math.abs(Number(data.topScorers[0].points) - Number(data.topScorers[1].points)).toFixed(1)} PPG this season`}
+                  {' — tap to see their full head-to-head history'}
+                </p>
+              </GlassCard>
+            </Link>
+          </motion.div>
+        </motion.section>
+      )}
+
       {/* ── Top Scorers Carousel ──────────────────────────────────────── */}
       <AnimatePresence mode="wait">
       <motion.div key={seasonType} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }}>
@@ -396,15 +469,31 @@ export default function ExplorePage() {
                 >
                   <Link href={`/player/${encodeURIComponent(player.name)}`} className="no-underline">
                     <GlassCard hoverable className="w-[180px] p-4">
+                      {/* Rank badge */}
+                      {i < 3 && (
+                        <div className="flex items-center gap-1 mb-2">
+                          <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
+                            i === 0 ? 'bg-accent-gold/15 text-accent-gold' :
+                            i === 1 ? 'bg-[#C0C0C0]/15 text-[#8E8E93]' :
+                            'bg-accent-orange/10 text-accent-orange'
+                          }`}>
+                            #{i + 1}
+                          </span>
+                          {i === 0 && <Flame size={10} className="text-accent-gold" />}
+                        </div>
+                      )}
                       <div className="flex items-center gap-2 mb-3">
                         <PlayerAvatar name={player.name} playerId={player.personId} size="sm" />
                         <div className="min-w-0">
                           <p className="text-sm font-semibold text-text-primary truncate">
                             {player.name}
                           </p>
-                          <p className="text-[10px] text-text-tertiary uppercase tracking-wide">
-                            {player.team} &middot; {player.position}
-                          </p>
+                          <div className="flex items-center gap-1">
+                            <TeamLogo teamAbbr={player.team} size="sm" />
+                            <p className="text-[10px] text-text-tertiary uppercase tracking-wide">
+                              {player.team} &middot; {player.position}
+                            </p>
+                          </div>
                         </div>
                       </div>
                       <div className="flex items-center justify-between gap-1">
@@ -447,33 +536,42 @@ export default function ExplorePage() {
               </div>
             ) : (
               <div className="flex flex-col gap-1">
-                {data?.allTimeScorers.slice(0, 10).map((leader) => (
-                  <motion.div key={leader.name} variants={fadeSlideUp}>
-                    <Link
-                      href={`/player/${encodeURIComponent(leader.name)}`}
-                      className="flex items-center gap-3 px-2 py-2 rounded-xl hover:bg-bg-secondary transition-colors no-underline"
-                    >
-                      <span className="w-7 text-right text-sm font-bold text-text-tertiary font-mono">
-                        {leader.rank}
-                      </span>
-                      <PlayerAvatar name={leader.name} size="sm" />
-                      <span className="flex-1 text-sm font-medium text-text-primary truncate">
-                        {leader.name}
-                      </span>
-                      <div className="flex items-center gap-2">
-                        {leader.hof === 1 && (
-                          <Trophy size={12} className="text-accent-gold" />
-                        )}
-                        {leader.active === 1 && (
-                          <Badge variant="success" className="text-[9px]">Active</Badge>
-                        )}
-                        <span className="text-sm font-bold text-text-primary font-mono">
-                          {Number(leader.value).toLocaleString()}
+                {data?.allTimeScorers.slice(0, 10).map((leader, i) => {
+                  const maxVal = data.allTimeScorers[0]?.value ?? 1;
+                  const pct = (Number(leader.value) / Number(maxVal)) * 100;
+                  return (
+                    <motion.div key={leader.name} variants={fadeSlideUp}>
+                      <Link
+                        href={`/player/${encodeURIComponent(leader.name)}`}
+                        className="flex items-center gap-3 px-2 py-2 rounded-xl hover:bg-bg-secondary transition-colors no-underline relative overflow-hidden"
+                      >
+                        {/* Visual ranking bar background */}
+                        <div
+                          className="absolute inset-y-0 left-0 rounded-xl opacity-[0.04]"
+                          style={{ width: `${pct}%`, background: i === 0 ? '#FF6B35' : '#0071E3' }}
+                        />
+                        <span className="relative w-7 text-right text-sm font-bold text-text-tertiary font-mono">
+                          {leader.rank}
                         </span>
-                      </div>
-                    </Link>
-                  </motion.div>
-                ))}
+                        <div className="relative"><PlayerAvatar name={leader.name} size="sm" /></div>
+                        <span className="relative flex-1 text-sm font-medium text-text-primary truncate">
+                          {leader.name}
+                        </span>
+                        <div className="relative flex items-center gap-2">
+                          {leader.hof === 1 && (
+                            <Trophy size={12} className="text-accent-gold" />
+                          )}
+                          {leader.active === 1 && (
+                            <Badge variant="success" className="text-[9px]">Active</Badge>
+                          )}
+                          <span className="text-sm font-bold text-text-primary font-mono">
+                            {Number(leader.value).toLocaleString()}
+                          </span>
+                        </div>
+                      </Link>
+                    </motion.div>
+                  );
+                })}
               </div>
             )}
           </GlassCard>

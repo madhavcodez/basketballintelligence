@@ -415,7 +415,7 @@ export default function PlayerLabPage() {
               className={`shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-200 ${
                 selectedSeason === season
                   ? 'bg-accent-orange/20 text-accent-orange border border-accent-orange/30'
-                  : 'bg-glass-bg text-chrome-dim border border-glass-border hover:text-chrome-medium'
+                  : 'bg-glass-bg text-[#86868B] border border-black/[0.06] hover:text-[#6E6E73]'
               }`}
             >
               {season}
@@ -508,17 +508,17 @@ export default function PlayerLabPage() {
                 <div className="overflow-x-auto">
                   <table className="w-full text-xs">
                     <thead>
-                      <tr className="border-b border-glass-border">
-                        <th className="text-left py-2 text-chrome-dim font-medium">Zone</th>
-                        <th className="text-right py-2 text-chrome-dim font-medium">FG%</th>
-                        <th className="text-right py-2 text-chrome-dim font-medium">Makes</th>
-                        <th className="text-right py-2 text-chrome-dim font-medium">Att</th>
+                      <tr className="border-b border-black/[0.06]">
+                        <th className="text-left py-2 text-[#86868B] font-medium">Zone</th>
+                        <th className="text-right py-2 text-[#86868B] font-medium">FG%</th>
+                        <th className="text-right py-2 text-[#86868B] font-medium">Makes</th>
+                        <th className="text-right py-2 text-[#86868B] font-medium">Att</th>
                       </tr>
                     </thead>
                     <tbody>
                       {zones.map((z) => (
-                        <tr key={`${z.zone}-${z.area}`} className="border-b border-glass-border/40">
-                          <td className="py-2 text-chrome-light">
+                        <tr key={`${z.zone}-${z.area}`} className="border-b border-black/[0.06]/40">
+                          <td className="py-2 text-[#1D1D1F]">
                             <div className="flex items-center gap-2">
                               <span
                                 className="w-2 h-2 rounded-full shrink-0"
@@ -530,8 +530,8 @@ export default function PlayerLabPage() {
                           <td className="text-right py-2 font-mono font-bold" style={{ color: zoneColor(z.fgPct) }}>
                             {z.fgPct}%
                           </td>
-                          <td className="text-right py-2 text-chrome-medium font-mono">{z.makes}</td>
-                          <td className="text-right py-2 text-chrome-medium font-mono">{z.attempts}</td>
+                          <td className="text-right py-2 text-[#6E6E73] font-mono">{z.makes}</td>
+                          <td className="text-right py-2 text-[#6E6E73] font-mono">{z.attempts}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -571,10 +571,10 @@ export default function PlayerLabPage() {
                   return (
                     <div key={metric.label} className="flex flex-col gap-1.5">
                       <div className="flex items-center justify-between">
-                        <span className="text-[10px] uppercase tracking-wider text-chrome-dim font-medium">
+                        <span className="text-[10px] uppercase tracking-wider text-[#86868B] font-medium">
                           {metric.label}
                         </span>
-                        <span className="text-sm font-bold text-chrome-light font-mono">
+                        <span className="text-sm font-bold text-[#1D1D1F] font-mono">
                           {metric.value != null ? (
                             metric.label === 'WS/48'
                               ? Number(currentAdvanced.ws48).toFixed(3)
@@ -628,8 +628,8 @@ export default function PlayerLabPage() {
                     <div className="flex items-center gap-2 mb-2">
                       <PlayerAvatar name={sp.name} size="sm" />
                       <div className="min-w-0">
-                        <p className="text-xs font-semibold text-chrome-light truncate">{sp.name}</p>
-                        <p className="text-[9px] text-chrome-dim">{sp.team}</p>
+                        <p className="text-xs font-semibold text-[#1D1D1F] truncate">{sp.name}</p>
+                        <p className="text-[9px] text-[#86868B]">{sp.team}</p>
                       </div>
                     </div>
                     <div className="flex gap-1">
@@ -660,24 +660,24 @@ export default function PlayerLabPage() {
           <motion.div variants={fadeUp}>
             <Link href={`/player/${encodeURIComponent(playerName)}/timeline`}>
               <GlassCard hoverable className="p-4">
-                <p className="text-sm font-semibold text-chrome-light mb-1">Career Timeline</p>
-                <p className="text-xs text-chrome-dim">Draft, trades, awards, milestones</p>
+                <p className="text-sm font-semibold text-[#1D1D1F] mb-1">Career Timeline</p>
+                <p className="text-xs text-[#86868B]">Draft, trades, awards, milestones</p>
               </GlassCard>
             </Link>
           </motion.div>
           <motion.div variants={fadeUp}>
             <Link href={`/zones/${encodeURIComponent(playerName)}`}>
               <GlassCard hoverable className="p-4">
-                <p className="text-sm font-semibold text-chrome-light mb-1">Hot Zones</p>
-                <p className="text-xs text-chrome-dim">Shot heatmap and zone efficiency</p>
+                <p className="text-sm font-semibold text-[#1D1D1F] mb-1">Hot Zones</p>
+                <p className="text-xs text-[#86868B]">Shot heatmap and zone efficiency</p>
               </GlassCard>
             </Link>
           </motion.div>
           <motion.div variants={fadeUp}>
             <Link href={`/matchup`}>
               <GlassCard hoverable className="p-4">
-                <p className="text-sm font-semibold text-chrome-light mb-1">Head-to-Head</p>
-                <p className="text-xs text-chrome-dim">Matchup stats vs top rivals</p>
+                <p className="text-sm font-semibold text-[#1D1D1F] mb-1">Head-to-Head</p>
+                <p className="text-xs text-[#86868B]">Matchup stats vs top rivals</p>
               </GlassCard>
             </Link>
           </motion.div>
@@ -699,12 +699,12 @@ export default function PlayerLabPage() {
           <GlassCard className="overflow-x-auto">
             <table className="w-full text-xs whitespace-nowrap">
               <thead>
-                <tr className="border-b border-glass-border">
+                <tr className="border-b border-black/[0.06]">
                   {['Season', 'Team', 'Age', 'G', 'MPG', 'PPG', 'RPG', 'APG', 'SPG', 'BPG', 'FG%', '3P%', 'FT%'].map(
                     (h) => (
                       <th
                         key={h}
-                        className="px-3 py-2.5 text-left text-chrome-dim font-medium uppercase tracking-wider text-[10px]"
+                        className="px-3 py-2.5 text-left text-[#86868B] font-medium uppercase tracking-wider text-[10px]"
                       >
                         {h}
                       </th>
@@ -718,28 +718,28 @@ export default function PlayerLabPage() {
                   return (
                     <tr
                       key={`${s.season}-${s.team}`}
-                      className={`border-b border-glass-border/30 cursor-pointer transition-colors ${
-                        isSelected ? 'bg-accent-orange/[0.06]' : 'hover:bg-glass-frosted'
+                      className={`border-b border-black/[0.06]/30 cursor-pointer transition-colors ${
+                        isSelected ? 'bg-accent-orange/[0.06]' : 'hover:bg-white/80'
                       }`}
                       onClick={() => setSelectedSeason(s.season)}
                     >
-                      <td className="px-3 py-2 font-medium text-chrome-light">{s.season}</td>
-                      <td className="px-3 py-2 text-chrome-medium">{s.team}</td>
-                      <td className="px-3 py-2 text-chrome-medium">{s.age}</td>
-                      <td className="px-3 py-2 text-chrome-medium">{s.games}</td>
-                      <td className="px-3 py-2 text-chrome-medium font-mono">{Number(s.minutes).toFixed(1)}</td>
-                      <td className="px-3 py-2 text-chrome-light font-mono font-bold">{Number(s.points).toFixed(1)}</td>
-                      <td className="px-3 py-2 text-chrome-medium font-mono">{Number(s.rebounds).toFixed(1)}</td>
-                      <td className="px-3 py-2 text-chrome-medium font-mono">{Number(s.assists).toFixed(1)}</td>
-                      <td className="px-3 py-2 text-chrome-medium font-mono">{Number(s.steals).toFixed(1)}</td>
-                      <td className="px-3 py-2 text-chrome-medium font-mono">{Number(s.blocks).toFixed(1)}</td>
-                      <td className="px-3 py-2 text-chrome-medium font-mono">
+                      <td className="px-3 py-2 font-medium text-[#1D1D1F]">{s.season}</td>
+                      <td className="px-3 py-2 text-[#6E6E73]">{s.team}</td>
+                      <td className="px-3 py-2 text-[#6E6E73]">{s.age}</td>
+                      <td className="px-3 py-2 text-[#6E6E73]">{s.games}</td>
+                      <td className="px-3 py-2 text-[#6E6E73] font-mono">{Number(s.minutes).toFixed(1)}</td>
+                      <td className="px-3 py-2 text-[#1D1D1F] font-mono font-bold">{Number(s.points).toFixed(1)}</td>
+                      <td className="px-3 py-2 text-[#6E6E73] font-mono">{Number(s.rebounds).toFixed(1)}</td>
+                      <td className="px-3 py-2 text-[#6E6E73] font-mono">{Number(s.assists).toFixed(1)}</td>
+                      <td className="px-3 py-2 text-[#6E6E73] font-mono">{Number(s.steals).toFixed(1)}</td>
+                      <td className="px-3 py-2 text-[#6E6E73] font-mono">{Number(s.blocks).toFixed(1)}</td>
+                      <td className="px-3 py-2 text-[#6E6E73] font-mono">
                         {s.fgPct ? (Number(s.fgPct) * 100).toFixed(1) : '--'}
                       </td>
-                      <td className="px-3 py-2 text-chrome-medium font-mono">
+                      <td className="px-3 py-2 text-[#6E6E73] font-mono">
                         {s.fg3Pct ? (Number(s.fg3Pct) * 100).toFixed(1) : '--'}
                       </td>
-                      <td className="px-3 py-2 text-chrome-medium font-mono">
+                      <td className="px-3 py-2 text-[#6E6E73] font-mono">
                         {s.ftPct ? (Number(s.ftPct) * 100).toFixed(1) : '--'}
                       </td>
                     </tr>
@@ -760,7 +760,7 @@ export default function PlayerLabPage() {
 
 function CareerTrendsChart({ stats, selectedSeason }: { readonly stats: readonly SeasonStats[]; readonly selectedSeason: string }) {
   if (stats.length === 0) {
-    return <p className="text-sm text-chrome-dim text-center py-8">No career data available</p>;
+    return <p className="text-sm text-[#86868B] text-center py-8">No career data available</p>;
   }
 
   const width = 600;
@@ -800,7 +800,7 @@ function CareerTrendsChart({ stats, selectedSeason }: { readonly stats: readonly
         {lines.map((l) => (
           <div key={l.key} className="flex items-center gap-1.5">
             <span className="w-3 h-[2px] rounded-full" style={{ backgroundColor: l.color }} />
-            <span className="text-[10px] text-chrome-dim font-medium">{l.label}</span>
+            <span className="text-[10px] text-[#86868B] font-medium">{l.label}</span>
           </div>
         ))}
       </div>

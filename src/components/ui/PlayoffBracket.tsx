@@ -134,7 +134,7 @@ function MatchupCard({ matchup, compact = false }: MatchupCardProps) {
         {/* Team 1 */}
         <div className="flex items-center justify-between gap-1.5 mb-1.5">
           <div className="flex items-center gap-1.5 min-w-0">
-            <span className="text-[10px] text-chrome-dim font-mono w-3 text-right shrink-0">
+            <span className="text-[10px] text-[#86868B] font-mono w-3 text-right shrink-0">
               {seed1}
             </span>
             <span
@@ -142,7 +142,7 @@ function MatchupCard({ matchup, compact = false }: MatchupCardProps) {
                 'text-xs font-bold truncate transition-colors',
                 isFinished && team1Won && 'text-white',
                 isFinished && !team1Won && 'text-white/30',
-                !isFinished && 'text-chrome-light',
+                !isFinished && 'text-[#1D1D1F]',
               )}
             >
               {team1}
@@ -156,7 +156,7 @@ function MatchupCard({ matchup, compact = false }: MatchupCardProps) {
               'text-xs font-mono font-bold shrink-0',
               isFinished && team1Won && 'text-accent-orange',
               isFinished && !team1Won && 'text-white/30',
-              !isFinished && 'text-chrome-medium',
+              !isFinished && 'text-[#6E6E73]',
             )}
           >
             {score1}
@@ -164,12 +164,12 @@ function MatchupCard({ matchup, compact = false }: MatchupCardProps) {
         </div>
 
         {/* Divider */}
-        <div className="h-px bg-glass-border my-1" />
+        <div className="h-px bg-black/[0.06] my-1" />
 
         {/* Team 2 */}
         <div className="flex items-center justify-between gap-1.5">
           <div className="flex items-center gap-1.5 min-w-0">
-            <span className="text-[10px] text-chrome-dim font-mono w-3 text-right shrink-0">
+            <span className="text-[10px] text-[#86868B] font-mono w-3 text-right shrink-0">
               {seed2}
             </span>
             <span
@@ -177,7 +177,7 @@ function MatchupCard({ matchup, compact = false }: MatchupCardProps) {
                 'text-xs font-bold truncate transition-colors',
                 isFinished && team2Won && 'text-white',
                 isFinished && !team2Won && 'text-white/30',
-                !isFinished && 'text-chrome-light',
+                !isFinished && 'text-[#1D1D1F]',
               )}
             >
               {team2}
@@ -191,7 +191,7 @@ function MatchupCard({ matchup, compact = false }: MatchupCardProps) {
               'text-xs font-mono font-bold shrink-0',
               isFinished && team2Won && 'text-accent-orange',
               isFinished && !team2Won && 'text-white/30',
-              !isFinished && 'text-chrome-medium',
+              !isFinished && 'text-[#6E6E73]',
             )}
           >
             {score2}
@@ -252,7 +252,7 @@ function ConferenceBracket({ rounds, label, direction }: ConferenceBracketProps)
 
           return (
             <div key={round.name} className="flex flex-col items-center gap-1">
-              <span className="text-[9px] text-chrome-dim uppercase tracking-wider mb-1 font-semibold">
+              <span className="text-[9px] text-[#86868B] uppercase tracking-wider mb-1 font-semibold">
                 {round.name}
               </span>
               <motion.div
@@ -294,12 +294,12 @@ function ConferenceBracket({ rounds, label, direction }: ConferenceBracketProps)
 function BracketPlaceholder() {
   return (
     <GlassCard className="p-8 text-center">
-      <div className="relative mx-auto mb-4 w-16 h-16 rounded-full bg-glass-frosted flex items-center justify-center">
+      <div className="relative mx-auto mb-4 w-16 h-16 rounded-full bg-white/80 flex items-center justify-center">
         <Trophy size={28} className="text-accent-orange/40" />
         {/* Basketball court lines decorative background */}
         <div className="absolute inset-0 rounded-full border-2 border-dashed border-white/[0.06]" />
       </div>
-      <p className="text-sm text-chrome-dim">
+      <p className="text-sm text-[#86868B]">
         Playoff bracket will appear here when data is available
       </p>
     </GlassCard>
@@ -341,7 +341,7 @@ function FinalsCard({ matchup }: { readonly matchup: BracketMatchup }) {
         {/* Team 1 */}
         <div className="flex items-center justify-between gap-2 mb-1.5">
           <div className="flex items-center gap-1.5 min-w-0">
-            <span className="text-[10px] text-chrome-dim font-mono w-3 text-right shrink-0">
+            <span className="text-[10px] text-[#86868B] font-mono w-3 text-right shrink-0">
               {seed1}
             </span>
             <span
@@ -349,7 +349,7 @@ function FinalsCard({ matchup }: { readonly matchup: BracketMatchup }) {
                 'text-sm font-bold truncate',
                 isFinished && team1Won && 'text-white',
                 isFinished && !team1Won && 'text-white/30',
-                !isFinished && 'text-chrome-light',
+                !isFinished && 'text-[#1D1D1F]',
               )}
             >
               {team1}
@@ -361,19 +361,19 @@ function FinalsCard({ matchup }: { readonly matchup: BracketMatchup }) {
               'text-sm font-mono font-bold shrink-0',
               isFinished && team1Won && 'text-accent-gold',
               isFinished && !team1Won && 'text-white/30',
-              !isFinished && 'text-chrome-medium',
+              !isFinished && 'text-[#6E6E73]',
             )}
           >
             {score1}
           </span>
         </div>
 
-        <div className="h-px bg-glass-border my-1.5" />
+        <div className="h-px bg-black/[0.06] my-1.5" />
 
         {/* Team 2 */}
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-1.5 min-w-0">
-            <span className="text-[10px] text-chrome-dim font-mono w-3 text-right shrink-0">
+            <span className="text-[10px] text-[#86868B] font-mono w-3 text-right shrink-0">
               {seed2}
             </span>
             <span
@@ -381,7 +381,7 @@ function FinalsCard({ matchup }: { readonly matchup: BracketMatchup }) {
                 'text-sm font-bold truncate',
                 isFinished && team2Won && 'text-white',
                 isFinished && !team2Won && 'text-white/30',
-                !isFinished && 'text-chrome-light',
+                !isFinished && 'text-[#1D1D1F]',
               )}
             >
               {team2}
@@ -393,7 +393,7 @@ function FinalsCard({ matchup }: { readonly matchup: BracketMatchup }) {
               'text-sm font-mono font-bold shrink-0',
               isFinished && team2Won && 'text-accent-gold',
               isFinished && !team2Won && 'text-white/30',
-              !isFinished && 'text-chrome-medium',
+              !isFinished && 'text-[#6E6E73]',
             )}
           >
             {score2}

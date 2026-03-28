@@ -8,7 +8,6 @@ import {
   Filter,
   Tag,
   Play,
-  User,
   Grid,
   ArrowRight,
   ChevronRight,
@@ -31,6 +30,7 @@ import GlassCard from '@/components/ui/GlassCard';
 import Badge from '@/components/ui/Badge';
 import SkeletonLoader from '@/components/ui/SkeletonLoader';
 import EmptyState from '@/components/ui/EmptyState';
+import PlayerAvatar from '@/components/ui/PlayerAvatar';
 import ClipCard from '@/components/film/ClipCard';
 import TagBadge from '@/components/film/TagBadge';
 import FilmSearch from '@/components/film/FilmSearch';
@@ -424,14 +424,15 @@ export default function FilmLibraryPage() {
                       type="button"
                       onClick={() => handlePlayerFilter(player)}
                       className={clsx(
-                        'px-3 py-1 rounded-full text-xs font-semibold transition-all',
+                        'flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold transition-all',
                         activePlayer === player
                           ? 'bg-[#0071E3]/10 text-[#0071E3] border border-[#0071E3]/30'
                           : 'bg-white border border-black/[0.06] text-[#86868B] hover:text-[#1D1D1F]',
                       )}
                     >
+                      <PlayerAvatar name={player} size="sm" className="!h-4 !w-4" />
                       {player}
-                      <span className="ml-1 text-[#86868B]/50">{count}</span>
+                      <span className="ml-0.5 text-[#86868B]/50">{count}</span>
                     </button>
                   ))}
                 </div>
@@ -490,7 +491,7 @@ export default function FilmLibraryPage() {
               )}
               {activePlayer && (
                 <Badge variant="accent">
-                  <User size={10} className="mr-1" />
+                  <PlayerAvatar name={activePlayer} size="sm" className="!h-3.5 !w-3.5 mr-1" />
                   {activePlayer}
                 </Badge>
               )}
@@ -590,15 +591,7 @@ export default function FilmLibraryPage() {
                       <span className="text-xs font-bold text-[#86868B]/50 w-5 text-right shrink-0">
                         {idx + 1}
                       </span>
-                      <div
-                        className={clsx(
-                          'flex items-center justify-center shrink-0',
-                          'h-9 w-9 rounded-full',
-                          'bg-[#0071E3]/[0.08] border border-[#0071E3]/20',
-                        )}
-                      >
-                        <User size={16} className="text-[#0071E3]" />
-                      </div>
+                      <PlayerAvatar name={player} size="sm" className="!h-9 !w-9" />
                       <div className="flex-1 min-w-0">
                         <div className="text-sm font-medium text-[#1D1D1F] truncate">
                           {player}

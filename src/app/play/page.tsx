@@ -20,6 +20,8 @@ import {
 import clsx from 'clsx';
 import GlassCard from '@/components/ui/GlassCard';
 import SkeletonLoader from '@/components/ui/SkeletonLoader';
+import PlayerAvatar from '@/components/ui/PlayerAvatar';
+import TeamLogo from '@/components/ui/TeamLogo';
 import { useSeasonType } from '@/lib/season-context';
 
 // ── Types ────────────────────────────────────────────────────────────────────
@@ -972,14 +974,11 @@ function BetterSeasonGame({ onBack }: { readonly onBack: () => void }) {
               animate={isAnswered && isSelected && !isCorrectPlayer ? { x: [0, -4, 4, -4, 4, 0] } : undefined}
               transition={isAnswered && isSelected && !isCorrectPlayer ? { duration: 0.4 } : undefined}
             >
-              <div className="w-12 h-12 rounded-full bg-[#F5F5F7] border border-black/[0.06] flex items-center justify-center">
-                <span className="text-lg font-bold text-[#1D1D1F] font-display">
-                  {player.name.split(' ').map((n) => n[0]).join('')}
-                </span>
-              </div>
+              <PlayerAvatar name={player.name} size="lg" />
               <div>
                 <div className="text-sm font-bold text-[#1D1D1F]">{player.name}</div>
-                <div className="text-[10px] text-[#86868B] mt-0.5">
+                <div className="flex items-center gap-1 text-[10px] text-[#86868B] mt-0.5">
+                  <TeamLogo teamAbbr={player.team} size="sm" />
                   {player.team} | {player.season}
                 </div>
               </div>

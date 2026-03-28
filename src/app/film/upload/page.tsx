@@ -189,10 +189,31 @@ export default function UploadFilmPage() {
 
         {/* ── Upload Zone ───────────────────────────────────────────────── */}
         <motion.div variants={fadeSlideUp} className="mb-8">
-          <UploadZone
-            onFileSelect={handleFileSelect}
-            progress={uploadProgress}
-          />
+          <div className={clsx(
+            'relative rounded-[24px] overflow-hidden',
+            'bg-gradient-to-br from-[#1D1D1F] via-[#2A2A2E] to-[#0A0A0A]',
+            'p-[1px]',
+          )}>
+            {/* Subtle animated border glow */}
+            <div className="absolute inset-0 rounded-[24px] bg-gradient-to-r from-[#FF6B35]/20 via-transparent to-[#0071E3]/20 opacity-50" />
+            <div className="relative rounded-[23px] bg-gradient-to-br from-[#1A1A1E] to-[#111114] p-6 sm:p-8">
+              {/* Dot pattern overlay */}
+              <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'radial-gradient(circle at center, white 1px, transparent 1px)', backgroundSize: '20px 20px' }} />
+              <div className="relative flex flex-col items-center gap-4 mb-6">
+                <div className="flex items-center justify-center h-14 w-14 rounded-2xl bg-white/[0.06] border border-white/[0.08]">
+                  <Film size={24} className="text-white/40" />
+                </div>
+                <div className="text-center">
+                  <p className="text-sm font-semibold text-white/60">Add to Your Film Library</p>
+                  <p className="text-[11px] text-white/30 mt-1">Game footage, highlights, or practice clips</p>
+                </div>
+              </div>
+              <UploadZone
+                onFileSelect={handleFileSelect}
+                progress={uploadProgress}
+              />
+            </div>
+          </div>
         </motion.div>
 
         {/* ── Game Context Form ─────────────────────────────────────────── */}

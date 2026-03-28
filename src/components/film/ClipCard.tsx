@@ -2,9 +2,28 @@
 
 import { useCallback } from 'react';
 import { motion } from 'framer-motion';
-import { Play, Film, Clock, User } from 'lucide-react';
+import { Play, Film, Clock } from 'lucide-react';
 import clsx from 'clsx';
 import TagBadge from './TagBadge';
+import PlayerAvatar from '@/components/ui/PlayerAvatar';
+
+// ── Play type accent color mapping ──────────────────────────────────────────
+
+const PLAY_TYPE_ACCENT: Record<string, string> = {
+  isolation: 'bg-[#FF6B35]',
+  'pick-and-roll': 'bg-[#0071E3]',
+  'spot-up': 'bg-[#22C55E]',
+  transition: 'bg-[#8B5CF6]',
+  'post-up': 'bg-[#F59E0B]',
+  'off-screen': 'bg-[#EF4444]',
+  handoff: 'bg-[#0071E3]',
+  cut: 'bg-[#22C55E]',
+};
+
+function getPlayTypeAccent(playType: string | null): string | null {
+  if (!playType) return null;
+  return PLAY_TYPE_ACCENT[playType.toLowerCase()] ?? 'bg-[#86868B]';
+}
 
 type ClipSize = 'sm' | 'md' | 'lg';
 
@@ -115,6 +134,11 @@ export default function ClipCard({
     >
       {/* Thumbnail area — 16:9 */}
       <div className={clsx('relative overflow-hidden', config.thumb)}>
+        {/* Play type accent strip at top */}
+        {getPlayTypeAccent(clip.play_type) && (
+          <div className={clsx('absolute top-0 inset-x-0 h-[3px] z-10', getPlayTypeAccent(clip.play_type))} />
+        )}
+
         {clip.thumbnail_path ? (
           /* Actual thumbnail */
           <motion.img
@@ -130,14 +154,16 @@ export default function ClipCard({
             className={clsx(
               'flex flex-col items-center justify-center gap-2',
               'h-full w-full',
-              'bg-[#F5F5F7]',
+              'bg-gradient-to-br from-[#2A2A2E] via-[#1D1D1F] to-[#0A0A0A]',
             )}
             whileHover={{ scale: 1.05 }}
             transition={{ type: 'spring', stiffness: 200, damping: 20 }}
           >
-            <Film size={config.icon * 0.7} className="text-[#86868B]" />
+            {/* Subtle dot pattern overlay */}
+            <div className="absolute inset-0 opacity-[0.04]" style={{ backgroundImage: 'radial-gradient(circle, white 1px, transparent 1px)', backgroundSize: '16px 16px' }} />
+            <Film size={config.icon * 0.7} className="text-white/25 relative z-[1]" />
             {clip.play_type && (
-              <span className="text-[10px] font-medium uppercase tracking-widest text-[#86868B]">
+              <span className="text-[10px] font-medium uppercase tracking-widest text-white/30 relative z-[1]">
                 {clip.play_type}
               </span>
             )}
@@ -204,7 +230,7 @@ export default function ClipCard({
         <div className="flex items-center gap-2 flex-wrap">
           {showPlayer && clip.primary_player && (
             <span className="flex items-center gap-1 text-[11px] text-[#6E6E73]">
-              <User size={11} className="text-[#86868B]" />
+              <PlayerAvatar name={clip.primary_player} size="sm" className="!h-4 !w-4" />
               {clip.primary_player}
             </span>
           )}

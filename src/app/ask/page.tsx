@@ -25,6 +25,7 @@ import Link from 'next/link';
 import clsx from 'clsx';
 import GlassCard from '@/components/ui/GlassCard';
 import Badge from '@/components/ui/Badge';
+import PlayerAvatar from '@/components/ui/PlayerAvatar';
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -679,7 +680,8 @@ export default function AskTheDataPage() {
             </div>
             <p className="text-[10px] text-[#86868B]/60 mt-1.5 text-center">
               Read-only queries &middot; Regular season data &middot;{' '}
-              <Link href="/player/LeBron James" className="hover:text-[#86868B] transition-colors">
+              <Link href="/player/LeBron James" className="inline-flex items-center gap-1 hover:text-[#86868B] transition-colors">
+                <PlayerAvatar name="LeBron James" size="sm" />
                 Try Player Lab
               </Link>
             </p>

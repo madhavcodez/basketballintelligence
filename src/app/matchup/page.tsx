@@ -7,6 +7,7 @@ import Link from 'next/link';
 import { Swords, ArrowRight, Loader2 } from 'lucide-react';
 import clsx from 'clsx';
 import GlassCard from '@/components/ui/GlassCard';
+import PlayerAvatar from '@/components/ui/PlayerAvatar';
 import MatchupSearch from '@/components/matchup/MatchupSearch';
 import { motionPresets } from '@/lib/design-tokens';
 
@@ -104,7 +105,8 @@ function MatchupCard({ matchup, slug }: MatchupCardProps) {
     <Link href={`/matchup/${slug}`}>
       <GlassCard hoverable className="p-4 sm:p-5 group">
         <div className="flex items-center justify-between gap-2">
-          <div className="flex flex-col min-w-0 flex-1">
+          <div className="flex items-center gap-2 min-w-0 flex-1">
+            <PlayerAvatar name={matchup.player1} size="sm" />
             <span
               className={clsx(
                 'text-sm font-bold truncate transition-colors',
@@ -150,7 +152,7 @@ function MatchupCard({ matchup, slug }: MatchupCardProps) {
             )}
           </div>
 
-          <div className="flex flex-col items-end min-w-0 flex-1">
+          <div className="flex items-center justify-end gap-2 min-w-0 flex-1">
             <span
               className={clsx(
                 'text-sm font-bold truncate transition-colors',
@@ -159,6 +161,7 @@ function MatchupCard({ matchup, slug }: MatchupCardProps) {
             >
               {matchup.player2}
             </span>
+            <PlayerAvatar name={matchup.player2} size="sm" />
           </div>
         </div>
       </GlassCard>

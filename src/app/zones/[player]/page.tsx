@@ -15,6 +15,7 @@ import MetricChip from '@/components/ui/MetricChip';
 import SectionHeader from '@/components/ui/SectionHeader';
 import SkeletonLoader from '@/components/ui/SkeletonLoader';
 import Badge from '@/components/ui/Badge';
+import PlayerAvatar from '@/components/ui/PlayerAvatar';
 import { ZONES, type ZoneName } from '@/lib/shot-constants';
 import { type ZoneAggregation, generateSignatureNarrative } from '@/lib/zone-engine';
 import { colors, motionPresets } from '@/lib/design-tokens';
@@ -179,6 +180,7 @@ export default function PlayerZonePage() {
 
           <motion.div {...motionPresets.fadeInUp}>
             <div className="flex items-center gap-3 mb-1">
+              <PlayerAvatar name={playerName} size="xl" />
               <h1 className="font-display font-extrabold text-3xl sm:text-4xl tracking-tight text-[#1D1D1F]">
                 {playerName}
               </h1>
@@ -520,9 +522,12 @@ export default function PlayerZonePage() {
                 >
                   <Link href={`/zones/${encodeURIComponent(sp.player)}`}>
                     <GlassCard hoverable className="p-4 bg-white border border-black/[0.06]">
-                      <h4 className="text-sm font-bold text-[#1D1D1F] truncate mb-1">
-                        {sp.player}
-                      </h4>
+                      <div className="flex items-center gap-2 mb-1">
+                        <PlayerAvatar name={sp.player} size="sm" />
+                        <h4 className="text-sm font-bold text-[#1D1D1F] truncate">
+                          {sp.player}
+                        </h4>
+                      </div>
                       <Badge variant="accent" className="text-[8px] mb-2">
                         {sp.signature}
                       </Badge>

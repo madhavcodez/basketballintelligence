@@ -12,6 +12,7 @@ import MetricChip from '@/components/ui/MetricChip';
 import SectionHeader from '@/components/ui/SectionHeader';
 import SkeletonLoader from '@/components/ui/SkeletonLoader';
 import Badge from '@/components/ui/Badge';
+import PlayerAvatar from '@/components/ui/PlayerAvatar';
 import { type ZoneName, ZONES } from '@/lib/shot-constants';
 import { type ZoneAggregation } from '@/lib/zone-engine';
 import { colors, motionPresets } from '@/lib/design-tokens';
@@ -302,6 +303,7 @@ export default function ZonesExplorerPage() {
                     onClick={() => selectPlayer(r.name)}
                     className="w-full text-left px-4 py-2.5 hover:bg-[#F5F5F7] transition-colors flex items-center gap-3"
                   >
+                    <PlayerAvatar name={r.name} size="sm" />
                     <span className="text-sm font-medium text-[#1D1D1F]">{r.name}</span>
                     <span className="text-xs text-[#86868B]">{r.position}</span>
                     {r.active === 1 && <Badge variant="success">Active</Badge>}
@@ -353,6 +355,7 @@ export default function ZonesExplorerPage() {
                 {/* Player info */}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-3 mb-1">
+                    <PlayerAvatar name={playerData.player} size="lg" />
                     <h2 className="font-display font-extrabold text-2xl sm:text-3xl tracking-tight text-[#1D1D1F]">
                       {playerData.player}
                     </h2>
@@ -567,6 +570,7 @@ export default function ZonesExplorerPage() {
                       {i + 1}
                     </span>
                     {i === 0 && <Trophy size={14} className="text-accent-gold -ml-1" />}
+                    <PlayerAvatar name={leader.player} size="sm" />
                     <span className="flex-1 text-sm font-medium text-[#1D1D1F] truncate">
                       {leader.player}
                     </span>
@@ -629,6 +633,7 @@ export default function ZonesExplorerPage() {
                   <GlassCard className="p-4">
                     <div className="flex items-center gap-2 mb-3">
                       <div className="w-2 h-2 rounded-full" style={{ background: colors.accentOrange }} />
+                      <PlayerAvatar name={compareData.player1.player} size="sm" />
                       <h3 className="text-lg font-bold text-[#1D1D1F] truncate">
                         {compareData.player1.player}
                       </h3>
@@ -653,6 +658,7 @@ export default function ZonesExplorerPage() {
                   <GlassCard className="p-4">
                     <div className="flex items-center gap-2 mb-3">
                       <div className="w-2 h-2 rounded-full" style={{ background: colors.accentBlue }} />
+                      <PlayerAvatar name={compareData.player2.player} size="sm" />
                       <h3 className="text-lg font-bold text-[#1D1D1F] truncate">
                         {compareData.player2.player}
                       </h3>
@@ -811,8 +817,9 @@ function CompareSearch({
               key={r.id}
               type="button"
               onClick={() => { onChange(r.name); setQuery(''); setResults([]); setOpen(false); }}
-              className="w-full text-left px-3 py-2 text-sm text-[#1D1D1F] hover:bg-[#F5F5F7] transition-colors"
+              className="w-full text-left px-3 py-2 text-sm text-[#1D1D1F] hover:bg-[#F5F5F7] transition-colors flex items-center gap-2"
             >
+              <PlayerAvatar name={r.name} size="sm" />
               {r.name}
             </button>
           ))}
