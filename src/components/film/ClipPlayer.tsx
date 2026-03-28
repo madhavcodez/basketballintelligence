@@ -63,6 +63,7 @@ export default function ClipPlayer({
   const [speed, setSpeed] = useState<PlaybackSpeed>(1);
   const [showControls, setShowControls] = useState(true);
   const [showBigPlay, setShowBigPlay] = useState(true);
+  const [videoError, setVideoError] = useState(false);
   const hideControlsTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   /* ── Playback control ─────────────────────────────────────────── */
@@ -207,9 +208,16 @@ export default function ClipPlayer({
     };
   }, []);
 
+  /* ── Video error handler ─────────────────────────────────────── */
+
+  const handleVideoError = useCallback(() => {
+    setVideoError(true);
+    setIsPlaying(false);
+  }, []);
+
   /* ── No source placeholder ────────────────────────────────────── */
 
-  if (!src) {
+  if (!src || videoError) {
     return (
       <div
         className={clsx(
@@ -268,6 +276,7 @@ export default function ClipPlayer({
         onPlay={handlePlay}
         onPause={handlePause}
         onEnded={handleEnded}
+        onError={handleVideoError}
         onClick={togglePlay}
       />
 
