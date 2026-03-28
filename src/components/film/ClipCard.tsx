@@ -2,7 +2,7 @@
 
 import { useCallback } from 'react';
 import { motion } from 'framer-motion';
-import { Play, Clock } from 'lucide-react';
+import { Play, Clock, ScanLine } from 'lucide-react';
 import clsx from 'clsx';
 import TagBadge from './TagBadge';
 import PlayerAvatar from '@/components/ui/PlayerAvatar';
@@ -54,6 +54,7 @@ interface ClipCardProps {
   readonly showPlayer?: boolean;
   readonly showTags?: boolean;
   readonly onClick?: () => void;
+  readonly onAnalysis?: () => void;
   readonly className?: string;
 }
 
@@ -77,7 +78,7 @@ function resolveTagCategory(category: string): 'action' | 'player' | 'team' | 'c
 }
 
 export default function ClipCard({
-  clip, tags = [], size = 'md', showPlayer = true, showTags = true, onClick, className,
+  clip, tags = [], size = 'md', showPlayer = true, showTags = true, onClick, onAnalysis, className,
 }: ClipCardProps) {
   const config = sizeConfig[size];
   const isInteractive = !!onClick;
@@ -182,6 +183,24 @@ export default function ClipCard({
           >
             {clip.play_type}
           </div>
+        )}
+
+        {/* Analysis button — bottom-left */}
+        {onAnalysis && clip.play_type && (
+          <button
+            type="button"
+            onClick={(e) => { e.stopPropagation(); e.preventDefault(); onAnalysis(); }}
+            className={clsx(
+              'absolute bottom-2 left-2 flex items-center gap-1',
+              'rounded-full backdrop-blur-md border border-white/20',
+              'text-[9px] font-bold uppercase tracking-wider text-white/80',
+              'px-2 py-1 hover:bg-white/20 transition-all',
+              'opacity-0 group-hover:opacity-100',
+            )}
+          >
+            <ScanLine size={10} />
+            Analysis
+          </button>
         )}
 
         {/* Duration — bottom-right */}

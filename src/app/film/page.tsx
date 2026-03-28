@@ -34,6 +34,7 @@ import PlayerAvatar from '@/components/ui/PlayerAvatar';
 import ClipCard from '@/components/film/ClipCard';
 import TagBadge from '@/components/film/TagBadge';
 import FilmSearch from '@/components/film/FilmSearch';
+import PlayAnalysisModal from '@/components/film/PlayAnalysisModal';
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -174,6 +175,7 @@ export default function FilmLibraryPage() {
   const [playTypeCounts, setPlayTypeCounts] = useState<readonly PlayTypeCount[]>([]);
   const [playerCounts, setPlayerCounts] = useState<readonly PlayerCount[]>([]);
   const [showFilters, setShowFilters] = useState(false);
+  const [analysisModal, setAnalysisModal] = useState<{ playType: string | null; player: string | null; title: string | null } | null>(null);
 
   const scrollRowRef = useRef<HTMLDivElement>(null);
   const searchTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -524,6 +526,7 @@ export default function FilmLibraryPage() {
                       clip={clip}
                       size="md"
                       onClick={undefined}
+                      onAnalysis={() => setAnalysisModal({ playType: clip.play_type, player: clip.primary_player, title: clip.title })}
                     />
                   </Link>
                 </div>
@@ -568,7 +571,7 @@ export default function FilmLibraryPage() {
                 {filteredClips.map((clip) => (
                   <motion.div key={clip.id} variants={fadeSlideUp}>
                     <Link href={`/film/${clip.id}`}>
-                      <ClipCard clip={clip} size="md" className="w-full" />
+                      <ClipCard clip={clip} size="md" className="w-full" onAnalysis={() => setAnalysisModal({ playType: clip.play_type, player: clip.primary_player, title: clip.title })} />
                     </Link>
                   </motion.div>
                 ))}
@@ -640,6 +643,15 @@ export default function FilmLibraryPage() {
                           <span className="text-[11px] font-mono font-bold" style={{ color: style.color }}>{count}</span>
                         </div>
                       </div>
+                    </button>
+                    {/* Analysis button under card */}
+                    <button
+                      type="button"
+                      onClick={() => setAnalysisModal({ playType: play_type, player: null, title: null })}
+                      className="w-full mt-1 flex items-center justify-center gap-1 px-2 py-1.5 rounded-lg text-[10px] font-semibold uppercase tracking-wider text-[#86868B] hover:text-[#1D1D1F] hover:bg-[#F5F5F7] transition-colors"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><line x1="7" x2="17" y1="12" y2="12"/></svg>
+                      Analysis
                     </button>
                   </motion.div>
                 );
@@ -844,6 +856,15 @@ export default function FilmLibraryPage() {
           </motion.section>
         )}
       </motion.div>
+
+      {/* ── Play Analysis Modal ──────────────────────────────────────── */}
+      <PlayAnalysisModal
+        open={analysisModal !== null}
+        onClose={() => setAnalysisModal(null)}
+        playType={analysisModal?.playType ?? null}
+        playerName={analysisModal?.player}
+        clipTitle={analysisModal?.title}
+      />
     </div>
   );
 }
