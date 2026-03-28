@@ -138,9 +138,26 @@ def segment_video(
 
     if CV2_AVAILABLE:
         try:
-            return _segment_with_opencv(str(video_path), config)
+            segments = _segment_with_opencv(str(video_path), config)
         except Exception:
             logger.exception("OpenCV segmentation failed, using fallback")
+            fallback_duration = duration_hint if duration_hint is not None else 120.0
+            segments = _segment_uniform_fallback(fallback_duration, config)
+    else:
+        fallback_duration = duration_hint if duration_hint is not None else 120.0
+        segments = _segment_uniform_fallback(fallback_duration, config)
 
-    fallback_duration = duration_hint if duration_hint is not None else 120.0
-    return _segment_uniform_fallback(fallback_duration, config)
+    # Apply padding: add extra time before and after each segment
+    padding = getattr(config, 'clip_padding', 1.0)
+    if padding > 0:
+        total_duration = duration_hint or 9999.0
+        for i, seg in enumerate(segments):
+            segments[i] = ClipSegment(
+                start_time=round(max(0, seg.start_time - padding), 2),
+                end_time=round(min(total_duration, seg.end_time + padding), 2),
+                confidence=seg.confidence,
+                quarter=seg.quarter,
+                game_clock=seg.game_clock,
+            )
+
+    return segments

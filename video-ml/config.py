@@ -23,8 +23,9 @@ class PipelineConfig(BaseModel):
 
     # --- Processing parameters ---
     target_fps: float = Field(default=2.0, description="FPS for frame extraction during analysis")
-    min_clip_duration: float = Field(default=3.0, description="Minimum clip length in seconds")
+    min_clip_duration: float = Field(default=6.0, description="Minimum clip length in seconds")
     max_clip_duration: float = Field(default=30.0, description="Maximum clip length in seconds")
+    clip_padding: float = Field(default=1.0, description="Extra seconds before/after detected segment")
     scene_change_threshold: float = Field(
         default=30.0,
         description="Mean absolute difference threshold for scene change detection",

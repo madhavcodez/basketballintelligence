@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import {
@@ -15,6 +15,10 @@ import {
   Calendar,
   Tag,
   ChevronRight,
+  Pencil,
+  Check,
+  X,
+  Save,
 } from 'lucide-react';
 import Link from 'next/link';
 import clsx from 'clsx';
@@ -364,21 +368,8 @@ export default function ClipViewerPage() {
           />
         </motion.div>
 
-        {/* ── Clip Title Bar ────────────────────────────────────────────── */}
-        <motion.div variants={fadeSlideUp} className="flex items-center gap-3 mb-6 flex-wrap">
-          <h1 className="font-display text-xl sm:text-2xl font-extrabold text-[#1D1D1F] tracking-tight">
-            {clipTitle}
-          </h1>
-          {clip.play_type && (
-            <Badge variant="accent">{clip.play_type}</Badge>
-          )}
-          {clip.primary_action && (
-            <Badge variant="default">{clip.primary_action}</Badge>
-          )}
-          {clip.manually_verified === 1 && (
-            <Badge variant="success">Verified</Badge>
-          )}
-        </motion.div>
+        {/* ── Clip Title + Inline Edit ────────────────────────────────── */}
+        <ClipEditor clip={clip} onUpdate={(updated) => setData({ ...data, clip: updated })} />
 
         {/* ── Tags Row ──────────────────────────────────────────────────── */}
         {tags.length > 0 && (
@@ -618,5 +609,211 @@ export default function ClipViewerPage() {
         )}
       </motion.div>
     </div>
+  );
+}
+
+// ── Clip Editor Component ──────────────────────────────────────────────────
+
+const PLAY_TYPES = [
+  'Isolation', 'Pick & Roll', 'Pick & Pop', 'Post Up', 'Spot Up',
+  'Catch & Shoot', 'Handoff', 'Cut', 'Off Screen', 'Transition',
+  'Fastbreak', 'Putback', 'PnR Ball Handler', 'Miscellaneous',
+];
+
+const ACTIONS = [
+  'Drive', 'Pull-up Jumper', 'Catch & Shoot', 'Layup', 'Dunk',
+  'Hook Shot', 'Fadeaway', 'Stepback', 'Three Pointer', 'Pass',
+  'Screen', 'Rebound', 'Steal', 'Block', 'Turnover', 'Free Throw',
+  'Shot Attempt', 'Assist', 'Made Shot', 'Missed Shot',
+];
+
+const RESULTS = ['Made', 'Missed', 'Blocked', 'Fouled', 'And-1'];
+
+function ClipEditor({ clip, onUpdate }: {
+  readonly clip: ClipData;
+  readonly onUpdate: (updated: ClipData) => void;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [form, setForm] = useState({
+    play_type: clip.play_type ?? '',
+    primary_action: clip.primary_action ?? '',
+    primary_player: clip.primary_player ?? '',
+    shot_result: clip.shot_result ?? '',
+    defender: clip.defender ?? '',
+  });
+
+  const clipTitle = clip.title ?? clip.play_type ?? 'Untitled Clip';
+  const needsReview = !clip.manually_verified && !clip.primary_player;
+
+  const handleSave = useCallback(async () => {
+    setSaving(true);
+    try {
+      // Build clean title from form
+      const parts: string[] = [];
+      if (form.primary_player) { parts.push(form.primary_player); parts.push('-'); }
+      if (form.play_type) parts.push(form.play_type);
+      if (form.primary_action && form.primary_action !== form.play_type) parts.push(form.primary_action);
+      if (form.shot_result) parts.push(`(${form.shot_result})`);
+      const title = parts.join(' ') || clipTitle;
+
+      const res = await fetch(`/api/film/clips/${clip.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title,
+          play_type: form.play_type || null,
+          primary_action: form.primary_action || null,
+          primary_player: form.primary_player || null,
+          shot_result: form.shot_result || null,
+          defender: form.defender || null,
+          reviewed: 1,
+        }),
+      });
+
+      if (res.ok) {
+        const { clip: updated } = await res.json();
+        onUpdate(updated);
+        setEditing(false);
+      }
+    } catch { /* silent */ }
+    setSaving(false);
+  }, [clip.id, form, clipTitle, onUpdate]);
+
+  if (!editing) {
+    return (
+      <motion.div variants={fadeSlideUp} className="mb-6">
+        <div className="flex items-center gap-3 flex-wrap">
+          <h1 className="font-display text-xl sm:text-2xl font-extrabold text-[#1D1D1F] tracking-tight">
+            {clipTitle}
+          </h1>
+          {clip.play_type && <Badge variant="accent">{clip.play_type}</Badge>}
+          {clip.primary_action && <Badge variant="default">{clip.primary_action}</Badge>}
+          {clip.manually_verified === 1 && <Badge variant="success">Verified</Badge>}
+          {needsReview && (
+            <Badge variant="warning">Needs Tag</Badge>
+          )}
+          <button
+            type="button"
+            onClick={() => setEditing(true)}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-[#F5F5F7] border border-black/[0.06] text-[#6E6E73] hover:text-[#1D1D1F] hover:bg-white transition-colors"
+          >
+            <Pencil size={12} />
+            {needsReview ? 'Tag This Clip' : 'Edit'}
+          </button>
+        </div>
+      </motion.div>
+    );
+  }
+
+  return (
+    <motion.div
+      variants={fadeSlideUp}
+      className="mb-6"
+      initial={{ opacity: 0, height: 0 }}
+      animate={{ opacity: 1, height: 'auto' }}
+    >
+      <GlassCard className="p-5">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-sm font-bold text-[#1D1D1F] uppercase tracking-wider flex items-center gap-2">
+            <Pencil size={14} className="text-[#FF6B35]" />
+            Tag This Clip
+          </h2>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setEditing(false)}
+              className="flex items-center gap-1 px-3 py-1.5 rounded-full text-xs text-[#86868B] hover:text-[#1D1D1F] transition-colors"
+            >
+              <X size={12} /> Cancel
+            </button>
+            <button
+              type="button"
+              onClick={handleSave}
+              disabled={saving}
+              className="flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-bold bg-[#FF6B35] text-white hover:bg-[#FF6B35]/90 transition-colors disabled:opacity-50"
+            >
+              <Save size={12} />
+              {saving ? 'Saving...' : 'Save & Verify'}
+            </button>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {/* Play Type */}
+          <div className="space-y-1.5">
+            <label className="block text-[10px] uppercase tracking-wider text-[#86868B] font-semibold">
+              Play Type
+            </label>
+            <select
+              value={form.play_type}
+              onChange={(e) => setForm({ ...form, play_type: e.target.value })}
+              className="w-full bg-white border border-black/[0.06] rounded-xl px-3 py-2.5 text-sm text-[#1D1D1F] outline-none focus:border-[#FF6B35]/40"
+            >
+              <option value="">Select play type...</option>
+              {PLAY_TYPES.map((pt) => <option key={pt} value={pt}>{pt}</option>)}
+            </select>
+          </div>
+
+          {/* Action */}
+          <div className="space-y-1.5">
+            <label className="block text-[10px] uppercase tracking-wider text-[#86868B] font-semibold">
+              Action
+            </label>
+            <select
+              value={form.primary_action}
+              onChange={(e) => setForm({ ...form, primary_action: e.target.value })}
+              className="w-full bg-white border border-black/[0.06] rounded-xl px-3 py-2.5 text-sm text-[#1D1D1F] outline-none focus:border-[#FF6B35]/40"
+            >
+              <option value="">Select action...</option>
+              {ACTIONS.map((a) => <option key={a} value={a}>{a}</option>)}
+            </select>
+          </div>
+
+          {/* Player */}
+          <div className="space-y-1.5">
+            <label className="block text-[10px] uppercase tracking-wider text-[#86868B] font-semibold">
+              Primary Player
+            </label>
+            <input
+              type="text"
+              value={form.primary_player}
+              onChange={(e) => setForm({ ...form, primary_player: e.target.value })}
+              placeholder="e.g. LeBron James"
+              className="w-full bg-white border border-black/[0.06] rounded-xl px-3 py-2.5 text-sm text-[#1D1D1F] placeholder:text-[#86868B]/50 outline-none focus:border-[#FF6B35]/40"
+            />
+          </div>
+
+          {/* Result */}
+          <div className="space-y-1.5">
+            <label className="block text-[10px] uppercase tracking-wider text-[#86868B] font-semibold">
+              Shot Result
+            </label>
+            <select
+              value={form.shot_result}
+              onChange={(e) => setForm({ ...form, shot_result: e.target.value })}
+              className="w-full bg-white border border-black/[0.06] rounded-xl px-3 py-2.5 text-sm text-[#1D1D1F] outline-none focus:border-[#FF6B35]/40"
+            >
+              <option value="">None</option>
+              {RESULTS.map((r) => <option key={r} value={r}>{r}</option>)}
+            </select>
+          </div>
+
+          {/* Defender */}
+          <div className="space-y-1.5 sm:col-span-2">
+            <label className="block text-[10px] uppercase tracking-wider text-[#86868B] font-semibold">
+              Defender
+            </label>
+            <input
+              type="text"
+              value={form.defender}
+              onChange={(e) => setForm({ ...form, defender: e.target.value })}
+              placeholder="e.g. Klay Thompson"
+              className="w-full bg-white border border-black/[0.06] rounded-xl px-3 py-2.5 text-sm text-[#1D1D1F] placeholder:text-[#86868B]/50 outline-none focus:border-[#FF6B35]/40"
+            />
+          </div>
+        </div>
+      </GlassCard>
+    </motion.div>
   );
 }

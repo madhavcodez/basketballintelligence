@@ -5,6 +5,7 @@ import {
   getClipTags,
   getClipAnnotations,
   getRelatedClips,
+  updateClip,
 } from '@/lib/film-db';
 import { getDb } from '@/lib/db';
 
@@ -67,6 +68,41 @@ export async function GET(
       playerContext,
       defenderContext,
     });
+  } catch {
+    return NextResponse.json({ error: 'Database error' }, { status: 500 });
+  }
+}
+
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> },
+) {
+  const { id } = await params;
+  const clipId = Number(id);
+
+  if (!Number.isFinite(clipId) || clipId < 1) {
+    return NextResponse.json({ error: 'Invalid clip ID' }, { status: 400 });
+  }
+
+  try {
+    const body = await request.json();
+    const updated = updateClip(clipId, {
+      title: body.title,
+      play_type: body.play_type,
+      primary_action: body.primary_action,
+      shot_result: body.shot_result,
+      primary_player: body.primary_player,
+      secondary_player: body.secondary_player,
+      defender: body.defender,
+      reviewed: body.reviewed,
+    });
+
+    if (!updated) {
+      return NextResponse.json({ error: 'Clip not found or no changes' }, { status: 404 });
+    }
+
+    const clip = getClip(clipId);
+    return NextResponse.json({ clip });
   } catch {
     return NextResponse.json({ error: 'Database error' }, { status: 500 });
   }

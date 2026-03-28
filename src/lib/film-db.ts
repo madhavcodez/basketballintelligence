@@ -501,6 +501,43 @@ export function insertClip(data: {
   return Number(result.lastInsertRowid);
 }
 
+export interface ClipUpdate {
+  readonly title?: string;
+  readonly play_type?: string;
+  readonly primary_action?: string;
+  readonly shot_result?: string | null;
+  readonly primary_player?: string | null;
+  readonly secondary_player?: string | null;
+  readonly defender?: string | null;
+  readonly reviewed?: number;
+}
+
+export function updateClip(id: number, data: ClipUpdate): boolean {
+  const fields: string[] = [];
+  const values: unknown[] = [];
+
+  if (data.title !== undefined) { fields.push('title = ?'); values.push(data.title); }
+  if (data.play_type !== undefined) { fields.push('play_type = ?'); values.push(data.play_type); }
+  if (data.primary_action !== undefined) { fields.push('primary_action = ?'); values.push(data.primary_action); }
+  if (data.shot_result !== undefined) { fields.push('shot_result = ?'); values.push(data.shot_result); }
+  if (data.primary_player !== undefined) { fields.push('primary_player = ?'); values.push(data.primary_player); }
+  if (data.secondary_player !== undefined) { fields.push('secondary_player = ?'); values.push(data.secondary_player); }
+  if (data.defender !== undefined) { fields.push('defender = ?'); values.push(data.defender); }
+  if (data.reviewed !== undefined) { fields.push('reviewed = ?'); values.push(data.reviewed); }
+
+  if (fields.length === 0) return false;
+
+  // Always mark as manually verified when edited
+  fields.push('manually_verified = 1');
+  values.push(id);
+
+  const result = getFilmDb().prepare(
+    `UPDATE clips SET ${fields.join(', ')} WHERE id = ?`
+  ).run(...values);
+
+  return result.changes > 0;
+}
+
 // ─── Tag queries ────────────────────────────────────────────────────────────
 
 export function getClipTags(clipId: number): Array<{ name: string; category: string; confidence: number }> {
