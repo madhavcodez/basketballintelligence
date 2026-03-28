@@ -30,6 +30,8 @@ interface Annotation {
 interface ClipPlayerProps {
   readonly src?: string | null;
   readonly poster?: string | null;
+  readonly startTime?: number;
+  readonly endTime?: number;
   readonly annotations?: ReadonlyArray<Annotation>;
   readonly onTimeUpdate?: (currentTime: number, duration: number) => void;
   readonly className?: string;
@@ -47,6 +49,8 @@ function formatTime(seconds: number): string {
 export default function ClipPlayer({
   src,
   poster,
+  startTime,
+  endTime,
   annotations = [],
   onTimeUpdate,
   className,
@@ -82,9 +86,12 @@ export default function ClipPlayer({
   const handleSeek = useCallback((time: number) => {
     const video = videoRef.current;
     if (!video) return;
-    video.currentTime = time;
+    // Offset seek by startTime so timeline is clip-relative
+    const absoluteTime = startTime !== undefined ? startTime + time : time;
+    const clamped = endTime !== undefined ? Math.min(absoluteTime, endTime) : absoluteTime;
+    video.currentTime = clamped;
     setCurrentTime(time);
-  }, []);
+  }, [startTime, endTime]);
 
   const cycleSpeed = useCallback(() => {
     setSpeed((prev) => {
@@ -138,15 +145,36 @@ export default function ClipPlayer({
   const handleTimeUpdate = useCallback(
     (e: SyntheticEvent<HTMLVideoElement>) => {
       const video = e.currentTarget;
-      setCurrentTime(video.currentTime);
-      onTimeUpdate?.(video.currentTime, video.duration);
+      // Stop playback at endTime (clip boundary)
+      if (endTime !== undefined && video.currentTime >= endTime) {
+        video.pause();
+        video.currentTime = endTime;
+        setIsPlaying(false);
+        setShowBigPlay(true);
+      }
+      // Show clip-relative time
+      const relativeTime = startTime !== undefined ? video.currentTime - startTime : video.currentTime;
+      setCurrentTime(Math.max(0, relativeTime));
+      const clipDuration = endTime !== undefined && startTime !== undefined
+        ? endTime - startTime
+        : video.duration;
+      onTimeUpdate?.(relativeTime, clipDuration);
     },
-    [onTimeUpdate],
+    [onTimeUpdate, startTime, endTime],
   );
 
   const handleLoadedMetadata = useCallback((e: SyntheticEvent<HTMLVideoElement>) => {
-    setDuration(e.currentTarget.duration);
-  }, []);
+    const video = e.currentTarget;
+    // If we have a clip time range, seek to start and set clipped duration
+    if (startTime !== undefined && startTime > 0) {
+      video.currentTime = startTime;
+      setCurrentTime(startTime);
+    }
+    const clipDuration = endTime !== undefined && startTime !== undefined
+      ? endTime - startTime
+      : video.duration;
+    setDuration(clipDuration);
+  }, [startTime, endTime]);
 
   const handlePlay = useCallback(() => {
     setIsPlaying(true);

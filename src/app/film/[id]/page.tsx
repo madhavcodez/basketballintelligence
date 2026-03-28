@@ -358,6 +358,8 @@ export default function ClipViewerPage() {
           <ClipPlayer
             src={video?.filepath ?? null}
             poster={clip.thumbnail_path}
+            startTime={clip.start_time}
+            endTime={clip.end_time}
             annotations={playerAnnotations}
           />
         </motion.div>
