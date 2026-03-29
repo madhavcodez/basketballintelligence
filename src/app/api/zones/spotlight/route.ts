@@ -82,7 +82,10 @@ export async function GET(request: NextRequest) {
     const pick = available[Math.floor(Math.random() * available.length)];
     const spotlight = pick.template(pick.stat);
 
-    return NextResponse.json({ season, spotlight });
+    // Look up personId for headshot
+    const pRow = db.prepare('SELECT person_id FROM players WHERE Player = ?').get(spotlight.player) as { person_id: string | number } | undefined;
+
+    return NextResponse.json({ season, spotlight: { ...spotlight, personId: pRow?.person_id ?? null } });
   } catch (error: unknown) {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }

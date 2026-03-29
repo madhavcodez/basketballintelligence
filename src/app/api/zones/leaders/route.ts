@@ -68,13 +68,17 @@ export async function GET(request: NextRequest) {
       LIMIT ?
     `).all(zoneParam, season, minAttempts, limit) as LeaderRow[];
 
-    const leaders = rows.map((row, index) => ({
-      player: row.player,
-      fgPct: row.fgPct,
-      attempts: row.attempts,
-      makes: row.makes,
-      rank: index + 1,
-    }));
+    const leaders = rows.map((row, index) => {
+      const pRow = db.prepare('SELECT person_id FROM players WHERE Player = ?').get(row.player) as { person_id: string | number } | undefined;
+      return {
+        player: row.player,
+        personId: pRow?.person_id ?? null,
+        fgPct: row.fgPct,
+        attempts: row.attempts,
+        makes: row.makes,
+        rank: index + 1,
+      };
+    });
 
     return NextResponse.json({
       zone: zoneParam,

@@ -43,8 +43,12 @@ export async function GET(
       ? qualifiedZones.reduce<ZoneAggregation>((worst, z) => z.fgPct < worst.fgPct ? z : worst, qualifiedZones[0])
       : null;
 
+    // Look up person_id for headshot
+    const playerRow = db.prepare('SELECT person_id FROM players WHERE Player = ?').get(playerName) as { person_id: string | number } | undefined;
+
     return NextResponse.json({
       player: playerName,
+      personId: playerRow?.person_id ?? null,
       season: season ?? 'all',
       totalShots: shots.length,
       zones,

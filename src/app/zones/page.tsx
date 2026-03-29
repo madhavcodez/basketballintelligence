@@ -21,6 +21,7 @@ import { colors, motionPresets } from '@/lib/design-tokens';
 
 interface PlayerZoneData {
   player: string;
+  personId?: string | number | null;
   season: string;
   totalShots: number;
   zones: ZoneAggregation[];
@@ -52,6 +53,7 @@ interface SearchResult {
 
 interface LeaderEntry {
   player: string;
+  personId?: string | number | null;
   fgPct: number;
   attempts: number;
   makes: number;
@@ -356,7 +358,7 @@ export default function ZonesExplorerPage() {
                 {/* Player info */}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-3 mb-1">
-                    <PlayerAvatar name={playerData.player} size="lg" />
+                    <PlayerAvatar name={playerData.player} playerId={playerData.personId} size="lg" />
                     <h2 className="font-display font-extrabold text-2xl sm:text-3xl tracking-tight text-[#1D1D1F]">
                       {playerData.player}
                     </h2>
@@ -571,7 +573,7 @@ export default function ZonesExplorerPage() {
                       {i + 1}
                     </span>
                     {i === 0 && <Trophy size={14} className="text-accent-gold -ml-1" />}
-                    <PlayerAvatar name={leader.player} size="sm" />
+                    <PlayerAvatar name={leader.player} playerId={leader.personId} size="sm" />
                     <span className="flex-1 text-sm font-medium text-[#1D1D1F] truncate">
                       {leader.player}
                     </span>
@@ -634,7 +636,7 @@ export default function ZonesExplorerPage() {
                   <GlassCard className="p-4">
                     <div className="flex items-center gap-2 mb-3">
                       <div className="w-2 h-2 rounded-full" style={{ background: colors.accentOrange }} />
-                      <PlayerAvatar name={compareData.player1.player} size="sm" />
+                      <PlayerAvatar name={compareData.player1.player} playerId={compareData.player1.personId} size="sm" />
                       <h3 className="text-lg font-bold text-[#1D1D1F] truncate">
                         {compareData.player1.player}
                       </h3>
@@ -659,7 +661,7 @@ export default function ZonesExplorerPage() {
                   <GlassCard className="p-4">
                     <div className="flex items-center gap-2 mb-3">
                       <div className="w-2 h-2 rounded-full" style={{ background: colors.accentBlue }} />
-                      <PlayerAvatar name={compareData.player2.player} size="sm" />
+                      <PlayerAvatar name={compareData.player2.player} playerId={compareData.player2.personId} size="sm" />
                       <h3 className="text-lg font-bold text-[#1D1D1F] truncate">
                         {compareData.player2.player}
                       </h3>
