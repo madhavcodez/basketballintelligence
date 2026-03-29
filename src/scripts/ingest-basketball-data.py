@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import argparse
 import csv
+import glob as globmod
 import os
 import sqlite3
 import sys
@@ -1353,6 +1354,484 @@ def build_playoff_tables(conn: sqlite3.Connection, data_dir: Path) -> None:
     conn.commit()
 
 
+# ── NEW: 18 Additional Table Ingestion Functions ────────────────────────────
+#
+# Tier 1: BBRef multi-season CSVs
+# Tier 2: Enrichment single-file CSVs
+# Tier 3: Playoff extended
+
+
+def _ingest_bbref_multi_season(
+    conn: sqlite3.Connection,
+    data_dir: Path,
+    table_name: str,
+    glob_pattern: str,
+    *,
+    positional_columns: tuple[str, ...] | None = None,
+    skip_header_row: bool = False,
+    label: str = "",
+) -> int:
+    """Generic ingester for BBRef multi-season CSV directories.
+
+    Each CSV has a header row. We read headers from the CSV directly.
+    For shooting splits (has_multi_header), we skip the first header row
+    and assign positional column names.
+
+    Returns total row count inserted.
+    """
+    pattern = str(data_dir / glob_pattern)
+    files = sorted(globmod.glob(pattern))
+    if not files:
+        print(f"  WARN: No files matched {glob_pattern}")
+        return 0
+
+    total_rows = 0
+    first_file = True
+
+    for filepath_str in files:
+        filepath = Path(filepath_str)
+
+        if positional_columns:
+            # Shooting splits: skip the multi-level header rows, use positional cols
+            with open(filepath, "r", encoding="utf-8-sig", newline="") as fh:
+                reader = csv.reader(fh)
+                _row0 = next(reader)  # first header row (category groups)
+                _row1 = next(reader)  # second header row (sub-column names)
+                rows = []
+                skipped = 0
+                for r in reader:
+                    if len(r) >= len(positional_columns):
+                        rows.append(r[:len(positional_columns)])
+                    else:
+                        skipped += 1
+                if skipped > 0:
+                    print(f"  WARN: {filepath.name}: skipped {skipped} rows with fewer than {len(positional_columns)} columns")
+            headers = list(positional_columns)
+        else:
+            headers, rows = read_csv_rows(filepath)
+
+        if not rows:
+            continue
+
+        # Add Season column from CSV data if present, otherwise keep as-is
+        # BBRef CSVs already have a Season column in the data
+
+        if first_file:
+            conn.execute(f'DROP TABLE IF EXISTS "{table_name}"')
+            create_raw_table(conn, table_name, headers)
+            first_file = False
+
+        count = bulk_insert(conn, table_name, headers, rows, replace=False)
+        total_rows += count
+
+    conn.commit()
+    print(f"  {label or table_name}: {total_rows:,} rows")
+    return total_rows
+
+
+def build_player_stats_per100poss(conn: sqlite3.Connection, data_dir: Path) -> None:
+    """Tier 1: Per-100 possessions stats from BBRef (1980-2025)."""
+    print("\n  [NEW-1/18] Building player_stats_per100poss ...")
+    count = _ingest_bbref_multi_season(
+        conn, data_dir,
+        "player_stats_per100poss",
+        "bbref/per100_stats/bbref_player_per100poss_*.csv",
+        label="player_stats_per100poss",
+    )
+    if count > 0:
+        conn.execute(
+            'CREATE INDEX IF NOT EXISTS idx_per100_player_season '
+            'ON player_stats_per100poss(Player, Season)'
+        )
+        conn.commit()
+
+
+def build_player_stats_per36min(conn: sqlite3.Connection, data_dir: Path) -> None:
+    """Tier 1: Per-36 minutes stats from BBRef (1980-2025)."""
+    print("\n  [NEW-2/18] Building player_stats_per36min ...")
+    count = _ingest_bbref_multi_season(
+        conn, data_dir,
+        "player_stats_per36min",
+        "bbref/per36_stats/bbref_player_per36min_*.csv",
+        label="player_stats_per36min",
+    )
+    if count > 0:
+        conn.execute(
+            'CREATE INDEX IF NOT EXISTS idx_per36_player_season '
+            'ON player_stats_per36min(Player, Season)'
+        )
+        conn.commit()
+
+
+def build_player_stats_totals(conn: sqlite3.Connection, data_dir: Path) -> None:
+    """Tier 1: Season totals from BBRef (1980-2025)."""
+    print("\n  [NEW-3/18] Building player_stats_totals ...")
+    count = _ingest_bbref_multi_season(
+        conn, data_dir,
+        "player_stats_totals",
+        "bbref/player_totals/bbref_player_totals_*.csv",
+        label="player_stats_totals",
+    )
+    if count > 0:
+        conn.execute(
+            'CREATE INDEX IF NOT EXISTS idx_totals_player_season '
+            'ON player_stats_totals(Player, Season)'
+        )
+        conn.commit()
+
+
+def build_player_stats_playoffs_pergame_bbref(
+    conn: sqlite3.Connection, data_dir: Path
+) -> None:
+    """Tier 1: Playoff per-game stats from BBRef (1980-2025)."""
+    print("\n  [NEW-4/18] Building player_stats_playoffs_pergame_bbref ...")
+    count = _ingest_bbref_multi_season(
+        conn, data_dir,
+        "player_stats_playoffs_pergame_bbref",
+        "bbref/playoff_stats/player_playoffs_pergame_*.csv",
+        label="player_stats_playoffs_pergame_bbref",
+    )
+    if count > 0:
+        conn.execute(
+            'CREATE INDEX IF NOT EXISTS idx_po_bbref_player_season '
+            'ON player_stats_playoffs_pergame_bbref(Player, Season)'
+        )
+        conn.commit()
+
+
+def build_player_shooting_splits(conn: sqlite3.Connection, data_dir: Path) -> None:
+    """Tier 1: Shooting splits from BBRef (2000-2025).
+
+    CRITICAL: These CSVs have a 2-row multi-level header. We skip both
+    header rows and assign 32 positional column names.
+    """
+    print("\n  [NEW-5/18] Building player_shooting_splits ...")
+
+    positional_cols = (
+        "Rk", "Player", "Age", "Team", "Pos", "G", "GS", "MP",
+        "FG_pct", "Avg_Dist",
+        "pct_FGA_2P", "pct_FGA_0_3", "pct_FGA_3_10", "pct_FGA_10_16",
+        "pct_FGA_16_3P", "pct_FGA_3P",
+        "FG_pct_2P", "FG_pct_0_3", "FG_pct_3_10", "FG_pct_10_16",
+        "FG_pct_16_3P", "FG_pct_3P",
+        "pct_Astd_2P", "pct_Astd_3P",
+        "pct_FGA_Dunk", "Dunk_Made",
+        "pct_3PA_Corner", "Corner_3_pct",
+        "Heave_Att", "Heave_Made",
+        "Awards", "Season",
+    )
+
+    count = _ingest_bbref_multi_season(
+        conn, data_dir,
+        "player_shooting_splits",
+        "bbref/shooting_stats/bbref_shooting_*.csv",
+        positional_columns=positional_cols,
+        label="player_shooting_splits",
+    )
+    if count > 0:
+        conn.execute(
+            'CREATE INDEX IF NOT EXISTS idx_shooting_player_season '
+            'ON player_shooting_splits(Player, Season)'
+        )
+        conn.commit()
+
+
+def _ingest_single_file_table(
+    conn: sqlite3.Connection,
+    data_dir: Path,
+    table_name: str,
+    relative_path: str,
+    *,
+    label: str = "",
+) -> int:
+    """Generic ingester for a single-file CSV.
+
+    Returns row count or -1 if file not found.
+    """
+    filepath = data_dir / relative_path
+    if not filepath.exists():
+        print(f"  WARN: {relative_path} not found")
+        return -1
+
+    conn.execute(f'DROP TABLE IF EXISTS "{table_name}"')
+    count = ingest_csv(conn, filepath, table_name, skip_stability_check=True)
+    print_label = label or table_name
+    if count >= 0:
+        print(f"  {print_label}: {count:,} rows (done)")
+    return count
+
+
+def build_all_nba_teams(conn: sqlite3.Connection, data_dir: Path) -> None:
+    """Tier 2: All-NBA team selections."""
+    print("\n  [NEW-6/18] Building all_nba_teams ...")
+    count = _ingest_single_file_table(
+        conn, data_dir,
+        "all_nba_teams",
+        "raw/bbref/all_nba_selections.csv",
+    )
+    if count and count > 0:
+        conn.execute(
+            'CREATE INDEX IF NOT EXISTS idx_allnba_player '
+            'ON all_nba_teams(player_name)'
+        )
+        conn.execute(
+            'CREATE INDEX IF NOT EXISTS idx_allnba_season '
+            'ON all_nba_teams(season)'
+        )
+        conn.commit()
+
+
+def build_all_defense_teams(conn: sqlite3.Connection, data_dir: Path) -> None:
+    """Tier 2: All-Defensive team selections."""
+    print("\n  [NEW-7/18] Building all_defense_teams ...")
+    count = _ingest_single_file_table(
+        conn, data_dir,
+        "all_defense_teams",
+        "raw/bbref/all_defense_selections.csv",
+    )
+    if count and count > 0:
+        conn.execute(
+            'CREATE INDEX IF NOT EXISTS idx_alldef_player '
+            'ON all_defense_teams(player_name)'
+        )
+        conn.execute(
+            'CREATE INDEX IF NOT EXISTS idx_alldef_season '
+            'ON all_defense_teams(season)'
+        )
+        conn.commit()
+
+
+def build_all_star_selections(conn: sqlite3.Connection, data_dir: Path) -> None:
+    """Tier 2: All-Star selection counts by player."""
+    print("\n  [NEW-8/18] Building all_star_selections_new ...")
+    count = _ingest_single_file_table(
+        conn, data_dir,
+        "all_star_selections_new",
+        "processed/enrichments/all_star_selections_by_player.csv",
+    )
+    if count and count > 0:
+        conn.execute(
+            'CREATE INDEX IF NOT EXISTS idx_allstar_player '
+            'ON all_star_selections_new(player)'
+        )
+        conn.commit()
+
+
+def build_awards_major(conn: sqlite3.Connection, data_dir: Path) -> None:
+    """Tier 2: Major award winners 1947-2025."""
+    print("\n  [NEW-9/18] Building awards_major ...")
+    count = _ingest_single_file_table(
+        conn, data_dir,
+        "awards_major",
+        "processed/enrichments/awards_major_1947_2025.csv",
+    )
+    if count and count > 0:
+        conn.execute(
+            'CREATE INDEX IF NOT EXISTS idx_awards_major_player '
+            'ON awards_major(player_name)'
+        )
+        conn.execute(
+            'CREATE INDEX IF NOT EXISTS idx_awards_major_season '
+            'ON awards_major(season)'
+        )
+        conn.commit()
+
+
+def build_contracts(conn: sqlite3.Connection, data_dir: Path) -> None:
+    """Tier 2: Player contracts and salaries."""
+    print("\n  [NEW-10/18] Building contracts ...")
+    count = _ingest_single_file_table(
+        conn, data_dir,
+        "contracts",
+        "processed/enrichments/contracts_salaries.csv",
+    )
+    if count and count > 0:
+        conn.execute(
+            'CREATE INDEX IF NOT EXISTS idx_contracts_name '
+            'ON contracts(name)'
+        )
+        conn.execute(
+            'CREATE INDEX IF NOT EXISTS idx_contracts_season '
+            'ON contracts(season)'
+        )
+        conn.commit()
+
+
+def build_draft_combine(conn: sqlite3.Connection, data_dir: Path) -> None:
+    """Tier 2: NBA Draft Combine measurements."""
+    print("\n  [NEW-11/18] Building draft_combine ...")
+    count = _ingest_single_file_table(
+        conn, data_dir,
+        "draft_combine",
+        "processed/enrichments/draft_combine_measurements.csv",
+    )
+    if count and count > 0:
+        conn.execute(
+            'CREATE INDEX IF NOT EXISTS idx_combine_player '
+            'ON draft_combine(player)'
+        )
+        conn.execute(
+            'CREATE INDEX IF NOT EXISTS idx_combine_year '
+            'ON draft_combine(year)'
+        )
+        conn.commit()
+
+
+def build_team_four_factors(conn: sqlite3.Connection, data_dir: Path) -> None:
+    """Tier 2: Team Four Factors (regular season 1997-2023)."""
+    print("\n  [NEW-12/18] Building team_four_factors ...")
+    count = _ingest_single_file_table(
+        conn, data_dir,
+        "team_four_factors",
+        "processed/core/team_four_factors_regular_1997_2023.csv",
+    )
+    if count and count > 0:
+        conn.execute(
+            'CREATE INDEX IF NOT EXISTS idx_t4f_team_season '
+            'ON team_four_factors(team_name, season)'
+        )
+        conn.commit()
+
+
+def build_team_opponent_pergame(conn: sqlite3.Connection, data_dir: Path) -> None:
+    """Tier 2: Team opponent per-game stats."""
+    print("\n  [NEW-13/18] Building team_opponent_pergame ...")
+    count = _ingest_single_file_table(
+        conn, data_dir,
+        "team_opponent_pergame",
+        "processed/core/team_opponent_regular_1997_2023.csv",
+    )
+    if count and count > 0:
+        conn.execute(
+            'CREATE INDEX IF NOT EXISTS idx_topp_team_season '
+            'ON team_opponent_pergame(team_name, season)'
+        )
+        conn.commit()
+
+
+def build_player_stats_defense(conn: sqlite3.Connection, data_dir: Path) -> None:
+    """Tier 2: Player defensive stats."""
+    print("\n  [NEW-14/18] Building player_stats_defense_new ...")
+    count = _ingest_single_file_table(
+        conn, data_dir,
+        "player_stats_defense_new",
+        "processed/enrichments/player_stats_defense_1997_2023.csv",
+    )
+    if count and count > 0:
+        conn.execute(
+            'CREATE INDEX IF NOT EXISTS idx_def_player_season '
+            'ON player_stats_defense_new(player_name, season)'
+        )
+        conn.commit()
+
+
+def build_player_stats_scoring(conn: sqlite3.Connection, data_dir: Path) -> None:
+    """Tier 2: Player scoring stats."""
+    print("\n  [NEW-15/18] Building player_stats_scoring_new ...")
+    count = _ingest_single_file_table(
+        conn, data_dir,
+        "player_stats_scoring_new",
+        "processed/enrichments/player_stats_scoring_1997_2023.csv",
+    )
+    if count and count > 0:
+        conn.execute(
+            'CREATE INDEX IF NOT EXISTS idx_scoring_player_season '
+            'ON player_stats_scoring_new(player_name, season)'
+        )
+        conn.commit()
+
+
+def build_player_stats_usage(conn: sqlite3.Connection, data_dir: Path) -> None:
+    """Tier 2: Player usage stats."""
+    print("\n  [NEW-16/18] Building player_stats_usage_new ...")
+    count = _ingest_single_file_table(
+        conn, data_dir,
+        "player_stats_usage_new",
+        "processed/enrichments/player_stats_usage_1997_2023.csv",
+    )
+    if count and count > 0:
+        conn.execute(
+            'CREATE INDEX IF NOT EXISTS idx_usage_player_season '
+            'ON player_stats_usage_new(player_name, season)'
+        )
+        conn.commit()
+
+
+def build_playoff_game_logs(conn: sqlite3.Connection, data_dir: Path) -> None:
+    """Tier 3: Playoff individual game logs (2010-2024)."""
+    print("\n  [NEW-17/18] Building playoff_game_logs ...")
+    count = _ingest_single_file_table(
+        conn, data_dir,
+        "playoff_game_logs",
+        "processed/playoffs/player_game_logs_po_2010_2024.csv",
+    )
+    if count and count > 0:
+        conn.execute(
+            'CREATE INDEX IF NOT EXISTS idx_pogl_person_season '
+            'ON playoff_game_logs(personname, season_year)'
+        )
+        conn.execute(
+            'CREATE INDEX IF NOT EXISTS idx_pogl_game_date '
+            'ON playoff_game_logs(game_date)'
+        )
+        conn.commit()
+
+
+def build_injury_history(conn: sqlite3.Connection, data_dir: Path) -> None:
+    """Tier 3: Injury transaction history."""
+    print("\n  [NEW-18/18] Building injury_history ...")
+    count = _ingest_single_file_table(
+        conn, data_dir,
+        "injury_history",
+        "processed/enrichments/injury_history.csv",
+    )
+    if count and count > 0:
+        conn.execute(
+            'CREATE INDEX IF NOT EXISTS idx_injury_team '
+            'ON injury_history(team)'
+        )
+        conn.execute(
+            'CREATE INDEX IF NOT EXISTS idx_injury_date '
+            'ON injury_history(date)'
+        )
+        conn.commit()
+
+
+def build_all_new_tables(conn: sqlite3.Connection, data_dir: Path) -> None:
+    """Orchestrate ingestion of all 18 new tables."""
+    print("\n" + "=" * 70)
+    print("INGESTING 18 NEW TABLES")
+    print("=" * 70)
+
+    # Tier 1: BBRef multi-season
+    build_player_stats_per100poss(conn, data_dir)
+    build_player_stats_per36min(conn, data_dir)
+    build_player_stats_totals(conn, data_dir)
+    build_player_stats_playoffs_pergame_bbref(conn, data_dir)
+    build_player_shooting_splits(conn, data_dir)
+
+    # Tier 2: Enrichment single-file
+    build_all_nba_teams(conn, data_dir)
+    build_all_defense_teams(conn, data_dir)
+    build_all_star_selections(conn, data_dir)
+    build_awards_major(conn, data_dir)
+    build_contracts(conn, data_dir)
+    build_draft_combine(conn, data_dir)
+    build_team_four_factors(conn, data_dir)
+    build_team_opponent_pergame(conn, data_dir)
+    build_player_stats_defense(conn, data_dir)
+    build_player_stats_scoring(conn, data_dir)
+    build_player_stats_usage(conn, data_dir)
+
+    # Tier 3: Playoff extended
+    build_playoff_game_logs(conn, data_dir)
+    build_injury_history(conn, data_dir)
+
+    conn.execute("ANALYZE")
+    conn.commit()
+    print("\n  All 18 new tables ingested. ANALYZE complete.")
+
+
 def build_enrichment_tables(conn: sqlite3.Connection, data_dir: Path) -> None:
     """Load all enrichment CSVs as raw tables."""
     print("\n[12/13] Building enrichment tables ...")
@@ -1695,7 +2174,10 @@ def main() -> None:
         build_derived_views(conn)
         create_indexes(conn)
 
-        # ── Final Summary ─────────────────────────────────────────────────
+        # 14. NEW: 18 additional tables (Tier 1-3)
+        build_all_new_tables(conn, data_dir)
+
+        # ── Final Summary ─────────────────────────────────���───────────────
 
         print("\n" + "=" * 70)
         print("INGESTION COMPLETE")
@@ -1707,6 +2189,16 @@ def main() -> None:
             "shots", "standings", "draft", "awards", "career_leaders",
             "player_game_logs", "team_stats_advanced", "teams",
             "player_stats_playoffs_pergame", "player_stats_playoffs_advanced",
+            # New tables
+            "player_stats_per100poss", "player_stats_per36min",
+            "player_stats_totals", "player_stats_playoffs_pergame_bbref",
+            "player_shooting_splits",
+            "all_nba_teams", "all_defense_teams", "all_star_selections_new",
+            "awards_major", "contracts", "draft_combine",
+            "team_four_factors", "team_opponent_pergame",
+            "player_stats_defense_new", "player_stats_scoring_new",
+            "player_stats_usage_new",
+            "playoff_game_logs", "injury_history",
         ]
         for t in key_tables:
             try:

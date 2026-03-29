@@ -24,7 +24,9 @@ import PlayoffAccolades from '@/components/ui/PlayoffAccolades';
 import PlayoffEmptyState from '@/components/ui/PlayoffEmptyState';
 import SeasonErrorBoundary from '@/components/ui/SeasonErrorBoundary';
 import BasketballCourt from '@/components/court/BasketballCourt';
+import InsightCard from '@/components/cards/InsightCard';
 import { useSeasonType } from '@/lib/season-context';
+import type { Insight } from '@/lib/insights-engine';
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -159,6 +161,7 @@ export default function PlayerLabPage() {
   const [draft, setDraft] = useState<DraftInfo | null>(null);
   const [zones, setZones] = useState<readonly ZoneStat[]>([]);
   const [similar, setSimilar] = useState<readonly SimilarPlayer[]>([]);
+  const [insights, setInsights] = useState<readonly Insight[]>([]);
   const [selectedSeason, setSelectedSeason] = useState<string>('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -188,6 +191,12 @@ export default function PlayerLabPage() {
           : '';
         setSelectedSeason(latestSeason);
         setLoading(false);
+
+        // Fetch insights in parallel (non-blocking)
+        fetch(`/api/v2/insights?player=${encodeURIComponent(playerName)}&season=${encodeURIComponent(latestSeason)}`)
+          .then((r) => r.ok ? r.json() : null)
+          .then((data) => { if (!cancelled && data?.insights) setInsights(data.insights); })
+          .catch(() => { /* insights are non-critical */ });
       } catch (err) {
         if (!cancelled) {
           setError(err instanceof Error ? err.message : 'Unknown error');
@@ -223,7 +232,7 @@ export default function PlayerLabPage() {
         );
         if (res.ok) {
           const json = await res.json();
-          if (!cancelled) setSimilar(json ?? []);
+          if (!cancelled) setSimilar(json?.data ?? json ?? []);
         }
       } catch { /* silently fail */ }
     }
@@ -393,6 +402,13 @@ export default function PlayerLabPage() {
             title="No Playoff Data"
             message={`Playoff statistics for ${playerName} are not yet available.`}
           />
+        </motion.section>
+      )}
+
+      {/* ── Contextual Insights ───────────────────────────────────────── */}
+      {insights.length > 0 && (
+        <motion.section className="mb-8" initial="hidden" animate="visible" variants={fadeUp}>
+          <InsightCard insights={insights} />
         </motion.section>
       )}
 

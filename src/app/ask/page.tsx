@@ -20,6 +20,15 @@ import {
   Activity,
   FlaskConical,
   Info,
+  Hash,
+  Star,
+  Target,
+  Clock,
+  TrendingUp,
+  Crosshair,
+  Users,
+  Medal,
+  CalendarDays,
 } from 'lucide-react';
 import Link from 'next/link';
 import clsx from 'clsx';
@@ -51,7 +60,7 @@ interface ChatMessage {
 
 // ─── Intent / Category Config ────────────────────────────────────────────────
 
-type QueryCategory = 'all' | 'leaders' | 'players' | 'teams' | 'comparisons' | 'advanced';
+type QueryCategory = 'all' | 'leaders' | 'players' | 'teams' | 'comparisons' | 'advanced' | 'draft' | 'tracking' | 'historical';
 
 const CATEGORY_CONFIG: Record<QueryCategory, { label: string; icon: typeof Sparkles; color: string }> = {
   all:         { label: 'All',       icon: Sparkles,         color: 'text-[#6E6E73]' },
@@ -60,27 +69,56 @@ const CATEGORY_CONFIG: Record<QueryCategory, { label: string; icon: typeof Spark
   teams:       { label: 'Teams',     icon: Shield,           color: 'text-[#22C55E]' },
   comparisons: { label: 'Compare',   icon: GitCompareArrows, color: 'text-[#6E6E73]' },
   advanced:    { label: 'Advanced',  icon: FlaskConical,     color: 'text-[#FF6B35]' },
+  draft:       { label: 'Draft',     icon: Hash,             color: 'text-[#8B5CF6]' },
+  tracking:    { label: 'Tracking',  icon: Target,           color: 'text-[#06B6D4]' },
+  historical:  { label: 'Records',   icon: Star,             color: 'text-[#EF4444]' },
 };
 
 const INTENT_LABELS: Record<string, string> = {
-  player_stats:  'Player Stats',
-  comparison:    'Comparison',
-  leaders:       'League Leaders',
-  team_stats:    'Team Stats',
-  shot_analysis: 'Shot Analysis',
-  trivia:        'Trivia',
-  general:       'General',
-  unsupported:   'Unsupported',
+  player_stats:    'Player Stats',
+  comparison:      'Comparison',
+  leaders:         'League Leaders',
+  team_stats:      'Team Stats',
+  shot_analysis:   'Shot Analysis',
+  trivia:          'Trivia',
+  general:         'General',
+  unsupported:     'Unsupported',
+  awards:          'Awards',
+  draft:           'Draft',
+  lineups:         'Lineups',
+  tracking:        'Tracking',
+  team_comparison: 'Team Compare',
+  historical:      'Historical',
+  streaks_records: 'Streaks & Records',
+  game_logs:       'Game Logs',
+  percentiles:     'Percentiles',
+  career_leaders:  'Career Leaders',
+  shot_zones:      'Shot Zones',
+  matchups:        'Matchups',
+  milestones:      'Milestones',
 };
 
 const INTENT_CATEGORY_MAP: Record<string, QueryCategory> = {
-  player_stats:  'players',
-  comparison:    'comparisons',
-  leaders:       'leaders',
-  team_stats:    'teams',
-  shot_analysis: 'advanced',
-  trivia:        'advanced',
-  general:       'all',
+  player_stats:    'players',
+  comparison:      'comparisons',
+  leaders:         'leaders',
+  team_stats:      'teams',
+  shot_analysis:   'advanced',
+  trivia:          'advanced',
+  general:         'all',
+  awards:          'historical',
+  draft:           'draft',
+  lineups:         'advanced',
+  tracking:        'tracking',
+  team_comparison: 'teams',
+  historical:      'historical',
+  streaks_records: 'historical',
+  game_logs:       'players',
+  percentiles:     'advanced',
+  career_leaders:  'leaders',
+  shot_zones:      'advanced',
+  matchups:        'comparisons',
+  milestones:      'historical',
 };
 
 interface QuickAction {
@@ -92,14 +130,32 @@ interface QuickAction {
 }
 
 const QUICK_ACTIONS: readonly QuickAction[] = [
-  { label: 'Scoring leaders',      query: 'Who are the top 10 scorers this season?',                   icon: Trophy,           category: 'leaders',     example: 'PPG leaders' },
-  { label: '3PT shooting leaders', query: 'Best 3-point shooters with at least 50 games this season',  icon: BarChart3,         category: 'leaders',     example: '3P% ≥ 34%' },
-  { label: 'Assist leaders',       query: 'Top 10 assist leaders this season with 50+ games',          icon: Zap,              category: 'leaders',     example: 'APG leaders' },
-  { label: 'Compare two players',  query: 'Compare LeBron James vs Stephen Curry career averages',     icon: GitCompareArrows, category: 'comparisons', example: 'Side-by-side' },
-  { label: 'Team roster stats',    query: 'Show the Lakers roster with their stats this season',       icon: Shield,           category: 'teams',       example: 'Full roster' },
-  { label: 'Player career',        query: 'Show LeBron James career stats by season',                 icon: Activity,         category: 'players',     example: 'Per-season view' },
-  { label: 'MVP winners',          query: 'Show MVP award winners in the last 10 seasons',            icon: Sparkles,         category: 'advanced',    example: 'Award history' },
-  { label: 'Best defenders',       query: 'Top 10 defenders by combined steals and blocks this season', icon: FlaskConical,   category: 'advanced',    example: 'STL + BLK' },
+  // Leaders
+  { label: 'Scoring leaders',      query: 'Who are the top 10 scorers this season?',                             icon: Trophy,           category: 'leaders',      example: 'PPG leaders' },
+  { label: '3PT shooting leaders', query: 'Best 3-point shooters with at least 50 games this season',            icon: BarChart3,        category: 'leaders',      example: '3P% leaders' },
+  { label: 'Assist leaders',       query: 'Top 10 assist leaders this season with 50+ games',                    icon: Zap,              category: 'leaders',      example: 'APG leaders' },
+  { label: 'Career leaders',       query: 'Show all-time top 10 career points leaders',                          icon: Medal,            category: 'leaders',      example: 'All-time pts' },
+  // Players
+  { label: 'Player career',        query: 'Show LeBron James career stats by season',                            icon: Activity,         category: 'players',      example: 'Per-season view' },
+  { label: 'Game logs',            query: 'Show LeBron James last 10 game performances',                         icon: CalendarDays,     category: 'players',      example: 'Recent games' },
+  // Teams
+  { label: 'Team roster stats',    query: 'Show the Lakers roster with their stats this season',                  icon: Shield,           category: 'teams',        example: 'Full roster' },
+  { label: 'Team comparison',      query: 'Compare offensive and defensive ratings of the top 5 teams',          icon: TrendingUp,       category: 'teams',        example: 'OFF vs DEF rtg' },
+  // Comparisons
+  { label: 'Compare two players',  query: 'Compare LeBron James vs Stephen Curry career averages',               icon: GitCompareArrows, category: 'comparisons',  example: 'Side-by-side' },
+  { label: 'Head-to-head',         query: 'Head to head comparison of Luka Doncic vs Shai Gilgeous-Alexander',   icon: Users,            category: 'comparisons',  example: 'H2H matchup' },
+  // Advanced
+  { label: 'Best defenders',       query: 'Top 10 defenders by combined steals and blocks this season',          icon: FlaskConical,     category: 'advanced',     example: 'STL + BLK' },
+  { label: 'Shot zones',           query: 'Show shot zone efficiency for Stephen Curry this season',             icon: Crosshair,        category: 'advanced',     example: 'Zone FG%' },
+  { label: 'Lineup analysis',      query: 'Show the top 5-man lineups for the Celtics this season',             icon: FlaskConical,     category: 'advanced',     example: 'Lineup combos' },
+  // Draft
+  { label: 'Draft class 2024',     query: 'Show the 2024 draft class with picks and colleges',                   icon: Hash,             category: 'draft',        example: 'Full draft board' },
+  // Tracking
+  { label: 'Player tracking',      query: 'Show tracking data for the fastest players this season',              icon: Target,           category: 'tracking',     example: 'Speed & drives' },
+  // Historical
+  { label: 'MVP winners',          query: 'Show MVP award winners in the last 10 seasons',                       icon: Star,             category: 'historical',   example: 'Award history' },
+  { label: 'Historical records',   query: 'What are the highest single-season scoring averages ever?',           icon: Star,             category: 'historical',   example: 'All-time marks' },
+  { label: 'Milestones',           query: 'Which active players are closest to 20000 career points?',            icon: Clock,            category: 'historical',   example: 'Career milestones' },
 ];
 
 // ─── Animation Variants ────────────────────────────────────────────────────
@@ -196,16 +252,36 @@ function IntentBadge({ intent }: { readonly intent: string }) {
 function QueryDetails({ intent, rowCount }: { readonly intent: string; readonly rowCount?: number }) {
   const notes: string[] = [];
 
-  if (intent === 'leaders' || intent === 'player_stats') {
+  if (intent === 'leaders' || intent === 'player_stats' || intent === 'percentiles') {
     notes.push('Season: 2023-24');
     notes.push('Min games: 50+');
-  } else if (intent === 'comparison') {
+  } else if (intent === 'comparison' || intent === 'matchups') {
     notes.push('Career averages');
     notes.push('Regular season');
-  } else if (intent === 'team_stats') {
+  } else if (intent === 'team_stats' || intent === 'team_comparison') {
     notes.push('Current season');
-  } else if (intent === 'shot_analysis') {
+    notes.push('Regular season');
+  } else if (intent === 'shot_analysis' || intent === 'shot_zones') {
     notes.push('2023-24 shot log');
+  } else if (intent === 'awards') {
+    notes.push('Award history');
+    notes.push('Regular season');
+  } else if (intent === 'draft') {
+    notes.push('Draft data');
+  } else if (intent === 'tracking') {
+    notes.push('Tracking data');
+    notes.push('Current season');
+  } else if (intent === 'career_leaders' || intent === 'milestones') {
+    notes.push('All-time career totals');
+  } else if (intent === 'historical' || intent === 'streaks_records') {
+    notes.push('Historical data');
+    notes.push('All seasons');
+  } else if (intent === 'game_logs') {
+    notes.push('Game-by-game');
+    notes.push('Regular season');
+  } else if (intent === 'lineups') {
+    notes.push('Lineup proxies');
+    notes.push('Advanced stats');
   } else {
     notes.push('Regular season data');
   }
@@ -476,7 +552,7 @@ export default function AskTheDataPage() {
       ? QUICK_ACTIONS
       : QUICK_ACTIONS.filter((a) => a.category === activeCategory);
 
-  const categories: readonly QueryCategory[] = ['all', 'leaders', 'players', 'teams', 'comparisons', 'advanced'];
+  const categories: readonly QueryCategory[] = ['all', 'leaders', 'players', 'teams', 'comparisons', 'advanced', 'draft', 'tracking', 'historical'];
 
   return (
     <div className="flex flex-col h-[calc(100dvh-4rem)] max-h-[calc(100dvh-4rem)]">
@@ -544,7 +620,7 @@ export default function AskTheDataPage() {
                 <div className="flex items-center gap-1.5 mb-6 px-3 py-1.5 rounded-full bg-[#0071E3]/[0.06] border border-[#0071E3]/15">
                   <Info size={11} className="text-[#0071E3]" />
                   <span className="text-[11px] text-[#0071E3]/80 font-medium">
-                    Supports: leaders · player stats · team data · comparisons · advanced
+                    Supports: leaders · players · teams · comparisons · draft · tracking · records · awards · shot zones
                   </span>
                 </div>
 
@@ -656,7 +732,7 @@ export default function AskTheDataPage() {
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={handleKeyDown}
-                placeholder="Ask about players, teams, leaders, comparisons..."
+                placeholder="Ask about players, teams, draft, awards, records, shot zones..."
                 rows={1}
                 className={clsx(
                   'flex-1 bg-transparent resize-none outline-none',

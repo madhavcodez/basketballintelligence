@@ -30,6 +30,7 @@ from pipeline.export import (
     update_processing_job,
 )
 from pipeline.ingest import ingest_video, update_video_status
+from pipeline.link import link_all_clips
 from pipeline.segment import segment_video
 from pipeline.tag import generate_tags
 
@@ -83,7 +84,7 @@ def main(
     init_film_db(config.film_db_path)
 
     # Ingest
-    click.echo(f"\n[1/5] Ingesting: {video_path}")
+    click.echo(f"\n[1/6] Ingesting: {video_path}")
     if not video_path.exists():
         click.echo(f"  WARNING: File not found. Using mock metadata.")
         errors.append(f"Video file not found: {video_path}")
@@ -100,13 +101,13 @@ def main(
     click.echo(f"  {metadata.width}x{metadata.height} @ {metadata.fps}fps | {metadata.duration:.1f}s")
 
     # Segment
-    click.echo(f"\n[2/5] Segmenting video...")
+    click.echo(f"\n[2/6] Segmenting video...")
     segments = segment_video(video_path, config, duration_hint=metadata.duration)
     click.echo(f"  Found {len(segments)} segments")
     update_processing_job(config.film_db_path, job_id, progress=0.2)
 
     # Detect + Classify + Tag
-    click.echo(f"\n[3/5] Detecting, classifying, and tagging {len(segments)} clips...")
+    click.echo(f"\n[3/6] Detecting, classifying, and tagging {len(segments)} clips...")
     all_classifications = []
     total_tags = 0
 
@@ -132,15 +133,24 @@ def main(
             click.echo(f"  Processed {i + 1}/{len(segments)} clips")
 
     # Embeddings
-    click.echo(f"\n[4/5] Generating embeddings...")
+    click.echo(f"\n[4/6] Generating embeddings...")
     _embeddings = generate_batch_embeddings(
         segments, all_classifications, config, video_id=video_id,
     )
     click.echo(f"  Generated {len(_embeddings)} embeddings (dim={config.embedding_dim})")
     update_processing_job(config.film_db_path, job_id, progress=0.9)
 
+    # Cross-database linking
+    click.echo(f"\n[5/6] Linking clips to basketball.db...")
+    link_summary = link_all_clips(video_id, config)
+    click.echo(
+        f"  Shots linked: {link_summary.shots_linked}/{link_summary.total_clips} | "
+        f"Game logs linked: {link_summary.game_logs_linked}/{link_summary.total_clips}"
+    )
+    update_processing_job(config.film_db_path, job_id, progress=0.95)
+
     # Finalize
-    click.echo(f"\n[5/5] Finalizing...")
+    click.echo(f"\n[6/6] Finalizing...")
     update_video_status(config.film_db_path, video_id, "ready")
     elapsed = time.time() - start
 

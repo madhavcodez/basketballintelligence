@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { findSimilarPlayers } from '@/lib/db';
+import { parseSeasonType, findSimilarPlayersV2 } from '@/lib/playoffs-db';
 
 export async function GET(
   request: NextRequest,
@@ -8,9 +8,14 @@ export async function GET(
   const { name } = await params;
   const playerName = decodeURIComponent(name);
   const season = request.nextUrl.searchParams.get('season') || '2024-25';
+  const seasonType = parseSeasonType(request.nextUrl.searchParams.get('seasonType'));
   try {
-    const similar = findSimilarPlayers(playerName, season);
-    return NextResponse.json(similar);
+    const result = findSimilarPlayersV2(playerName, seasonType, season);
+    return NextResponse.json({
+      data: result.data,
+      seasonType: result.seasonType,
+      playoffAvailable: result.playoffAvailable,
+    });
   } catch {
     return NextResponse.json({ error: 'Database error' }, { status: 500 });
   }

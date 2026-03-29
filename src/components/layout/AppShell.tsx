@@ -41,13 +41,14 @@ const NAV_LINKS: readonly NavLink[] = [
   { id: 'zones', label: 'Zones', href: '/zones', icon: Flame },
   { id: 'compare', label: 'Compare', href: '/compare', icon: GitCompareArrows },
   { id: 'film', label: 'Film', href: '/film', icon: FilmIcon },
+  { id: 'ask', label: 'Ask', href: '/ask', icon: Bot },
+  { id: 'play', label: 'Play', href: '/play', icon: Gamepad2 },
 ] as const;
 
 const MOBILE_EXTRA_LINKS: readonly NavLink[] = [
   { id: 'matchup', label: 'Head-to-Head', href: '/matchup', icon: Swords },
   { id: 'lineups', label: 'Lineups', href: '/lineup', icon: LayoutGrid },
-  { id: 'play', label: 'Play Mode', href: '/play', icon: Gamepad2 },
-  { id: 'ask', label: 'Agent', href: '/ask', icon: Bot },
+  { id: 'stories', label: 'Stories', href: '/stories', icon: FlaskConical },
 ] as const;
 
 function isActiveLink(link: NavLink, pathname: string): boolean {

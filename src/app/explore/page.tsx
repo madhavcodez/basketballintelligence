@@ -18,6 +18,7 @@ import TeamLogo from '@/components/ui/TeamLogo';
 import Badge from '@/components/ui/Badge';
 import SectionHeader from '@/components/ui/SectionHeader';
 import SkeletonLoader from '@/components/ui/SkeletonLoader';
+import { useSeasonType } from '@/lib/season-context';
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -79,6 +80,7 @@ type PositionFilter = (typeof POSITIONS)[number];
 // ── Component ────────────────────────────────────────────────────────────────
 
 export default function ExplorePage() {
+  const { seasonType } = useSeasonType();
   const [exploreData, setExploreData] = useState<ExploreData | null>(null);
   const [teams, setTeams] = useState<readonly Team[]>([]);
   const [loading, setLoading] = useState(true);
@@ -95,8 +97,9 @@ export default function ExplorePage() {
   // Fetch data
   useEffect(() => {
     let cancelled = false;
+    setLoading(true);
     Promise.all([
-      fetch('/api/explore').then((r) => r.json()).catch(() => null),
+      fetch(`/api/explore?seasonType=${seasonType}`).then((r) => r.json()).catch(() => null),
       fetch('/api/teams').then((r) => r.json()).catch(() => []),
     ]).then(([explore, teamsData]) => {
       if (!cancelled) {
@@ -106,7 +109,7 @@ export default function ExplorePage() {
       }
     });
     return () => { cancelled = true; };
-  }, []);
+  }, [seasonType]);
 
   // Debounced search
   const handleSearch = useCallback((value: string) => {

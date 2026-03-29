@@ -15,6 +15,7 @@ import MetricChip from '@/components/ui/MetricChip';
 import SectionHeader from '@/components/ui/SectionHeader';
 import SkeletonLoader from '@/components/ui/SkeletonLoader';
 import PlayerAvatar from '@/components/ui/PlayerAvatar';
+import { useSeasonType } from '@/lib/season-context';
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -129,6 +130,8 @@ function buildArc(
 // ── Component ────────────────────────────────────────────────────────────────
 
 export default function ShotLabPage() {
+  const { seasonType } = useSeasonType();
+
   // State
   const [playerName, setPlayerName] = useState('');
   const [selectedSeason, setSelectedSeason] = useState('');
@@ -158,6 +161,7 @@ export default function ShotLabPage() {
       try {
         const url = new URL('/api/shots', window.location.origin);
         url.searchParams.set('player', playerName);
+        url.searchParams.set('seasonType', seasonType);
         if (selectedSeason) url.searchParams.set('season', selectedSeason);
 
         const res = await fetch(url.toString());
@@ -184,7 +188,7 @@ export default function ShotLabPage() {
     }
     load();
     return () => { cancelled = true; };
-  }, [playerName, selectedSeason]);
+  }, [playerName, selectedSeason, seasonType]);
 
   // Debounced search
   const handleSearchInput = useCallback((value: string) => {

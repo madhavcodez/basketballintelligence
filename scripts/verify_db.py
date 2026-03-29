@@ -31,16 +31,17 @@ def verify_database() -> None:
     print()
 
     conn = sqlite3.connect(DB_PATH)
-    conn.row_factory = sqlite3.Row
+    try:
+        conn.row_factory = sqlite3.Row
 
-    # Get all tables
-    tables = conn.execute(
-        "SELECT name FROM sqlite_master WHERE type='table' ORDER BY name"
-    ).fetchall()
-    table_names = [t["name"] for t in tables]
+        # Get all tables
+        tables = conn.execute(
+            "SELECT name FROM sqlite_master WHERE type='table' ORDER BY name"
+        ).fetchall()
+        table_names = [t["name"] for t in tables]
 
-    print(f"Tables found: {len(table_names)}")
-    print_separator("=")
+        print(f"Tables found: {len(table_names)}")
+        print_separator("=")
 
     total_rows = 0
 
@@ -89,6 +90,7 @@ def verify_database() -> None:
 
     # Expected tables check
     expected_tables = [
+        # Original 13 tables
         "players",
         "player_stats_pergame",
         "player_stats_advanced",
@@ -102,6 +104,27 @@ def verify_database() -> None:
         "team_stats_advanced",
         "tracking",
         "career_leaders",
+        # New 18 tables (Tier 1: BBRef multi-season)
+        "player_stats_per100poss",
+        "player_stats_per36min",
+        "player_stats_totals",
+        "player_stats_playoffs_pergame_bbref",
+        "player_shooting_splits",
+        # New 18 tables (Tier 2: Enrichment)
+        "all_nba_teams",
+        "all_defense_teams",
+        "all_star_selections_new",
+        "awards_major",
+        "contracts",
+        "draft_combine",
+        "team_four_factors",
+        "team_opponent_pergame",
+        "player_stats_defense_new",
+        "player_stats_scoring_new",
+        "player_stats_usage_new",
+        # New 18 tables (Tier 3: Playoff extended)
+        "playoff_game_logs",
+        "injury_history",
     ]
 
     print("\nExpected tables check:")
@@ -118,7 +141,8 @@ def verify_database() -> None:
     else:
         print("\nWARNING: Some expected tables are missing!")
 
-    conn.close()
+    finally:
+        conn.close()
 
 
 if __name__ == "__main__":

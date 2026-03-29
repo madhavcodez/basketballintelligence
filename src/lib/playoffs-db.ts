@@ -549,11 +549,14 @@ export function getLineupsV2(
   }
 
   // 'regular' and 'combined' use main lineups table
+  if (!tableExists(db, 'lineups')) {
+    return { data: [], seasonType, playoffAvailable: hasPlayoffLineups };
+  }
   const whereClause = season
     ? 'WHERE TEAM_ABBREVIATION = ? AND season = ?'
     : 'WHERE TEAM_ABBREVIATION = ?';
   const params = season ? [teamAbbr, season] : [teamAbbr];
-  const data = db.prepare(`
+  const data = safeAll<Record<string, unknown>>(db, `
     SELECT GROUP_NAME as players, GP as gp, W as wins, L as losses,
            MIN as minutes, PTS as points, AST as assists, REB as rebounds,
            STL as steals, BLK as blocks, TOV as turnovers,
@@ -562,7 +565,7 @@ export function getLineupsV2(
     FROM lineups ${whereClause}
     ORDER BY CAST(MIN as FLOAT) DESC
     LIMIT 50
-  `).all(...params) as Record<string, unknown>[];
+  `, params);
   return { data, seasonType, playoffAvailable: hasPlayoffLineups };
 }
 

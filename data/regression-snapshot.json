@@ -1,0 +1,37 @@
+{
+  "timestamp": "2026-03-29T01:20:36.711423",
+  "film": {
+    "counts": {
+      "videos": 6,
+      "clips": 290,
+      "tags": 118,
+      "clip_tags": 1674,
+      "processing_jobs": 1
+    },
+    "unique_values": {
+      "play_types": [
+        "Isolation",
+        "Miscellaneous",
+        "Pick & Pop",
+        "Pick & Roll",
+        "Transition"
+      ],
+      "actions": [
+        "Drive",
+        "Pull-up Jumper",
+        "Rebound",
+        "Three Pointer"
+      ]
+    }
+  },
+  "basketball": {
+    "counts": {
+      "players": 5106,
+      "shots": 4260380,
+      "player_game_logs": 424478,
+      "teams": 38,
+      "standings": 775
+    },
+    "unique_values": {}
+  }
+}

@@ -433,7 +433,7 @@ export default function TeamDNAPage() {
   useEffect(() => {
     if (!topScorer?.name) return;
     let cancelled = false;
-    fetch(`/api/players/${encodeURIComponent(topScorer.name)}/shots`)
+    fetch(`/api/players/${encodeURIComponent(topScorer.name)}/shots?seasonType=${seasonType}`)
       .then((res) => (res.ok ? res.json() : null))
       .then((json) => {
         if (!cancelled && json?.zones) {
@@ -442,7 +442,7 @@ export default function TeamDNAPage() {
       })
       .catch(() => { /* silently ignore */ });
     return () => { cancelled = true; };
-  }, [topScorer?.name]);
+  }, [topScorer?.name, seasonType]);
 
   // Top lineups (top 5 by minutes)
   const topLineups = useMemo(() => {

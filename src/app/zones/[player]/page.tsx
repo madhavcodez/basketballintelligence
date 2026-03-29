@@ -19,6 +19,7 @@ import PlayerAvatar from '@/components/ui/PlayerAvatar';
 import { ZONES, type ZoneName } from '@/lib/shot-constants';
 import { type ZoneAggregation, generateSignatureNarrative } from '@/lib/zone-engine';
 import { colors, motionPresets } from '@/lib/design-tokens';
+import { useSeasonType } from '@/lib/season-context';
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -61,6 +62,7 @@ type ViewMode = 'efficiency' | 'frequency' | 'makes';
 export default function PlayerZonePage() {
   const params = useParams();
   const playerName = decodeURIComponent(params.player as string);
+  const { seasonType } = useSeasonType();
 
   const [playerData, setPlayerData] = useState<PlayerZoneData | null>(null);
   const [heatmapData, setHeatmapData] = useState<HeatmapData | null>(null);
@@ -94,7 +96,7 @@ export default function PlayerZonePage() {
 
   useEffect(() => {
     // Get available seasons, then set the first one to trigger data load
-    fetch(`/api/players/${encodeURIComponent(playerName)}/shots?zones=true`)
+    fetch(`/api/players/${encodeURIComponent(playerName)}/shots?zones=true&seasonType=${seasonType}`)
       .then((r) => r.json())
       .then((d) => {
         const seasons = (d.seasons ?? []).map((s: { season: string }) => s.season);
@@ -110,7 +112,7 @@ export default function PlayerZonePage() {
         // On error, load without season filter
         setSelectedSeason('all');
       });
-  }, [playerName]);
+  }, [playerName, seasonType]);
 
   const loadPlayerData = useCallback(async () => {
     setLoading(true);

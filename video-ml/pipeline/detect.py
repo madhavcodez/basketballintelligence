@@ -2,12 +2,16 @@
 
 Uses ultralytics YOLOv8/11 for person/ball detection. Falls back to mock
 results when models aren't available or video can't be read.
+
+Hoop estimation is performed via court geometry when YOLO detects >= 3 players
+but no physical hoop class is available in the COCO label set.
 """
 
 from __future__ import annotations
 
 import logging
 import random
+import threading
 from pathlib import Path
 
 from config import PipelineConfig
@@ -15,7 +19,9 @@ from models.schemas import ClipSegment, DetectedObject, DetectionResult
 
 logger = logging.getLogger(__name__)
 
-# Check for real model availability
+# ---------------------------------------------------------------------------
+# Optional dependency checks
+# ---------------------------------------------------------------------------
 try:
     from ultralytics import YOLO  # type: ignore[import-untyped]
 
@@ -32,61 +38,139 @@ try:
 except ImportError:
     CV2_AVAILABLE = False
 
+# ---------------------------------------------------------------------------
 # COCO class IDs relevant to basketball
+# ---------------------------------------------------------------------------
 PERSON_CLASS = 0
 SPORTS_BALL_CLASS = 32
 
-# Load model lazily (singleton)
+# Minimum players visible before we synthesise a hoop estimate
+_MIN_PLAYERS_FOR_HOOP = 3
+# Confidence assigned to the synthetic hoop detection
+_HOOP_SYNTHETIC_CONFIDENCE = 0.55
+# Hoop sits in the top ~10 % of the frame vertically
+_HOOP_Y_TOP = 0.03
+_HOOP_Y_BOTTOM = 0.10
+# Half-width of the synthetic hoop bbox (normalised)
+_HOOP_HALF_WIDTH = 0.025
+
+# Load model lazily (singleton, thread-safe)
 _model_cache: dict[str, object] = {}
+_model_cache_lock = threading.Lock()
+
+# ---------------------------------------------------------------------------
+# Model path resolution
+# ---------------------------------------------------------------------------
+_VIDEO_ML_DIR = Path(__file__).resolve().parent.parent
 
 
 def _get_yolo_model(model_name: str = "yolo11n.pt") -> object:
-    """Load YOLO model, cached globally."""
-    if model_name not in _model_cache:
-        logger.info("Loading YOLO model: %s", model_name)
-        _model_cache[model_name] = YOLO(model_name)
+    """Load YOLO model, cached globally (thread-safe).
+
+    Resolves *model_name* relative to the video-ml project root so that the
+    weight file is found regardless of the caller's working directory.
+    """
+    with _model_cache_lock:
+        if model_name not in _model_cache:
+            model_path = _VIDEO_ML_DIR / model_name
+            if not model_path.exists():
+                raise FileNotFoundError(
+                    f"YOLO weight file not found at {model_path}"
+                )
+            logger.info("Loading YOLO model: %s", model_path)
+            _model_cache[model_name] = YOLO(str(model_path))
     return _model_cache[model_name]
 
+
+# ---------------------------------------------------------------------------
+# Hoop estimation from court geometry
+# ---------------------------------------------------------------------------
+
+def _estimate_hoop(
+    players: list[DetectedObject],
+) -> DetectedObject | None:
+    """Estimate hoop position from player bounding boxes.
+
+    When >= ``_MIN_PLAYERS_FOR_HOOP`` players are visible we place a
+    synthetic hoop bbox centred horizontally on the median player x-centre
+    and in the top ~10 % of the frame.  This approximates the near-side
+    basket under a typical broadcast camera angle.
+
+    Returns ``None`` when there are too few players to make a reasonable
+    estimate.
+    """
+    if len(players) < _MIN_PLAYERS_FOR_HOOP:
+        return None
+
+    # Compute the horizontal centre of each player bbox
+    x_centres = sorted(
+        (p.bbox[0] + p.bbox[2]) / 2.0 for p in players
+    )
+    median_x = x_centres[len(x_centres) // 2]
+
+    # Clamp so the hoop bbox stays within [0, 1]
+    hoop_x1 = max(0.0, median_x - _HOOP_HALF_WIDTH)
+    hoop_x2 = min(1.0, median_x + _HOOP_HALF_WIDTH)
+
+    return DetectedObject(
+        label="hoop",
+        confidence=round(_HOOP_SYNTHETIC_CONFIDENCE, 3),
+        bbox=(
+            round(hoop_x1, 3),
+            round(_HOOP_Y_TOP, 3),
+            round(hoop_x2, 3),
+            round(_HOOP_Y_BOTTOM, 3),
+        ),
+    )
+
+
+# ---------------------------------------------------------------------------
+# Real YOLO detection
+# ---------------------------------------------------------------------------
 
 def _real_detection(
     video_path: str,
     segment: ClipSegment,
     config: PipelineConfig,
 ) -> list[DetectionResult]:
-    """Run real YOLO detection on video frames within the clip segment."""
+    """Run real YOLO detection on video frames within the clip segment.
+
+    Uses ``cv2.CAP_PROP_POS_FRAMES`` to seek directly to each sample frame
+    instead of reading and discarding intermediate frames.
+    """
     cap = cv2.VideoCapture(video_path)
     if not cap.isOpened():
         logger.error("Could not open video: %s", video_path)
         return []
 
-    fps = cap.get(cv2.CAP_PROP_FPS) or 30.0
-    total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
-    video_duration = total_frames / fps
+    try:
+        fps = cap.get(cv2.CAP_PROP_FPS) or 30.0
+        total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
 
-    model = _get_yolo_model()
+        model = _get_yolo_model()
 
-    # Sample frames at configured analysis FPS
-    sample_interval = max(1, fps / config.target_fps)
-    start_frame = int(segment.start_time * fps)
-    end_frame = min(int(segment.end_time * fps), total_frames)
+        # Frame range for this segment
+        sample_interval = max(1, int(fps / config.target_fps))
+        start_frame = int(segment.start_time * fps)
+        end_frame = min(int(segment.end_time * fps), total_frames)
 
-    results: list[DetectionResult] = []
-    frame_idx = start_frame
+        results: list[DetectionResult] = []
+        frame_idx = start_frame
 
-    cap.set(cv2.CAP_PROP_POS_FRAMES, start_frame)
+        while frame_idx < end_frame:
+            # Seek directly to the target frame (skip intermediate frames)
+            cap.set(cv2.CAP_PROP_POS_FRAMES, frame_idx)
+            ret, frame = cap.read()
+            if not ret:
+                break
 
-    while frame_idx < end_frame:
-        ret, frame = cap.read()
-        if not ret:
-            break
-
-        if (frame_idx - start_frame) % int(sample_interval) == 0:
             timestamp = frame_idx / fps
 
             # Run YOLO inference (low conf threshold for recall)
             preds = model.predict(frame, conf=0.25, verbose=False)
 
             objects: list[DetectedObject] = []
+            players: list[DetectedObject] = []
             court_detected = False
 
             if preds and len(preds) > 0:
@@ -95,35 +179,56 @@ def _real_detection(
                     for i in range(len(boxes)):
                         cls_id = int(boxes.cls[i].item())
                         conf = float(boxes.conf[i].item())
-                        x1, y1, x2, y2 = boxes.xyxyn[i].tolist()  # normalized coords
+                        x1, y1, x2, y2 = boxes.xyxyn[i].tolist()
 
                         if cls_id == PERSON_CLASS:
-                            objects.append(DetectedObject(
+                            player = DetectedObject(
                                 label="player",
                                 confidence=round(conf, 3),
-                                bbox=(round(x1, 3), round(y1, 3), round(x2, 3), round(y2, 3)),
-                            ))
-                            court_detected = True  # if we see people, court is visible
+                                bbox=(
+                                    round(x1, 3),
+                                    round(y1, 3),
+                                    round(x2, 3),
+                                    round(y2, 3),
+                                ),
+                            )
+                            objects.append(player)
+                            players.append(player)
+                            court_detected = True
                         elif cls_id == SPORTS_BALL_CLASS:
-                            objects.append(DetectedObject(
-                                label="ball",
-                                confidence=round(conf, 3),
-                                bbox=(round(x1, 3), round(y1, 3), round(x2, 3), round(y2, 3)),
-                            ))
+                            objects.append(
+                                DetectedObject(
+                                    label="ball",
+                                    confidence=round(conf, 3),
+                                    bbox=(
+                                        round(x1, 3),
+                                        round(y1, 3),
+                                        round(x2, 3),
+                                        round(y2, 3),
+                                    ),
+                                )
+                            )
 
-            results.append(DetectionResult(
-                frame_number=frame_idx,
-                timestamp=round(timestamp, 3),
-                objects=objects,
-                court_detected=court_detected,
-            ))
+            # Synthesise hoop from court geometry when YOLO can't detect one
+            hoop = _estimate_hoop(players)
+            if hoop is not None:
+                objects.append(hoop)
 
-        frame_idx += 1
+            results.append(
+                DetectionResult(
+                    frame_number=frame_idx,
+                    timestamp=round(timestamp, 3),
+                    objects=objects,
+                    court_detected=court_detected,
+                )
+            )
 
-    cap.release()
+            frame_idx += sample_interval
+    finally:
+        cap.release()
 
     logger.info(
-        "YOLO detection: %d frames analyzed for clip %.1f-%.1fs, %d total objects",
+        "YOLO detection: %d frames analysed for clip %.1f-%.1fs, %d total objects",
         len(results),
         segment.start_time,
         segment.end_time,
@@ -131,6 +236,10 @@ def _real_detection(
     )
     return results
 
+
+# ---------------------------------------------------------------------------
+# Mock fallback
+# ---------------------------------------------------------------------------
 
 def _mock_detection_for_frame(frame_number: int, timestamp: float) -> DetectionResult:
     """Generate a plausible mock detection result for a single frame."""
@@ -181,6 +290,10 @@ def _mock_detection_for_frame(frame_number: int, timestamp: float) -> DetectionR
     )
 
 
+# ---------------------------------------------------------------------------
+# Public API
+# ---------------------------------------------------------------------------
+
 def detect_objects_in_clip(
     video_path: Path,
     segment: ClipSegment,
@@ -199,6 +312,10 @@ def detect_objects_in_clip(
             results = _real_detection(str(video_path), segment, config)
             if results:
                 return results
+            logger.warning(
+                "YOLO returned 0 results for %s — falling back to mock",
+                video_path,
+            )
         except Exception:
             logger.exception("YOLO detection failed, falling back to mock")
 
