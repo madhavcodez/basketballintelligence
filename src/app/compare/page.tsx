@@ -389,7 +389,7 @@ function ComparePageInner() {
         )}
 
         {/* ── Comparison Results ───────────────────────────────────────── */}
-        {!loading && data?.player1 && data?.player2 && (
+        {!loading && data?.player1?.name && data?.player2?.name && (
           <>
             {/* Head-to-head hero */}
             <motion.div variants={fadeUp} className="mb-8">
