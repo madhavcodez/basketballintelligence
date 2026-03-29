@@ -593,6 +593,7 @@ function ComparePageInner() {
               </motion.div>
             )}
             {/* Cross-link to matchup */}
+            {data.player1?.name && data.player2?.name && (
             <motion.div variants={fadeUp} className="mt-6">
               <Link
                 href={`/matchup/${encodeURIComponent(data.player1.name.toLowerCase().replace(/['.]/g, '').replace(/\s+/g, '-'))}-vs-${encodeURIComponent(data.player2.name.toLowerCase().replace(/['.]/g, '').replace(/\s+/g, '-'))}`}
@@ -606,6 +607,7 @@ function ComparePageInner() {
                 </GlassCard>
               </Link>
             </motion.div>
+            )}
           </>
         )}
       </motion.div>
