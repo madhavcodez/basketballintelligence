@@ -105,6 +105,8 @@ interface MatchupSummary {
   readonly bestP2Game: MatchupGame | null;
   readonly lastMeeting: MatchupGame | null;
   readonly headToHeadRecord: string;
+  readonly p1PersonId?: string | number | null;
+  readonly p2PersonId?: string | number | null;
 }
 
 interface RivalRecord {
@@ -554,6 +556,8 @@ export default function MatchupSlugPage({
             p1Team={summary.lastMeeting?.p1Team ?? ''}
             p2Team={summary.lastMeeting?.p2Team ?? ''}
             recentGames={recentGames}
+            p1PersonId={summary.p1PersonId}
+            p2PersonId={summary.p2PersonId}
           />
         </motion.div>
 
