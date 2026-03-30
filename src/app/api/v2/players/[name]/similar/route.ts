@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { findSimilarPlayersV2, parseSeasonType } from '@/lib/playoffs-db';
 import { findSimilarPlayersAdvanced } from '@/lib/similarity-engine';
+import { handleApiError } from '@/lib/api-error';
+import { jsonWithCache } from '@/lib/api-response';
 
 export async function GET(
   req: NextRequest,
@@ -24,36 +26,31 @@ export async function GET(
       const result = findSimilarPlayersAdvanced(decoded, seasonType, season, limit);
 
       if (result.data.length > 0) {
-        return NextResponse.json({
+        return jsonWithCache({
           data: result.data,
           seasonType: result.seasonType,
           playoffAvailable: result.playoffAvailable,
           method: 'advanced',
-        });
+        }, 120);
       }
 
       // Fall back to legacy when advanced yields no results
       const fallback = findSimilarPlayersV2(decoded, seasonType, season, limit);
-      return NextResponse.json({
+      return jsonWithCache({
         data: fallback.data,
         seasonType: fallback.seasonType,
         playoffAvailable: fallback.playoffAvailable,
         method: 'legacy',
-      });
+      }, 120);
     }
 
     // Explicit legacy mode
     const result = findSimilarPlayersV2(decoded, seasonType, season, limit);
-    return NextResponse.json({
+    return jsonWithCache({
       data: result.data,
       seasonType: result.seasonType,
       playoffAvailable: result.playoffAvailable,
       method: 'legacy',
-    });
-  } catch {
-    return NextResponse.json(
-      { error: 'Failed to find similar players' },
-      { status: 500 },
-    );
-  }
+    }, 120);
+  } catch (e) { return handleApiError(e, 'v2-player-similar'); }
 }

@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getDb } from '@/lib/db';
 import { aggregateByZone, classifyShotSignature } from '@/lib/zone-engine';
 import type { ShotInput, ZoneAggregation } from '@/lib/zone-engine';
+import { handleApiError } from '@/lib/api-error';
+import { jsonWithCache } from '@/lib/api-response';
 
 interface ComparisonEntry {
   readonly zone: string;
@@ -105,13 +107,11 @@ export async function GET(request: NextRequest) {
 
     const comparison = buildComparison(p1Zones, p2Zones, leagueZones);
 
-    return NextResponse.json({
+    return jsonWithCache({
       player1: { name: p1Name, zones: p1Zones, signature: p1Signature },
       player2: { name: p2Name, zones: p2Zones, signature: p2Signature },
       league: { zones: leagueZones },
       comparison,
-    });
-  } catch (error: unknown) {
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
-  }
+    }, 120);
+  } catch (e) { return handleApiError(e, 'zones-compare'); }
 }

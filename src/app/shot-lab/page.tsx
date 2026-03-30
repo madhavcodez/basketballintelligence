@@ -686,7 +686,7 @@ export default function ShotLabPage() {
         )}
 
         {/* No shots found state */}
-        {!loading && !error && playerName && shots.length === 0 && !loading && (
+        {!loading && !error && playerName && shots.length === 0 && (
           <GlassCard className="p-8 text-center">
             <Target size={40} className="mx-auto mb-3 text-[#86868B]" />
             <h3 className="text-lg font-bold text-[#1D1D1F] mb-1">No Shot Data</h3>

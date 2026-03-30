@@ -1,6 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { getFeaturedPlayers, getSeasons, getDataEdition, getCareerLeaders } from '@/lib/db';
 import { parseSeasonType, getTopScorersV2, getStandingsV2 } from '@/lib/playoffs-db';
+import { handleApiError } from '@/lib/api-error';
+import { jsonWithCache } from '@/lib/api-response';
 
 export async function GET(request: NextRequest) {
   const seasonType = parseSeasonType(request.nextUrl.searchParams.get('seasonType'));
@@ -11,7 +13,7 @@ export async function GET(request: NextRequest) {
     const edition = getDataEdition();
     const standingsResult = getStandingsV2(seasonType);
     const allTimeScorers = getCareerLeaders('pts', 10);
-    return NextResponse.json({
+    return jsonWithCache({
       featured,
       topScorers: topScorersResult.data,
       seasons,
@@ -20,8 +22,6 @@ export async function GET(request: NextRequest) {
       allTimeScorers,
       seasonType: topScorersResult.seasonType,
       playoffAvailable: topScorersResult.playoffAvailable,
-    });
-  } catch {
-    return NextResponse.json({ error: 'Database error' }, { status: 500 });
-  }
+    }, 300);
+  } catch (e) { return handleApiError(e, 'explore'); }
 }

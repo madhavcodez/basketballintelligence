@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getTeamStats, getTeamAdvanced } from '@/lib/db';
 import { getTeamRosterV2, parseSeasonType } from '@/lib/playoffs-db';
+import { handleApiError } from '@/lib/api-error';
+import { jsonWithCache } from '@/lib/api-response';
 
 export async function GET(
   req: NextRequest,
@@ -26,7 +28,7 @@ export async function GET(
     const teamName = (stats[0] as Record<string, unknown> | undefined)?.teamName as string | undefined;
     const advanced = teamName ? getTeamAdvanced(teamName) : [];
 
-    return NextResponse.json({
+    return jsonWithCache({
       team: decoded,
       stats,
       roster: {
@@ -35,11 +37,6 @@ export async function GET(
         playoffAvailable: roster.playoffAvailable,
       },
       advanced,
-    });
-  } catch {
-    return NextResponse.json(
-      { error: 'Failed to fetch team data' },
-      { status: 500 },
-    );
-  }
+    }, 300);
+  } catch (e) { return handleApiError(e, 'v2-team-detail'); }
 }

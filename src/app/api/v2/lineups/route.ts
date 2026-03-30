@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getLineupsV2, parseSeasonType } from '@/lib/playoffs-db';
+import { handleApiError } from '@/lib/api-error';
+import { jsonWithCache } from '@/lib/api-response';
 
 export async function GET(req: NextRequest) {
   try {
@@ -21,15 +23,10 @@ export async function GET(req: NextRequest) {
 
     const result = getLineupsV2(team, seasonType, season);
 
-    return NextResponse.json({
+    return jsonWithCache({
       data: result.data,
       seasonType: result.seasonType,
       playoffAvailable: result.playoffAvailable,
-    });
-  } catch {
-    return NextResponse.json(
-      { error: 'Failed to fetch lineups' },
-      { status: 500 },
-    );
-  }
+    }, 120);
+  } catch (e) { return handleApiError(e, 'v2-lineups'); }
 }

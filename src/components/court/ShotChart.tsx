@@ -222,7 +222,10 @@ export default function ShotChart({
         viewBox={`0 0 ${VB_W} ${VB_H}`}
         preserveAspectRatio="xMidYMid meet"
         className="w-full h-auto"
+        role="img"
+        aria-label={`Shot chart showing ${shots.length} shots${season ? ` from ${season}` : ''}`}
       >
+        <title>{`Shot chart: ${shots.length} shots${season ? ` — ${season}` : ''}`}</title>
         {/* Court as background */}
         <BasketballCourtSVG showZones={colorBy === 'zone'} />
 

@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getPlayerShotsV2, parseSeasonType } from '@/lib/playoffs-db';
+import { handleApiError } from '@/lib/api-error';
+import { jsonWithCache } from '@/lib/api-response';
 
 export async function GET(
   req: NextRequest,
@@ -23,15 +25,10 @@ export async function GET(
 
     const result = getPlayerShotsV2(decoded, seasonType, season, limit, offset);
 
-    return NextResponse.json({
+    return jsonWithCache({
       data: result.data,
       seasonType: result.seasonType,
       playoffAvailable: result.playoffAvailable,
-    });
-  } catch {
-    return NextResponse.json(
-      { error: 'Failed to fetch player shots' },
-      { status: 500 },
-    );
-  }
+    }, 120);
+  } catch (e) { return handleApiError(e, 'v2-player-shots'); }
 }

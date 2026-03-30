@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getPlayerZoneProfileWithLeague, getLeagueZoneBaseline, getShotLabSeasons } from '@/lib/db';
+import { handleApiError } from '@/lib/api-error';
+import { jsonWithCache } from '@/lib/api-response';
 
 // GET /api/shot-lab/zones?player=LeBron+James&season=2024-25
 // Returns player zone profile vs league average. If no player, returns league baseline only.
@@ -10,7 +12,7 @@ export async function GET(request: NextRequest) {
   try {
     if (!player) {
       const league = getLeagueZoneBaseline(season);
-      return NextResponse.json({ league, season: season ?? null });
+      return jsonWithCache({ league, season: season ?? null }, 120);
     }
 
     const zones = getPlayerZoneProfileWithLeague(player, season);
@@ -23,8 +25,6 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    return NextResponse.json({ player, season: season ?? seasons[0] ?? null, zones, seasons });
-  } catch {
-    return NextResponse.json({ error: 'Database error' }, { status: 500 });
-  }
+    return jsonWithCache({ player, season: season ?? seasons[0] ?? null, zones, seasons }, 120);
+  } catch (e) { return handleApiError(e, 'shot-lab-zones'); }
 }

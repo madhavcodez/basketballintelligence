@@ -1,70 +1,27 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { GoogleGenerativeAI } from '@google/generative-ai';
-import { getDb } from '@/lib/db';
+import { getDb, getSchemaDescription } from '@/lib/db';
+import { config } from '@/lib/config';
+import { handleApiError } from '@/lib/api-error';
 
 // ─── Schema context for Gemini ──────────────────────────────────────────────
+// Computed once at module level so we only hit the DB on first request.
+let _schemaCache: string | null = null;
+function getDbSchema(): string {
+  if (!_schemaCache) {
+    _schemaCache = getSchemaDescription();
+  }
+  return _schemaCache;
+}
 
-const DB_SCHEMA = `
-SQLite database with these tables:
+function buildDbSchema(): string {
+  return `SQLite basketball database. Tables:\n${getDbSchema()}\n\nKey notes:\n- Season in player_stats tables is integer like 2024 (representing 2023-24 season)\n- Season in shots table is string like "2023-24"\n- Season in team_stats_advanced is string like "2024-25"\n- Team abbreviations: LAL, BOS, GSW, MIL, etc.\n- Player names are full names like "LeBron James", "Stephen Curry"\n- "3P" and "3PA" and "3PPct" columns must be quoted in SQL\n- SHOT_MADE_FLAG is 0 or 1\n- career_leaders stat values: 'pts', 'trb', 'ast', 'stl', 'blk', etc.\n- For percentile calculations, use PERCENT_RANK() or NTILE() window functions\n- For streaks and records, use window functions like ROW_NUMBER(), LAG(), LEAD()\n- For head-to-head matchups, join player_stats_pergame on Season and compare`;
+}
 
-1. players (Player TEXT, HOF TEXT, Active TEXT, "From" INT, "To" INT, Pos TEXT, Height TEXT, Weight REAL, BirthDate TEXT, College TEXT, player_id INT)
-   → Use for: biographical info, college queries, active/HOF filters, career span ("From"/"To")
+function buildSystemPrompt(): string {
+  return `You are a basketball analytics AI assistant. You help users explore NBA data by generating SQLite queries.
 
-2. player_stats_pergame (Season INT, Player TEXT, Age REAL, Tm TEXT, Pos TEXT, G REAL, GS REAL, MP REAL, FG REAL, FGA REAL, FGPct REAL, "3P" REAL, "3PA" REAL, "3PPct" REAL, "2P" REAL, "2PA" REAL, "2PPct" REAL, eFGPct REAL, FT REAL, FTA REAL, FTPct REAL, ORB REAL, DRB REAL, TRB REAL, AST REAL, STL REAL, BLK REAL, TOV REAL, PF REAL, PTS REAL, Awards TEXT)
-   → Use for: per-game stats, seasonal leaders, player comparisons, game log averages, streaks analysis, percentile rankings
-
-3. player_stats_advanced (Season INT, Player TEXT, Age REAL, Tm TEXT, Pos TEXT, G REAL, MP REAL, PER REAL, TSPct REAL, "3PAr" REAL, FTr REAL, ORBPct REAL, DRBPct REAL, TRBPct REAL, ASTPct REAL, STLPct REAL, BLKPct REAL, TOVPct REAL, USGPct REAL, OWS REAL, DWS REAL, WS REAL, WS48 REAL, OBPM REAL, DBPM REAL, BPM REAL, VORP REAL)
-   → Use for: advanced analytics, efficiency metrics, win shares, VORP, PER rankings, lineup impact proxies
-
-4. shots (GAME_ID INT, PLAYER_NAME TEXT, TEAM_NAME TEXT, PERIOD INT, EVENT_TYPE TEXT, ACTION_TYPE TEXT, SHOT_TYPE TEXT, SHOT_ZONE_BASIC TEXT, SHOT_ZONE_AREA TEXT, SHOT_ZONE_RANGE TEXT, SHOT_DISTANCE INT, LOC_X INT, LOC_Y INT, SHOT_MADE_FLAG INT, GAME_DATE TEXT, season TEXT)
-   → Use for: shot analysis, shot zones, shot zone efficiency, shot distance breakdowns, shot charts, hot zones
-   → SHOT_ZONE_BASIC values: "Restricted Area", "In The Paint (Non-RA)", "Mid-Range", "Left Corner 3", "Right Corner 3", "Above the Break 3", "Backcourt"
-   → SHOT_ZONE_AREA values: "Center(C)", "Left Side(L)", "Right Side(R)", "Left Side Center(LC)", "Right Side Center(RC)", "Back Court(BC)"
-   → SHOT_ZONE_RANGE values: "Less Than 8 ft.", "8-16 ft.", "16-24 ft.", "24+ ft.", "Back Court Shot"
-
-5. team_traditional_regular (team_id TEXT, team_name TEXT, gp TEXT, w TEXT, l TEXT, w_pct TEXT, pts TEXT, reb TEXT, ast TEXT, stl TEXT, blk TEXT, fg_pct TEXT, fg3_pct TEXT, ft_pct TEXT, season TEXT)
-   → Use for: team stats, team comparisons, standings context
-
-6. team_stats_advanced (Season TEXT, TEAM_NAME TEXT, GP INT, W INT, L INT, OFF_RATING REAL, DEF_RATING REAL, NET_RATING REAL, PACE REAL, TS_PCT REAL, EFG_PCT REAL, TEAM_ID TEXT)
-   → Use for: team four factors, offensive/defensive ratings, net rating, pace, team efficiency comparisons
-
-7. standings (Season TEXT, Conference TEXT, Rank INT, Team TEXT, W INT, L INT, PCT REAL, GB TEXT, PPG REAL, OPP_PPG REAL, DIFF REAL)
-   → Use for: conference standings, win-loss records, point differentials
-
-8. awards (Player TEXT, award_type TEXT, Season TEXT, Tm TEXT)
-   → Use for: MVP, DPOY, ROY, All-NBA, All-Star, Sixth Man, MIP, and other award queries
-   → award_type values include: "MVP", "Defensive Player of the Year", "Rookie of the Year", "Sixth Man of the Year", "Most Improved Player", "All-NBA", "All-Star", etc.
-
-9. draft (Year INT, Rk INT, Pk INT, Player TEXT, Tm TEXT, College TEXT)
-   → Use for: draft picks, draft class queries, college pipeline analysis, first overall picks
-
-10. career_leaders (Rank REAL, Player TEXT, HOF TEXT, Active TEXT, Value INT, stat TEXT, league TEXT)
-    → Use for: all-time career leaders in pts, trb, ast, stl, blk, etc.
-    → stat values: 'pts', 'trb', 'ast', 'stl', 'blk', 'fg', 'ft', 'fg3', etc.
-
-11. tracking (Season TEXT, PLAYER_NAME TEXT, TEAM_ABBREVIATION TEXT, GP INT, various shooting/driving/passing/speed metrics)
-    → Use for: player tracking data, speed, drives, touches, passes, distance covered
-
-12. player_game_logs (SEASON_ID TEXT, PLAYER_NAME TEXT, GAME_DATE TEXT, PTS INT, REB INT, AST INT, STL INT, BLK INT, etc.)
-    → Use for: individual game performances, recent game logs, hot streaks, game-by-game analysis
-
-Key notes:
-- Season in player_stats tables is integer like 2024 (representing 2023-24 season)
-- Season in shots table is string like "2023-24"
-- Season in team_stats_advanced is string like "2024-25"
-- Team abbreviations: LAL, BOS, GSW, MIL, etc.
-- Player names are full names like "LeBron James", "Stephen Curry"
-- "3P" and "3PA" and "3PPct" columns must be quoted in SQL
-- SHOT_MADE_FLAG is 0 or 1
-- career_leaders stat values: 'pts', 'trb', 'ast', 'stl', 'blk', etc.
-- For percentile calculations, use PERCENT_RANK() or NTILE() window functions
-- For streaks and records, use window functions like ROW_NUMBER(), LAG(), LEAD()
-- For head-to-head matchups, join player_stats_pergame on Season and compare
-`;
-
-const SYSTEM_PROMPT = `You are a basketball analytics AI assistant. You help users explore NBA data by generating SQLite queries.
-
-${DB_SCHEMA}
+${buildDbSchema()}
 
 RULES:
 1. Generate ONLY SELECT queries. Never INSERT, UPDATE, DELETE, DROP, or ALTER.
@@ -127,6 +84,7 @@ If the question cannot be answered with the available data, respond:
 }
 
 IMPORTANT: Respond with ONLY the JSON object, no markdown, no code blocks, no extra text.`;
+}
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -192,9 +150,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (message.length > 500) {
+    if (message.length > config.gemini.maxMessageLength) {
       return NextResponse.json(
-        { error: 'Message too long (max 500 characters)' },
+        { error: `Message too long (max ${config.gemini.maxMessageLength} characters)` },
         { status: 400 }
       );
     }
@@ -214,11 +172,11 @@ export async function POST(request: NextRequest) {
     }));
 
     const model = genAI.getGenerativeModel({
-      model: 'gemini-2.5-flash',
-      systemInstruction: { role: 'user', parts: [{ text: SYSTEM_PROMPT }] },
+      model: config.gemini.model,
+      systemInstruction: { role: 'user', parts: [{ text: buildSystemPrompt() }] },
       generationConfig: {
-        temperature: 0.3,
-        maxOutputTokens: 1024,
+        temperature: config.gemini.temperature,
+        maxOutputTokens: config.gemini.maxOutputTokens,
       },
     });
 
@@ -317,10 +275,5 @@ export async function POST(request: NextRequest) {
       followUps: parsed.followUps ?? [],
       rowCount: rows.length,
     });
-  } catch (err) {
-    return NextResponse.json(
-      { error: 'Failed to process request' },
-      { status: 500 }
-    );
-  }
+  } catch (e) { return handleApiError(e, 'agentic-chat'); }
 }

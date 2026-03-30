@@ -4,6 +4,8 @@ import {
   getTeamInsights,
   getExploreInsights,
 } from '@/lib/insights-engine';
+import { handleApiError } from '@/lib/api-error';
+import { jsonWithCache } from '@/lib/api-response';
 
 export async function GET(req: NextRequest) {
   try {
@@ -19,7 +21,7 @@ export async function GET(req: NextRequest) {
         return NextResponse.json({ insights: [] });
       }
       const insights = getPlayerInsights(decoded, season);
-      return NextResponse.json({ insights });
+      return jsonWithCache({ insights }, 120);
     }
 
     if (team) {
@@ -28,16 +30,11 @@ export async function GET(req: NextRequest) {
         return NextResponse.json({ insights: [] });
       }
       const insights = getTeamInsights(decoded, season);
-      return NextResponse.json({ insights });
+      return jsonWithCache({ insights }, 120);
     }
 
     // Explore mode — no player/team specified
     const insights = getExploreInsights();
-    return NextResponse.json({ insights });
-  } catch {
-    return NextResponse.json(
-      { error: 'Failed to generate insights', insights: [] },
-      { status: 500 },
-    );
-  }
+    return jsonWithCache({ insights }, 300);
+  } catch (e) { return handleApiError(e, 'v2-insights'); }
 }

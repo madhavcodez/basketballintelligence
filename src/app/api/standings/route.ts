@@ -1,6 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { getSeasons } from '@/lib/db';
 import { parseSeasonType, getStandingsV2 } from '@/lib/playoffs-db';
+import { handleApiError } from '@/lib/api-error';
+import { jsonWithCache } from '@/lib/api-response';
 
 export async function GET(request: NextRequest) {
   const season = request.nextUrl.searchParams.get('season') || undefined;
@@ -8,13 +10,11 @@ export async function GET(request: NextRequest) {
   try {
     const standingsResult = getStandingsV2(seasonType, season);
     const seasons = getSeasons();
-    return NextResponse.json({
+    return jsonWithCache({
       standings: standingsResult.data,
       seasons,
       seasonType: standingsResult.seasonType,
       playoffAvailable: standingsResult.playoffAvailable,
-    });
-  } catch {
-    return NextResponse.json({ error: 'Database error' }, { status: 500 });
-  }
+    }, 300);
+  } catch (e) { return handleApiError(e, 'standings'); }
 }

@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDb } from '@/lib/db';
+import { handleApiError } from '@/lib/api-error';
+import { jsonWithCache } from '@/lib/api-response';
 
 // Returns a random interesting zone stat for the "Zone of the Day" feature
 export async function GET(request: NextRequest) {
@@ -85,8 +87,6 @@ export async function GET(request: NextRequest) {
     // Look up personId for headshot
     const pRow = db.prepare('SELECT person_id FROM players WHERE Player = ?').get(spotlight.player) as { person_id: string | number } | undefined;
 
-    return NextResponse.json({ season, spotlight: { ...spotlight, personId: pRow?.person_id ?? null } });
-  } catch (error: unknown) {
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
-  }
+    return jsonWithCache({ season, spotlight: { ...spotlight, personId: pRow?.person_id ?? null } }, 120);
+  } catch (e) { return handleApiError(e, 'zones-spotlight'); }
 }

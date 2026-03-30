@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { insertVideo } from '@/lib/film-db';
 import { writeFile, mkdir } from 'fs/promises';
 import path from 'path';
+import { handleApiError } from '@/lib/api-error';
 
 const MAX_FILE_SIZE = 500 * 1024 * 1024; // 500 MB
 
@@ -56,7 +57,5 @@ export async function POST(request: NextRequest) {
       { videoId, status: 'pending' },
       { status: 201 },
     );
-  } catch {
-    return NextResponse.json({ error: 'Upload failed' }, { status: 500 });
-  }
+  } catch (e) { return handleApiError(e, 'film-upload'); }
 }

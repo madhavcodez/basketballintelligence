@@ -1,14 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { modelWhatIfShotMix, getShotLabSeasons } from '@/lib/db';
+import { handleApiError } from '@/lib/api-error';
+import { jsonWithCache } from '@/lib/api-response';
 
 // GET /api/shot-lab/whatif?player=Stephen+Curry&season=2024-25&adjustments=[...]
-//
-// adjustments: JSON array of shift objects:
-//   [{ "fromZone": "Mid-Range", "fromArea": "Center(C)",
-//      "toZone": "Above the Break 3", "toArea": "Center(C)",
-//      "shiftPct": 5 }]
-//
-// Returns expected points per 100 attempts (ePtsPer100) baseline vs adjusted.
 export async function GET(request: NextRequest) {
   const player = request.nextUrl.searchParams.get('player');
   const season = request.nextUrl.searchParams.get('season') || undefined;
@@ -60,8 +55,6 @@ export async function GET(request: NextRequest) {
         { status: 404 }
       );
     }
-    return NextResponse.json(result);
-  } catch {
-    return NextResponse.json({ error: 'Database error' }, { status: 500 });
-  }
+    return jsonWithCache(result, 120);
+  } catch (e) { return handleApiError(e, 'shot-lab-whatif'); }
 }

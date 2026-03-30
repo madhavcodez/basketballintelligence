@@ -1,11 +1,11 @@
 import { NextResponse } from 'next/server';
 import { getTeams } from '@/lib/db';
+import { handleApiError } from '@/lib/api-error';
+import { jsonWithCache } from '@/lib/api-response';
 
 export async function GET() {
   try {
     const teams = getTeams();
-    return NextResponse.json(teams);
-  } catch {
-    return NextResponse.json({ error: 'Database error' }, { status: 500 });
-  }
+    return jsonWithCache(teams, 300);
+  } catch (e) { return handleApiError(e, 'teams'); }
 }

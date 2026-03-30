@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getPlayer, getPlayerAwards, getDraftPick } from '@/lib/db';
 import { parseSeasonType, getPlayerStatsV2, getPlayerAdvancedV2 } from '@/lib/playoffs-db';
+import { handleApiError } from '@/lib/api-error';
+import { jsonWithCache } from '@/lib/api-response';
 
 export async function GET(
   request: NextRequest,
@@ -16,7 +18,7 @@ export async function GET(
     const advancedResult = getPlayerAdvancedV2(playerName, seasonType);
     const awards = getPlayerAwards(playerName);
     const draft = getDraftPick(playerName);
-    return NextResponse.json({
+    return jsonWithCache({
       player,
       stats: statsResult.data,
       advanced: advancedResult.data,
@@ -24,8 +26,6 @@ export async function GET(
       draft,
       seasonType: statsResult.seasonType,
       playoffAvailable: statsResult.playoffAvailable,
-    });
-  } catch {
-    return NextResponse.json({ error: 'Database error' }, { status: 500 });
-  }
+    }, 120);
+  } catch (e) { return handleApiError(e, 'player-detail'); }
 }

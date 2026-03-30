@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { comparePlayersV2, getShotZoneStatsV2, parseSeasonType } from '@/lib/playoffs-db';
+import { handleApiError } from '@/lib/api-error';
+import { jsonWithCache } from '@/lib/api-response';
 
 export async function GET(req: NextRequest) {
   try {
@@ -25,7 +27,7 @@ export async function GET(req: NextRequest) {
     const p1Zones = getShotZoneStatsV2(p1, seasonType, season);
     const p2Zones = getShotZoneStatsV2(p2, seasonType, season);
 
-    return NextResponse.json({
+    return jsonWithCache({
       player1: comparison.player1,
       player2: comparison.player2,
       shotZones: {
@@ -34,11 +36,6 @@ export async function GET(req: NextRequest) {
       },
       seasonType: comparison.seasonType,
       playoffAvailable: comparison.playoffAvailable,
-    });
-  } catch {
-    return NextResponse.json(
-      { error: 'Failed to compare players' },
-      { status: 500 },
-    );
-  }
+    }, 120);
+  } catch (e) { return handleApiError(e, 'v2-compare'); }
 }

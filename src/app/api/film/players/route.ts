@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getPlayerClipCounts } from '@/lib/film-db';
 import { getDb } from '@/lib/db';
+import { handleApiError } from '@/lib/api-error';
 
 export async function GET() {
   try {
@@ -38,7 +39,5 @@ export async function GET() {
     });
 
     return NextResponse.json({ players: enriched });
-  } catch {
-    return NextResponse.json({ error: 'Database error' }, { status: 500 });
-  }
+  } catch (e) { return handleApiError(e, 'film-players'); }
 }

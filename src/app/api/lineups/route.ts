@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { parseSeasonType, getLineupsV2 } from '@/lib/playoffs-db';
+import { handleApiError } from '@/lib/api-error';
+import { jsonWithCache } from '@/lib/api-response';
 
 export async function GET(request: NextRequest) {
   const team = request.nextUrl.searchParams.get('team');
@@ -8,12 +10,10 @@ export async function GET(request: NextRequest) {
   if (!team) return NextResponse.json({ error: 'Team required' }, { status: 400 });
   try {
     const result = getLineupsV2(team, seasonType, season);
-    return NextResponse.json({
+    return jsonWithCache({
       data: result.data,
       seasonType: result.seasonType,
       playoffAvailable: result.playoffAvailable,
-    });
-  } catch {
-    return NextResponse.json({ error: 'Database error' }, { status: 500 });
-  }
+    }, 120);
+  } catch (e) { return handleApiError(e, 'lineups'); }
 }

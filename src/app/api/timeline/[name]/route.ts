@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { buildTimeline } from '@/lib/timeline-engine';
 import { findPlayerName } from '@/lib/matchup-engine';
+import { handleApiError } from '@/lib/api-error';
+import { jsonWithCache } from '@/lib/api-response';
 
 export async function GET(
   _request: NextRequest,
@@ -21,11 +23,6 @@ export async function GET(
       );
     }
 
-    return NextResponse.json(timeline);
-  } catch {
-    return NextResponse.json(
-      { error: 'Failed to build timeline' },
-      { status: 500 }
-    );
-  }
+    return jsonWithCache(timeline, 120);
+  } catch (e) { return handleApiError(e, 'timeline'); }
 }

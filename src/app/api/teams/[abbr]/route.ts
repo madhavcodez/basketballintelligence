@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getTeamStats, getTeamAdvanced } from '@/lib/db';
 import { parseSeasonType, getTeamRosterV2, getLineupsV2 } from '@/lib/playoffs-db';
+import { handleApiError } from '@/lib/api-error';
+import { jsonWithCache } from '@/lib/api-response';
 
 export async function GET(
   request: NextRequest,
@@ -16,15 +18,13 @@ export async function GET(
     const lineupsResult = getLineupsV2(abbr, seasonType, season);
     const teamName = (stats[0] as Record<string, unknown>)?.teamName as string | undefined;
     const advanced = teamName ? getTeamAdvanced(teamName) : [];
-    return NextResponse.json({
+    return jsonWithCache({
       stats,
       roster: rosterResult.data,
       lineups: lineupsResult.data,
       advanced,
       seasonType: rosterResult.seasonType,
       playoffAvailable: rosterResult.playoffAvailable,
-    });
-  } catch {
-    return NextResponse.json({ error: 'Database error' }, { status: 500 });
-  }
+    }, 300);
+  } catch (e) { return handleApiError(e, 'team-detail'); }
 }

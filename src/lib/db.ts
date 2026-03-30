@@ -1,11 +1,11 @@
 import Database from 'better-sqlite3';
-import path from 'path';
+import { config } from './config';
 
 let db: Database.Database | null = null;
 
 export function getDb(): Database.Database {
   if (!db) {
-    const dbPath = path.join(process.cwd(), 'data', 'basketball.db');
+    const dbPath = config.db.path;
     db = new Database(dbPath, { readonly: true });
     db.pragma('cache_size = -65536'); // 64MB cache
     db.pragma('temp_store = MEMORY');
@@ -351,8 +351,8 @@ export function getDataEdition() {
     playerCount,
     earliestSeason: seasonRange?.earliest,
     latestSeason: seasonRange?.latest,
-    edition: 'March 2026',
-    lastUpdated: '2026-03-23'
+    edition: `${new Date().toLocaleString('default', { month: 'long' })} ${new Date().getFullYear()}`,
+    lastUpdated: new Date().toISOString().split('T')[0]
   };
 }
 
@@ -933,4 +933,18 @@ export function modelWhatIfShotMix(
       }),
     },
   };
+}
+
+// ── Schema Introspection ──────────────────────────────────────────────────────
+
+export function getSchemaDescription(): string {
+  const database = getDb();
+  const tables = database.prepare(
+    "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' ORDER BY name"
+  ).all() as { name: string }[];
+  return tables.map(({ name }) => {
+    const cols = database.prepare(`PRAGMA table_info("${name}")`).all() as { name: string; type: string }[];
+    const count = (database.prepare(`SELECT COUNT(*) as c FROM "${name}"`).get() as { c: number }).c;
+    return `${name} (${count.toLocaleString()} rows): ${cols.map(c => `${c.name} ${c.type}`).join(', ')}`;
+  }).join('\n');
 }

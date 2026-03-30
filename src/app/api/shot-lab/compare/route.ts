@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { compareShotZoneProfiles } from '@/lib/db';
+import { handleApiError } from '@/lib/api-error';
+import { jsonWithCache } from '@/lib/api-response';
 
 // GET /api/shot-lab/compare?player1=LeBron+James&player2=Kevin+Durant&season=2024-25
 // Returns zone-by-zone shot distribution comparison for two players + league baseline.
@@ -25,8 +27,6 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    return NextResponse.json(result);
-  } catch {
-    return NextResponse.json({ error: 'Database error' }, { status: 500 });
-  }
+    return jsonWithCache(result, 120);
+  } catch (e) { return handleApiError(e, 'shot-lab-compare'); }
 }

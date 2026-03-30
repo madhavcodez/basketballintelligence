@@ -1,5 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { getStandingsV2, parseSeasonType } from '@/lib/playoffs-db';
+import { handleApiError } from '@/lib/api-error';
+import { jsonWithCache } from '@/lib/api-response';
 
 export async function GET(req: NextRequest) {
   try {
@@ -11,15 +13,10 @@ export async function GET(req: NextRequest) {
 
     const result = getStandingsV2(seasonType, season);
 
-    return NextResponse.json({
+    return jsonWithCache({
       data: result.data,
       seasonType: result.seasonType,
       playoffAvailable: result.playoffAvailable,
-    });
-  } catch {
-    return NextResponse.json(
-      { error: 'Failed to fetch standings' },
-      { status: 500 },
-    );
-  }
+    }, 300);
+  } catch (e) { return handleApiError(e, 'v2-standings'); }
 }

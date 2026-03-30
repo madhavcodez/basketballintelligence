@@ -1,6 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { getCareerLeaders, getDataEdition } from '@/lib/db';
 import { getTopScorersV2, getStandingsV2, parseSeasonType } from '@/lib/playoffs-db';
+import { handleApiError } from '@/lib/api-error';
+import { jsonWithCache } from '@/lib/api-response';
 
 export async function GET(req: NextRequest) {
   try {
@@ -11,7 +13,7 @@ export async function GET(req: NextRequest) {
     const careerLeaders = getCareerLeaders('pts');
     const dataEdition = getDataEdition();
 
-    return NextResponse.json({
+    return jsonWithCache({
       topScorers: {
         data: topScorers.data,
         seasonType: topScorers.seasonType,
@@ -24,11 +26,6 @@ export async function GET(req: NextRequest) {
       },
       careerLeaders,
       dataEdition,
-    });
-  } catch {
-    return NextResponse.json(
-      { error: 'Failed to fetch explore data' },
-      { status: 500 },
-    );
-  }
+    }, 300);
+  } catch (e) { return handleApiError(e, 'v2-explore'); }
 }

@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getDb } from '@/lib/db';
 import { ZONE_LIST } from '@/lib/shot-constants';
 import type { ZoneName } from '@/lib/shot-constants';
+import { handleApiError } from '@/lib/api-error';
+import { jsonWithCache } from '@/lib/api-response';
 
 const DEFAULT_LIMIT = 10;
 const MAX_LIMIT = 50;
@@ -80,12 +82,10 @@ export async function GET(request: NextRequest) {
       };
     });
 
-    return NextResponse.json({
+    return jsonWithCache({
       zone: zoneParam,
       season,
       leaders,
-    });
-  } catch (error: unknown) {
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
-  }
+    }, 120);
+  } catch (e) { return handleApiError(e, 'zones-leaders'); }
 }

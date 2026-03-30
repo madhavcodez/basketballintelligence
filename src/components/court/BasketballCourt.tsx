@@ -209,8 +209,9 @@ export default function BasketballCourt({
       preserveAspectRatio="xMidYMid meet"
       className={clsx('select-none', className)}
       role="img"
-      aria-label="NBA half-court diagram"
+      aria-label="Basketball half-court diagram"
     >
+      <title>Basketball half-court diagram</title>
       {/* ── Zone overlays ───────────────────────────────── */}
       {showZones && (
         <g aria-label="Shot zones">

@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getDb } from '@/lib/db';
 import { aggregateByZone } from '@/lib/zone-engine';
 import type { ShotInput } from '@/lib/zone-engine';
+import { handleApiError } from '@/lib/api-error';
+import { jsonWithCache } from '@/lib/api-response';
 
 export async function GET(request: NextRequest) {
   const seasonParam = request.nextUrl.searchParams.get('season') || undefined;
@@ -32,16 +34,10 @@ export async function GET(request: NextRequest) {
     const totalMakes = shots.reduce((sum, s) => sum + s.made, 0);
     const leagueAvgFgPct = totalMakes / shots.length;
 
-    const response = NextResponse.json({
+    return jsonWithCache({
       season,
       zones,
       leagueAvgFgPct,
-    });
-
-    response.headers.set('Cache-Control', 'public, max-age=3600, s-maxage=86400, stale-while-revalidate=43200');
-
-    return response;
-  } catch (error: unknown) {
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
-  }
+    }, 120);
+  } catch (e) { return handleApiError(e, 'zones-league'); }
 }

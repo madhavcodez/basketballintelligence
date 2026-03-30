@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { findPlayerName, getTopRivals } from '@/lib/matchup-engine';
+import { handleApiError } from '@/lib/api-error';
+import { jsonWithCache } from '@/lib/api-response';
 
 export async function GET(
   request: NextRequest,
@@ -22,14 +24,9 @@ export async function GET(
 
     const rivals = getTopRivals(playerName, limit);
 
-    return NextResponse.json({
+    return jsonWithCache({
       player: playerName,
       rivals,
-    });
-  } catch {
-    return NextResponse.json(
-      { error: 'Database error' },
-      { status: 500 },
-    );
-  }
+    }, 120);
+  } catch (e) { return handleApiError(e, 'matchup-rivals'); }
 }

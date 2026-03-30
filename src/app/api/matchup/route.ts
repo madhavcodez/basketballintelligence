@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { findPlayerName, getMatchupSummary } from '@/lib/matchup-engine';
 import { getDb } from '@/lib/db';
+import { handleApiError } from '@/lib/api-error';
+import { jsonWithCache } from '@/lib/api-response';
 
 export async function GET(request: NextRequest) {
   const p1 = request.nextUrl.searchParams.get('p1');
@@ -48,15 +50,10 @@ export async function GET(request: NextRequest) {
     const p1Row = db.prepare('SELECT person_id FROM players WHERE Player = ?').get(player1Name) as { person_id: string | number } | undefined;
     const p2Row = db.prepare('SELECT person_id FROM players WHERE Player = ?').get(player2Name) as { person_id: string | number } | undefined;
 
-    return NextResponse.json({
+    return jsonWithCache({
       ...summary,
       p1PersonId: p1Row?.person_id ?? null,
       p2PersonId: p2Row?.person_id ?? null,
-    });
-  } catch {
-    return NextResponse.json(
-      { error: 'Database error' },
-      { status: 500 },
-    );
-  }
+    }, 120);
+  } catch (e) { return handleApiError(e, 'matchup'); }
 }

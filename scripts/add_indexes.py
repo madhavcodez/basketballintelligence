@@ -107,6 +107,14 @@ INDEXES = [
     # injury_history
     "CREATE INDEX IF NOT EXISTS idx_injury_team ON injury_history(team)",
     "CREATE INDEX IF NOT EXISTS idx_injury_date ON injury_history(date)",
+
+    # ── NEW: Additional single-column indexes ─────────────────────────
+    "CREATE INDEX IF NOT EXISTS idx_player_game_logs_player ON player_game_logs(PLAYER_NAME)",
+    "CREATE INDEX IF NOT EXISTS idx_player_game_logs_season ON player_game_logs(SEASON_ID)",
+    "CREATE INDEX IF NOT EXISTS idx_draft_player ON draft(Player)",
+    "CREATE INDEX IF NOT EXISTS idx_awards_player ON awards(Player)",
+    "CREATE INDEX IF NOT EXISTS idx_standings_season ON standings(Season)",
+    "CREATE INDEX IF NOT EXISTS idx_tracking_player ON tracking(PLAYER_NAME)",
 ]
 
 def main():

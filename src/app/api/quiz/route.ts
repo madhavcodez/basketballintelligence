@@ -5,6 +5,7 @@ import {
   getRandomPairForQuiz,
   type QuizDifficulty,
 } from '@/lib/db';
+import { handleApiError } from '@/lib/api-error';
 
 /**
  * GET /api/quiz
@@ -13,18 +14,6 @@ import {
  *   mode        — "guess" (default) | "compare" | "better-season"
  *   difficulty  — "easy" | "medium" (default) | "hard"   [mode=guess only]
  *   stat        — "PTS" (default) | "TRB" | "AST"        [mode=better-season only]
- *
- * Responses:
- *
- *   mode=guess
- *     { name, team, season, points, rebounds, assists, steals, blocks,
- *       games, fgPct, fg3Pct, ftPct, turnovers }
- *
- *   mode=compare  (legacy — random pair, any era)
- *     [ { name, team, season, points, rebounds, assists, games }, ... ]
- *
- *   mode=better-season  (competitive pair from the same season)
- *     [ { name, team, season, points, rebounds, assists, games }, ... ]
  */
 export async function GET(request: NextRequest) {
   const { searchParams } = request.nextUrl;
@@ -63,7 +52,5 @@ export async function GET(request: NextRequest) {
     }
 
     return NextResponse.json({ error: 'Invalid mode' }, { status: 400 });
-  } catch {
-    return NextResponse.json({ error: 'Database error' }, { status: 500 });
-  }
+  } catch (e) { return handleApiError(e, 'quiz'); }
 }

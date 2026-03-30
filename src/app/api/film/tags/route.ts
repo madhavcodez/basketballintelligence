@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAllTags } from '@/lib/film-db';
+import { handleApiError } from '@/lib/api-error';
 
 export async function GET(_request: NextRequest) {
   try {
@@ -7,7 +8,5 @@ export async function GET(_request: NextRequest) {
     const categories = [...new Set(tags.map((t) => t.category))];
 
     return NextResponse.json({ tags, categories });
-  } catch {
-    return NextResponse.json({ error: 'Database error' }, { status: 500 });
-  }
+  } catch (e) { return handleApiError(e, 'film-tags'); }
 }

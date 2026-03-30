@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getDb } from '@/lib/db';
 import { aggregateByZone, classifyShotSignature } from '@/lib/zone-engine';
 import type { ShotInput, ZoneAggregation } from '@/lib/zone-engine';
+import { handleApiError } from '@/lib/api-error';
+import { jsonWithCache } from '@/lib/api-response';
 
 const MIN_ATTEMPTS_FOR_EXTREMES = 10;
 
@@ -46,7 +48,7 @@ export async function GET(
     // Look up person_id for headshot
     const playerRow = db.prepare('SELECT person_id FROM players WHERE Player = ?').get(playerName) as { person_id: string | number } | undefined;
 
-    return NextResponse.json({
+    return jsonWithCache({
       player: playerName,
       personId: playerRow?.person_id ?? null,
       season: season ?? 'all',
@@ -55,8 +57,6 @@ export async function GET(
       topZone: topZone ? { zone: topZone.zone, fgPct: topZone.fgPct } : null,
       coldestZone: coldestZone ? { zone: coldestZone.zone, fgPct: coldestZone.fgPct } : null,
       shotSignature,
-    });
-  } catch (error: unknown) {
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
-  }
+    }, 120);
+  } catch (e) { return handleApiError(e, 'zones-player'); }
 }

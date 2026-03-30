@@ -8,6 +8,7 @@ import {
   updateClip,
 } from '@/lib/film-db';
 import { getDb } from '@/lib/db';
+import { handleApiError } from '@/lib/api-error';
 
 function getPlayerContext(playerName: string | null): Record<string, unknown> | null {
   if (!playerName) return null;
@@ -68,9 +69,7 @@ export async function GET(
       playerContext,
       defenderContext,
     });
-  } catch {
-    return NextResponse.json({ error: 'Database error' }, { status: 500 });
-  }
+  } catch (e) { return handleApiError(e, 'film-clip-detail'); }
 }
 
 export async function PATCH(
@@ -103,7 +102,5 @@ export async function PATCH(
 
     const clip = getClip(clipId);
     return NextResponse.json({ clip });
-  } catch {
-    return NextResponse.json({ error: 'Database error' }, { status: 500 });
-  }
+  } catch (e) { return handleApiError(e, 'film-clip-patch'); }
 }

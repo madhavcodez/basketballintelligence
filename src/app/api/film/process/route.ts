@@ -9,6 +9,7 @@ import {
   listClips,
   updateVideoStatus,
 } from '@/lib/film-db';
+import { handleApiError } from '@/lib/api-error';
 
 const MOCK_PLAY_TYPES = [
   'pick_and_roll',
@@ -101,9 +102,7 @@ export async function GET(request: NextRequest) {
     }
 
     return NextResponse.json(job);
-  } catch {
-    return NextResponse.json({ error: 'Database error' }, { status: 500 });
-  }
+  } catch (e) { return handleApiError(e, 'film-process-get'); }
 }
 
 export async function POST(request: NextRequest) {
@@ -166,7 +165,5 @@ export async function POST(request: NextRequest) {
       { jobId, status: 'queued' },
       { status: 201 },
     );
-  } catch {
-    return NextResponse.json({ error: 'Database error' }, { status: 500 });
-  }
+  } catch (e) { return handleApiError(e, 'film-process-post'); }
 }

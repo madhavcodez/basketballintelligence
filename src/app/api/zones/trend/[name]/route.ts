@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getDb } from '@/lib/db';
 import { classifyZone } from '@/lib/zone-engine';
 import type { ZoneName } from '@/lib/shot-constants';
+import { handleApiError } from '@/lib/api-error';
+import { jsonWithCache } from '@/lib/api-response';
 
 // ── Types ─────────────────────────────────────────────────────────
 
@@ -93,11 +95,9 @@ export async function GET(
 
     // Seasons are already sorted chronologically from the SQL ORDER BY
 
-    return NextResponse.json({
+    return jsonWithCache({
       player: playerName,
       seasons,
-    });
-  } catch (error: unknown) {
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
-  }
+    }, 120);
+  } catch (e) { return handleApiError(e, 'zones-trend'); }
 }

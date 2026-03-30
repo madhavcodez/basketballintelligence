@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDb } from '@/lib/db';
 import { classifyZone } from '@/lib/zone-engine';
+import { handleApiError } from '@/lib/api-error';
+import { jsonWithCache } from '@/lib/api-response';
 
 const DEFAULT_LIMIT = 5000;
 const MAX_LIMIT = 10000;
@@ -61,13 +63,11 @@ export async function GET(
       zone: classifyZone(row.x, row.y),
     }));
 
-    return NextResponse.json({
+    return jsonWithCache({
       player: playerName,
       season: season ?? 'all',
       shots,
       totalShots,
-    });
-  } catch (error: unknown) {
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
-  }
+    }, 120);
+  } catch (e) { return handleApiError(e, 'zones-heatmap'); }
 }

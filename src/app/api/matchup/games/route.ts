@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { findPlayerName, getSharedGames } from '@/lib/matchup-engine';
+import { handleApiError } from '@/lib/api-error';
+import { jsonWithCache } from '@/lib/api-response';
 
 export async function GET(request: NextRequest) {
   const p1 = request.nextUrl.searchParams.get('p1');
@@ -31,14 +33,9 @@ export async function GET(request: NextRequest) {
     const allGames = getSharedGames(player1Name, player2Name);
     const sliced = allGames.slice(offset, offset + limit);
 
-    return NextResponse.json({
+    return jsonWithCache({
       games: sliced,
       total: allGames.length,
-    });
-  } catch {
-    return NextResponse.json(
-      { error: 'Database error' },
-      { status: 500 },
-    );
-  }
+    }, 120);
+  } catch (e) { return handleApiError(e, 'matchup-games'); }
 }

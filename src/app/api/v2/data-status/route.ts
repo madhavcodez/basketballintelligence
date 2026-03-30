@@ -1,19 +1,17 @@
-import { NextResponse } from 'next/server';
 import { getPlayoffDataStatus } from '@/lib/playoffs-db';
+import { handleApiError } from '@/lib/api-error';
+import { jsonWithCache } from '@/lib/api-response';
 
 export async function GET() {
   try {
     const status = getPlayoffDataStatus();
-    return NextResponse.json({
+    return jsonWithCache({
       regular: true,
       playoffs: status.hasPlayoffStats || status.hasPlayoffShots,
       playoffSeasons: status.playoffSeasons,
       details: status,
-    });
-  } catch {
-    return NextResponse.json(
-      { regular: true, playoffs: false, playoffSeasons: [], details: null },
-      { status: 500 },
-    );
+    }, 300);
+  } catch (e) {
+    return handleApiError(e, 'v2-data-status');
   }
 }

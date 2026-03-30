@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getArchetypeQuiz } from '@/lib/db';
+import { handleApiError } from '@/lib/api-error';
 
 export async function GET() {
   try {
@@ -13,10 +14,5 @@ export async function GET() {
     }
 
     return NextResponse.json({ data });
-  } catch {
-    return NextResponse.json(
-      { error: 'Failed to generate archetype quiz' },
-      { status: 500 },
-    );
-  }
+  } catch (e) { return handleApiError(e, 'v2-quiz-archetype'); }
 }

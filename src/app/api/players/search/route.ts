@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { searchPlayers } from '@/lib/db';
+import { handleApiError } from '@/lib/api-error';
+import { jsonWithCache } from '@/lib/api-response';
 
 export async function GET(request: NextRequest) {
   const q = request.nextUrl.searchParams.get('q') || '';
@@ -8,8 +10,6 @@ export async function GET(request: NextRequest) {
   if (q.length < 2) return NextResponse.json([]);
   try {
     const players = searchPlayers(q, limit, offset);
-    return NextResponse.json(players);
-  } catch {
-    return NextResponse.json({ error: 'Database error' }, { status: 500 });
-  }
+    return jsonWithCache(players, 60);
+  } catch (e) { return handleApiError(e, 'players-search'); }
 }

@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getShotZoneStatsV2, parseSeasonType } from '@/lib/playoffs-db';
+import { handleApiError } from '@/lib/api-error';
+import { jsonWithCache } from '@/lib/api-response';
 
 export async function GET(req: NextRequest) {
   try {
@@ -20,15 +22,10 @@ export async function GET(req: NextRequest) {
     const player = decodeURIComponent(playerRaw);
     const result = getShotZoneStatsV2(player, seasonType, season);
 
-    return NextResponse.json({
+    return jsonWithCache({
       data: result.data,
       seasonType: result.seasonType,
       playoffAvailable: result.playoffAvailable,
-    });
-  } catch {
-    return NextResponse.json(
-      { error: 'Failed to fetch shot zone stats' },
-      { status: 500 },
-    );
-  }
+    }, 120);
+  } catch (e) { return handleApiError(e, 'v2-shot-lab-zones'); }
 }

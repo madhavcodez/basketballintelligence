@@ -6,6 +6,7 @@ import {
   addClipTag,
   type ClipFilters,
 } from '@/lib/film-db';
+import { handleApiError } from '@/lib/api-error';
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
@@ -32,9 +33,7 @@ export async function GET(request: NextRequest) {
 
     const { clips, total } = listClips(filters);
     return NextResponse.json({ clips, total, filters });
-  } catch {
-    return NextResponse.json({ error: 'Database error' }, { status: 500 });
-  }
+  } catch (e) { return handleApiError(e, 'film-clips-get'); }
 }
 
 export async function POST(request: NextRequest) {
@@ -80,7 +79,5 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json({ id: clipId }, { status: 201 });
-  } catch {
-    return NextResponse.json({ error: 'Database error' }, { status: 500 });
-  }
+  } catch (e) { return handleApiError(e, 'film-clips-post'); }
 }

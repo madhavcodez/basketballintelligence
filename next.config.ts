@@ -5,6 +5,7 @@ const nextConfig: NextConfig = {
   experimental: {
     staticGenerationRetryCount: 0,
   },
+  productionBrowserSourceMaps: false,
   images: {
     remotePatterns: [
       {

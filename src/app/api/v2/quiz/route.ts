@@ -6,6 +6,7 @@ import {
   getShotChartQuiz,
 } from '@/lib/db';
 import type { QuizDifficulty } from '@/lib/db';
+import { handleApiError } from '@/lib/api-error';
 
 type QuizMode = 'guess' | 'compare' | 'better-season' | 'shot-chart';
 
@@ -66,10 +67,5 @@ export async function GET(req: NextRequest) {
         );
       }
     }
-  } catch {
-    return NextResponse.json(
-      { error: 'Failed to generate quiz' },
-      { status: 500 },
-    );
-  }
+  } catch (e) { return handleApiError(e, 'v2-quiz'); }
 }

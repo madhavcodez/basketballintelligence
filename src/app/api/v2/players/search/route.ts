@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { searchPlayers } from '@/lib/db';
+import { handleApiError } from '@/lib/api-error';
+import { jsonWithCache } from '@/lib/api-response';
 
 export async function GET(req: NextRequest) {
   try {
@@ -18,11 +20,6 @@ export async function GET(req: NextRequest) {
     const decoded = decodeURIComponent(q);
     const data = searchPlayers(decoded, limit, offset);
 
-    return NextResponse.json({ data });
-  } catch {
-    return NextResponse.json(
-      { error: 'Failed to search players' },
-      { status: 500 },
-    );
-  }
+    return jsonWithCache({ data }, 60);
+  } catch (e) { return handleApiError(e, 'v2-players-search'); }
 }

@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getPlayerShotSeasons } from '@/lib/db';
 import { parseSeasonType, getPlayerShotsV2, getShotZoneStatsV2 } from '@/lib/playoffs-db';
+import { handleApiError } from '@/lib/api-error';
+import { jsonWithCache } from '@/lib/api-response';
 
 export async function GET(
   request: NextRequest,
@@ -17,23 +19,21 @@ export async function GET(
     const seasons = getPlayerShotSeasons(playerName);
     if (zonesOnly) {
       const zonesResult = getShotZoneStatsV2(playerName, seasonType, season);
-      return NextResponse.json({
+      return jsonWithCache({
         seasons,
         zones: zonesResult.data,
         seasonType: zonesResult.seasonType,
         playoffAvailable: zonesResult.playoffAvailable,
-      });
+      }, 120);
     }
     const shotsResult = getPlayerShotsV2(playerName, seasonType, season, limit, offset);
     const zonesResult = getShotZoneStatsV2(playerName, seasonType, season);
-    return NextResponse.json({
+    return jsonWithCache({
       seasons,
       shots: shotsResult.data,
       zones: zonesResult.data,
       seasonType: shotsResult.seasonType,
       playoffAvailable: shotsResult.playoffAvailable,
-    });
-  } catch {
-    return NextResponse.json({ error: 'Database error' }, { status: 500 });
-  }
+    }, 120);
+  } catch (e) { return handleApiError(e, 'player-shots'); }
 }

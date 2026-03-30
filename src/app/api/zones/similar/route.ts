@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getDb } from '@/lib/db';
 import { aggregateByZone, classifyShotSignature } from '@/lib/zone-engine';
 import type { ShotInput, ZoneAggregation } from '@/lib/zone-engine';
+import { handleApiError } from '@/lib/api-error';
+import { jsonWithCache } from '@/lib/api-response';
 
 // Find players with similar zone profiles based on cosine similarity of attempt distributions
 export async function GET(request: NextRequest) {
@@ -83,14 +85,12 @@ export async function GET(request: NextRequest) {
 
     similarities.sort((a, b) => b.similarity - a.similarity);
 
-    return NextResponse.json({
+    return jsonWithCache({
       player: playerName,
       season,
       similar: similarities.slice(0, limit),
-    });
-  } catch (error: unknown) {
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
-  }
+    }, 120);
+  } catch (e) { return handleApiError(e, 'zones-similar'); }
 }
 
 // Convert zone aggregations to a vector of attempt percentages
