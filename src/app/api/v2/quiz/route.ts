@@ -8,6 +8,8 @@ import {
 import type { QuizDifficulty } from '@/lib/db';
 import { handleApiError } from '@/lib/api-error';
 
+export const dynamic = 'force-dynamic';
+
 type QuizMode = 'guess' | 'compare' | 'better-season' | 'shot-chart';
 
 const VALID_MODES: ReadonlySet<string> = new Set<QuizMode>([

@@ -13,31 +13,27 @@ interface SeasonTypeState {
 
 const SeasonTypeContext = createContext<SeasonTypeState | null>(null);
 
+function getInitialSeasonType(): SeasonType {
+  if (typeof window === 'undefined') return 'regular';
+  // URL takes precedence over localStorage
+  const urlParam = new URL(window.location.href).searchParams.get('seasonType');
+  if (urlParam === 'playoffs' || urlParam === 'combined') {
+    localStorage.setItem('seasonType', urlParam);
+    return urlParam;
+  }
+  const saved = localStorage.getItem('seasonType');
+  if (saved === 'playoffs' || saved === 'combined') return saved;
+  return 'regular';
+}
+
 export function SeasonTypeProvider({ children }: { readonly children: ReactNode }) {
-  // Always initialize with 'regular' for SSR safety — sync from URL/localStorage in useEffect
-  const [seasonType, setSeasonTypeRaw] = useState<SeasonType>('regular');
+  const [seasonType, setSeasonTypeRaw] = useState<SeasonType>(getInitialSeasonType);
   const [playoffAvailable, setPlayoffAvailable] = useState(false);
 
   const setSeasonType = useCallback((type: SeasonType) => {
     setSeasonTypeRaw(type);
     if (typeof window !== 'undefined') {
       localStorage.setItem('seasonType', type);
-    }
-  }, []);
-
-  // On mount: read from URL first, then localStorage, then default to 'regular'
-  useEffect(() => {
-    const url = new URL(window.location.href);
-    const urlParam = url.searchParams.get('seasonType');
-    if (urlParam === 'playoffs' || urlParam === 'combined') {
-      setSeasonTypeRaw(urlParam);
-      localStorage.setItem('seasonType', urlParam);
-      return; // URL takes precedence over localStorage
-    }
-    // Fall back to localStorage
-    const saved = localStorage.getItem('seasonType');
-    if (saved === 'playoffs' || saved === 'combined') {
-      setSeasonTypeRaw(saved);
     }
   }, []);
 

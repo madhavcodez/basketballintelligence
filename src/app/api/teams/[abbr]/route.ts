@@ -4,6 +4,8 @@ import { parseSeasonType, getTeamRosterV2, getLineupsV2 } from '@/lib/playoffs-d
 import { handleApiError } from '@/lib/api-error';
 import { jsonWithCache } from '@/lib/api-response';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ abbr: string }> }

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import clsx from 'clsx';
 import {
@@ -16,7 +16,7 @@ import {
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import GlassCard from '@/components/ui/GlassCard';
-import { animation, colors } from '@/lib/design-tokens';
+import { animation } from '@/lib/design-tokens';
 import type { TimelineEvent, TimelineEventType } from '@/lib/timeline-engine';
 
 // ── Types ──────────────────────────────────────────────────────────────────
@@ -52,21 +52,17 @@ const ICON_MAP: Readonly<Record<string, LucideIcon>> = {
   circle: Circle,
 };
 
-function getEventIcon(iconName: string): LucideIcon {
-  return ICON_MAP[iconName] ?? Circle;
+function EventIcon({ iconName, ...props }: { readonly iconName: string } & React.ComponentProps<LucideIcon>) {
+  const Icon = ICON_MAP[iconName] ?? Circle;
+  return <Icon {...props} />;
 }
 
 // ── Component ──────────────────────────────────────────────────────────────
 
-export default function TimelineEventCard({
-  event,
-  side,
-  isHighlighted,
-  onClick,
-}: TimelineEventCardProps) {
+export default function TimelineEventCard(props: TimelineEventCardProps) {
+  const { event, isHighlighted, onClick } = props;
   const [isExpanded, setIsExpanded] = useState(false);
   const accentColor = EVENT_TYPE_COLORS[event.type];
-  const IconComponent = getEventIcon(event.icon);
   const isMajor = event.significance === 'major';
   const isNotable = event.significance === 'notable';
   const isMinor = event.significance === 'minor';
@@ -127,7 +123,8 @@ export default function TimelineEventCard({
                 boxShadow: isAward ? `0 0 20px ${accentColor}20` : undefined,
               }}
             >
-              <IconComponent
+              <EventIcon
+                iconName={event.icon}
                 size={24}
                 style={{ color: accentColor }}
               />
@@ -203,7 +200,8 @@ export default function TimelineEventCard({
               className="flex shrink-0 items-center justify-center rounded-xl p-2"
               style={{ backgroundColor: `${accentColor}12` }}
             >
-              <IconComponent
+              <EventIcon
+                iconName={event.icon}
                 size={18}
                 style={{ color: accentColor }}
               />
@@ -257,7 +255,7 @@ export default function TimelineEventCard({
         )}
         onClick={handleClick}
       >
-        <IconComponent size={14} style={{ color: accentColor }} className="shrink-0" />
+        <EventIcon iconName={event.icon} size={14} style={{ color: accentColor }} className="shrink-0" />
         <span className="text-sm font-medium text-[#1D1D1F]">
           {event.season}
         </span>

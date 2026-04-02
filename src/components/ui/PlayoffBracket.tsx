@@ -262,7 +262,7 @@ function ConferenceBracket({ rounds, label, direction }: ConferenceBracketProps)
                 animate="visible"
                 custom={ri}
               >
-                {round.matchups.map((matchup, mi) => (
+                {round.matchups.map((matchup) => (
                   <MatchupCard
                     key={`${matchup.team1}-${matchup.team2}`}
                     matchup={matchup}

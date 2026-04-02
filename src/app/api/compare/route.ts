@@ -3,6 +3,8 @@ import { parseSeasonType, comparePlayersV2, getShotZoneStatsV2 } from '@/lib/pla
 import { handleApiError } from '@/lib/api-error';
 import { jsonWithCache } from '@/lib/api-response';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(request: NextRequest) {
   const p1 = request.nextUrl.searchParams.get('p1');
   const p2 = request.nextUrl.searchParams.get('p2');

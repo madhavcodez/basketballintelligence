@@ -4,6 +4,8 @@ import { parseSeasonType, getPlayerShotsV2, getShotZoneStatsV2 } from '@/lib/pla
 import { handleApiError } from '@/lib/api-error';
 import { jsonWithCache } from '@/lib/api-response';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ name: string }> }

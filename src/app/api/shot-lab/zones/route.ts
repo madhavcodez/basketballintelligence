@@ -3,6 +3,8 @@ import { getPlayerZoneProfileWithLeague, getLeagueZoneBaseline, getShotLabSeason
 import { handleApiError } from '@/lib/api-error';
 import { jsonWithCache } from '@/lib/api-response';
 
+export const dynamic = 'force-dynamic';
+
 // GET /api/shot-lab/zones?player=LeBron+James&season=2024-25
 // Returns player zone profile vs league average. If no player, returns league baseline only.
 export async function GET(request: NextRequest) {

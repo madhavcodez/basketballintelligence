@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
@@ -11,7 +11,6 @@ import {
   Flag,
   TrendingUp,
   Calendar,
-  Loader2,
   AlertCircle,
   Swords,
   ChevronDown,
@@ -22,7 +21,6 @@ import {
 } from 'lucide-react';
 import clsx from 'clsx';
 import GlassCard from '@/components/ui/GlassCard';
-import MetricChip from '@/components/ui/MetricChip';
 import SectionHeader from '@/components/ui/SectionHeader';
 import SkeletonLoader from '@/components/ui/SkeletonLoader';
 import Badge from '@/components/ui/Badge';
@@ -198,7 +196,7 @@ export default function TimelinePage() {
     return () => {
       cancelled = true;
     };
-  }, [rawName]); // playerName is derived from rawName — no need to list it
+  }, [rawName, playerName]);
 
   const handleFilterClick = useCallback((type: TimelineEventType | null) => {
     setActiveFilter(type ?? undefined);

@@ -13,10 +13,7 @@ import {
   Target,
   Activity,
   Calendar,
-  Tag,
-  ChevronRight,
   Pencil,
-  Check,
   X,
   Save,
 } from 'lucide-react';
@@ -334,7 +331,6 @@ export default function ClipViewerPage() {
     type: mapAnnotationType(a.annotation_type),
   }));
 
-  const clipTitle = clip.title ?? clip.play_type ?? 'Untitled Clip';
   const gameInfo = video?.home_team && video?.away_team
     ? `${video.home_team} vs ${video.away_team}`
     : null;

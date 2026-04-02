@@ -3,6 +3,8 @@ import { modelWhatIfShotMix, getShotLabSeasons } from '@/lib/db';
 import { handleApiError } from '@/lib/api-error';
 import { jsonWithCache } from '@/lib/api-response';
 
+export const dynamic = 'force-dynamic';
+
 // GET /api/shot-lab/whatif?player=Stephen+Curry&season=2024-25&adjustments=[...]
 export async function GET(request: NextRequest) {
   const player = request.nextUrl.searchParams.get('player');

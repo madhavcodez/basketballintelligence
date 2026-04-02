@@ -3,7 +3,7 @@
 import { useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Upload, Film, Loader2, Clapperboard, Sparkles } from 'lucide-react';
+import { ArrowLeft, Upload, Loader2, Clapperboard, Sparkles } from 'lucide-react';
 import Link from 'next/link';
 import clsx from 'clsx';
 import UploadZone from '@/components/film/UploadZone';

@@ -5,6 +5,8 @@ import type { ShotInput } from '@/lib/zone-engine';
 import { handleApiError } from '@/lib/api-error';
 import { jsonWithCache } from '@/lib/api-response';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(request: NextRequest) {
   const seasonParam = request.nextUrl.searchParams.get('season') || undefined;
 

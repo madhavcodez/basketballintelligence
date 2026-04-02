@@ -5,6 +5,8 @@ import type { ShotInput, ZoneAggregation } from '@/lib/zone-engine';
 import { handleApiError } from '@/lib/api-error';
 import { jsonWithCache } from '@/lib/api-response';
 
+export const dynamic = 'force-dynamic';
+
 interface ComparisonEntry {
   readonly zone: string;
   readonly player1FgPct: number;

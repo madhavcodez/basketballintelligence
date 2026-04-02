@@ -9,7 +9,6 @@ import { Clock } from 'lucide-react';
 import Badge from '@/components/ui/Badge';
 import PlayerAvatar from '@/components/ui/PlayerAvatar';
 import TeamLogo from '@/components/ui/TeamLogo';
-import { colors } from '@/lib/design-tokens';
 
 // ── Team Color Map ──────────────────────────────────────────────────────────
 

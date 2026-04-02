@@ -337,10 +337,10 @@ export function generateSignatureNarrative(
   playerName: string,
   signature: string,
   zones: readonly ZoneAggregation[],
-  totalAttempts: number,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  _totalAttempts: number,
 ): string {
   const topZone = [...zones].sort((a, b) => b.fgPct - a.fgPct)[0];
-  const coldZone = [...zones].sort((a, b) => a.fgPct - b.fgPct)[0];
   const highVolume = [...zones].sort((a, b) => b.attempts - a.attempts)[0];
 
   const firstName = playerName.split(' ').pop() ?? playerName;

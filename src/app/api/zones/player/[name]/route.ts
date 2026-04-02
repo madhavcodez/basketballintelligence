@@ -5,6 +5,8 @@ import type { ShotInput, ZoneAggregation } from '@/lib/zone-engine';
 import { handleApiError } from '@/lib/api-error';
 import { jsonWithCache } from '@/lib/api-response';
 
+export const dynamic = 'force-dynamic';
+
 const MIN_ATTEMPTS_FOR_EXTREMES = 10;
 
 export async function GET(

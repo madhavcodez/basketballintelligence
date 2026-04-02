@@ -8,7 +8,7 @@ import MiniCourt from '@/components/court/MiniCourt';
 import Badge from '@/components/ui/Badge';
 import { ZONES, LEAGUE_BASELINE, type ZoneName } from '@/lib/shot-constants';
 import { type ZoneAggregation } from '@/lib/zone-engine';
-import { colors, animation } from '@/lib/design-tokens';
+import { colors } from '@/lib/design-tokens';
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -45,16 +45,17 @@ export default function ShotProfileCard({
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let cancelled = false;
     const url = season
       ? `/api/zones/player/${encodeURIComponent(playerName)}?season=${encodeURIComponent(season)}`
       : `/api/zones/player/${encodeURIComponent(playerName)}`;
 
-    setLoading(true);
     fetch(url)
       .then((r) => r.json())
-      .then((d) => { if (d.zones) setData(d); })
+      .then((d) => { if (!cancelled && d.zones) setData(d); })
       .catch(() => {})
-      .finally(() => setLoading(false));
+      .finally(() => { if (!cancelled) setLoading(false); });
+    return () => { cancelled = true; };
   }, [playerName, season]);
 
   const leagueBaseline = LEAGUE_BASELINE;

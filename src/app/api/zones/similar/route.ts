@@ -5,6 +5,8 @@ import type { ShotInput, ZoneAggregation } from '@/lib/zone-engine';
 import { handleApiError } from '@/lib/api-error';
 import { jsonWithCache } from '@/lib/api-response';
 
+export const dynamic = 'force-dynamic';
+
 // Find players with similar zone profiles based on cosine similarity of attempt distributions
 export async function GET(request: NextRequest) {
   const playerName = request.nextUrl.searchParams.get('player');

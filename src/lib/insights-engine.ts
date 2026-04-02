@@ -61,6 +61,7 @@ function trendInsight(stat: string, label: string, diff: number, prev: string, c
 
 // ── Player Insights ─────────────────────────────────────────────────────────
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export function getPlayerInsights(playerName: string, _season?: string): readonly Insight[] {
   const insights: Insight[] = [];
 

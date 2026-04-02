@@ -2,7 +2,6 @@
 
 import { motion } from 'framer-motion';
 import clsx from 'clsx';
-import { colors } from '@/lib/design-tokens';
 
 // ── Types ────────────────────────────────────────────────────────────────────
 

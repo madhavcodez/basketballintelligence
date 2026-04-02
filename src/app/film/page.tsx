@@ -8,8 +8,6 @@ import {
   Filter,
   Tag,
   Play,
-  Grid,
-  ArrowRight,
   ChevronRight,
   X,
   Sparkles,
@@ -20,7 +18,6 @@ import {
   Crosshair,
   Activity,
   CheckCircle,
-  AlertCircle,
   Clock,
   Cpu,
 } from 'lucide-react';
@@ -51,11 +48,6 @@ interface ClipData {
   readonly quarter: number | null;
   readonly game_clock: string | null;
   readonly confidence: number;
-}
-
-interface ClipTag {
-  readonly name: string;
-  readonly category: string;
 }
 
 interface TagInfo {
@@ -94,22 +86,6 @@ const fadeSlideUp = {
 };
 
 // ── Play type color mapping ─────────────────────────────────────────────────
-
-const PLAY_TYPE_COLORS: Record<string, string> = {
-  isolation: 'from-[#FF6B35]/10 to-[#FF6B35]/5',
-  'pick-and-roll': 'from-[#0071E3]/10 to-[#0071E3]/5',
-  'spot-up': 'from-[#22C55E]/10 to-[#22C55E]/5',
-  transition: 'from-accent-violet/10 to-accent-violet/5',
-  'post-up': 'from-accent-gold/10 to-accent-gold/5',
-  'off-screen': 'from-[#EF4444]/10 to-[#EF4444]/5',
-  handoff: 'from-[#0071E3]/10 to-[#0071E3]/5',
-  cut: 'from-[#22C55E]/10 to-[#22C55E]/5',
-};
-
-function getPlayTypeGradient(playType: string): string {
-  const lower = playType.toLowerCase();
-  return PLAY_TYPE_COLORS[lower] ?? 'from-black/5 to-black/[0.02]';
-}
 
 // ── Play type visual definitions (court diagram arrows + dots) ──────────────
 
@@ -171,7 +147,7 @@ export default function FilmLibraryPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [activePlayType, setActivePlayType] = useState<string | null>(null);
   const [activePlayer, setActivePlayer] = useState<string | null>(null);
-  const [filteredClips, setFilteredClips] = useState<readonly ClipData[]>([]);
+  const [searchResults, setSearchResults] = useState<readonly ClipData[] | null>(null);
   const [playTypeCounts, setPlayTypeCounts] = useState<readonly PlayTypeCount[]>([]);
   const [playerCounts, setPlayerCounts] = useState<readonly PlayerCount[]>([]);
   const [showFilters, setShowFilters] = useState(false);
@@ -193,7 +169,6 @@ export default function FilmLibraryPage() {
 
       const fetchedClips = clipsData.clips ?? [];
       setClips(fetchedClips);
-      setFilteredClips(fetchedClips);
       setTotalClips(clipsData.total ?? 0);
       setTags(tagsData.tags ?? []);
 
@@ -224,37 +199,33 @@ export default function FilmLibraryPage() {
     return () => { cancelled = true; };
   }, []);
 
-  // ── Search + filter logic ───────────────────────────────────────────────────
+  // ── Search (async) ──────────────────────────────────────────────────────────
 
   useEffect(() => {
-    // When search query is long enough, hit the smart search API
-    if (searchQuery.trim().length >= 2) {
-      if (searchTimeout.current) clearTimeout(searchTimeout.current);
-      searchTimeout.current = setTimeout(async () => {
-        try {
-          const res = await fetch(`/api/film/clips?q=${encodeURIComponent(searchQuery)}&limit=50`);
-          if (res.ok) {
-            const data = await res.json();
-            let result = data.clips ?? [];
-            if (activePlayType) result = result.filter((c: ClipData) => c.play_type === activePlayType);
-            if (activePlayer) result = result.filter((c: ClipData) => c.primary_player === activePlayer);
-            setFilteredClips(result);
-          }
-        } catch { /* silent */ }
-      }, 300);
-      return () => { if (searchTimeout.current) clearTimeout(searchTimeout.current); };
-    }
+    if (searchQuery.trim().length < 2) return;
 
-    // No search query — filter locally
-    let result = [...clips];
-    if (activePlayType) {
-      result = result.filter((c) => c.play_type === activePlayType);
-    }
-    if (activePlayer) {
-      result = result.filter((c) => c.primary_player === activePlayer);
-    }
-    setFilteredClips(result);
-  }, [clips, searchQuery, activePlayType, activePlayer]);
+    if (searchTimeout.current) clearTimeout(searchTimeout.current);
+    searchTimeout.current = setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/film/clips?q=${encodeURIComponent(searchQuery)}&limit=50`);
+        if (res.ok) {
+          const data = await res.json();
+          setSearchResults(data.clips ?? []);
+        }
+      } catch { /* silent */ }
+    }, 300);
+    return () => { if (searchTimeout.current) clearTimeout(searchTimeout.current); };
+  }, [searchQuery]);
+
+  // ── Derived filtered clips (computed, no setState needed) ───────────────────
+
+  const hasSearchQuery = searchQuery.trim().length >= 2;
+  const baseClips = (hasSearchQuery && searchResults) ? searchResults : clips;
+  const filteredClips = baseClips.filter((c) => {
+    if (activePlayType && c.play_type !== activePlayType) return false;
+    if (activePlayer && c.primary_player !== activePlayer) return false;
+    return true;
+  });
 
   // ── Handlers ────────────────────────────────────────────────────────────────
 

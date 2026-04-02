@@ -4,7 +4,6 @@ import { useState, useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import clsx from 'clsx';
 import { Target, TrendingUp, TrendingDown } from 'lucide-react';
-import { ZONES, type ZoneName } from '@/lib/shot-constants';
 import { type ZoneAggregation, generateSignatureNarrative } from '@/lib/zone-engine';
 import { colors, motionPresets } from '@/lib/design-tokens';
 
@@ -46,16 +45,17 @@ export default function ShotSignatureCard({
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let cancelled = false;
     const url = season
       ? `/api/zones/player/${encodeURIComponent(playerName)}?season=${encodeURIComponent(season)}`
       : `/api/zones/player/${encodeURIComponent(playerName)}`;
 
-    setLoading(true);
     fetch(url)
       .then((r) => r.json())
-      .then((d) => { if (d.zones) setData(d); })
+      .then((d) => { if (!cancelled && d.zones) setData(d); })
       .catch(() => {})
-      .finally(() => setLoading(false));
+      .finally(() => { if (!cancelled) setLoading(false); });
+    return () => { cancelled = true; };
   }, [playerName, season]);
 
   const narrative = useMemo(() => {

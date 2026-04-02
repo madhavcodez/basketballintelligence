@@ -3,8 +3,6 @@
 import { useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Target, Zap, ArrowRight } from 'lucide-react';
-import clsx from 'clsx';
-
 // ── Play type definitions ────────────────────────────────────────────────────
 
 interface PlayDef {

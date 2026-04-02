@@ -4,6 +4,8 @@ import { parseSeasonType, getStandingsV2 } from '@/lib/playoffs-db';
 import { handleApiError } from '@/lib/api-error';
 import { jsonWithCache } from '@/lib/api-response';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(request: NextRequest) {
   const season = request.nextUrl.searchParams.get('season') || undefined;
   const seasonType = parseSeasonType(request.nextUrl.searchParams.get('seasonType'));

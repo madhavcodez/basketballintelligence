@@ -238,6 +238,7 @@ export function getTeamRoster(teamAbbr: string, season?: string) {
 }
 
 // Lineup queries — lineups table not yet populated; return empty gracefully
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export function getLineups(_teamAbbr: string, _season?: string): unknown[] {
   return [];
 }

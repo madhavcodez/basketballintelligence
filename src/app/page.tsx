@@ -28,7 +28,6 @@ import PlayerAvatar from '@/components/ui/PlayerAvatar';
 import TeamLogo from '@/components/ui/TeamLogo';
 import PlayoffBracket from '@/components/ui/PlayoffBracket';
 import { useSeasonType } from '@/lib/season-context';
-import { NBA_TEAM_IDS } from '@/lib/nba-assets';
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -164,12 +163,6 @@ const fadeSlideUp = {
   hidden: { opacity: 0, y: 20 },
   visible: { opacity: 1, y: 0, transition: { duration: 0.45, ease: [0.4, 0, 0.2, 1] as const } },
 };
-
-// ── Helper to resolve team abbreviation to team ID ──────────────────────────
-
-function teamAbbrToId(abbr: string): number | undefined {
-  return NBA_TEAM_IDS[abbr.toUpperCase()];
-}
 
 // ── Component ────────────────────────────────────────────────────────────────
 

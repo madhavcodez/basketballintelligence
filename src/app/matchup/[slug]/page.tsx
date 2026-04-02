@@ -242,7 +242,6 @@ interface EraBarRowProps {
 }
 
 function EraBarRow({ record, maxGames, index }: EraBarRowProps) {
-  const totalGames = record.p1Wins + record.p2Wins;
   const p1Width = maxGames > 0 ? (record.p1Wins / maxGames) * 100 : 0;
   const p2Width = maxGames > 0 ? (record.p2Wins / maxGames) * 100 : 0;
 
@@ -316,18 +315,16 @@ export default function MatchupSlugPage({
   const [gamesOffset, setGamesOffset] = useState(0);
   const [loadingMore, setLoadingMore] = useState(false);
 
-  // Parse slug
-  const parsed = fromMatchupSlug(slug);
-
   // Fetch all data
   useEffect(() => {
-    if (!parsed) {
+    const matchup = fromMatchupSlug(slug);
+    if (!matchup) {
       setError('Invalid matchup URL');
       setLoading(false);
       return;
     }
 
-    const { player1: p1Name, player2: p2Name } = parsed;
+    const { player1: p1Name, player2: p2Name } = matchup;
     let cancelled = false;
 
     async function fetchData() {

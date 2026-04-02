@@ -5,6 +5,8 @@ import type { ZoneName } from '@/lib/shot-constants';
 import { handleApiError } from '@/lib/api-error';
 import { jsonWithCache } from '@/lib/api-response';
 
+export const dynamic = 'force-dynamic';
+
 // ── Types ─────────────────────────────────────────────────────────
 
 interface ShotRow {

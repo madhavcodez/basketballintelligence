@@ -4,6 +4,8 @@ import { getDb, getSchemaDescription } from '@/lib/db';
 import { config } from '@/lib/config';
 import { handleApiError } from '@/lib/api-error';
 
+export const dynamic = 'force-dynamic';
+
 // ─── Schema context for Gemini ──────────────────────────────────────────────
 // Computed once at module level so we only hit the DB on first request.
 let _schemaCache: string | null = null;

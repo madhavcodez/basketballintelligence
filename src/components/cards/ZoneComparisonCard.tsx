@@ -54,12 +54,13 @@ export default function ZoneComparisonCard({
     const seasonQ = season ? `&season=${encodeURIComponent(season)}` : '';
     const url = `/api/zones/compare?p1=${encodeURIComponent(player1)}&p2=${encodeURIComponent(player2)}${seasonQ}`;
 
-    setLoading(true);
+    let cancelled = false;
     fetch(url)
       .then((r) => r.json())
-      .then((d) => { if (d.comparison) setData(d); })
+      .then((d) => { if (!cancelled && d.comparison) setData(d); })
       .catch(() => {})
-      .finally(() => setLoading(false));
+      .finally(() => { if (!cancelled) setLoading(false); });
+    return () => { cancelled = true; };
   }, [player1, player2, season]);
 
   const leagueBaseline = useMemo(() => {

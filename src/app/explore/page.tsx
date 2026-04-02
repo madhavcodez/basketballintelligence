@@ -94,10 +94,9 @@ export default function ExplorePage() {
   const searchRef = useRef<HTMLDivElement>(null);
   const searchTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Fetch data
+  // Fetch data — loading starts true via useState(true); stale data shows during re-fetch
   useEffect(() => {
     let cancelled = false;
-    setLoading(true);
     Promise.all([
       fetch(`/api/explore?seasonType=${seasonType}`).then((r) => r.json()).catch(() => null),
       fetch('/api/teams').then((r) => r.json()).catch(() => []),

@@ -25,29 +25,14 @@ const ALLOWED_STATS_TABLES = {
   playoffs: 'player_stats_playoffs_pergame',
 } as const;
 
-const ALLOWED_ADVANCED_TABLES = {
-  regular: 'player_stats_advanced',
-  playoffs: 'player_stats_playoffs_advanced',
-} as const;
-
-const ALLOWED_STANDINGS_TABLES = {
-  regular: 'standings',
-  playoffs: 'standings_playoffs',
-} as const;
-
 type AllowedStatsTable = typeof ALLOWED_STATS_TABLES[keyof typeof ALLOWED_STATS_TABLES];
-type AllowedAdvancedTable = typeof ALLOWED_ADVANCED_TABLES[keyof typeof ALLOWED_ADVANCED_TABLES];
-type AllowedStandingsTable = typeof ALLOWED_STANDINGS_TABLES[keyof typeof ALLOWED_STANDINGS_TABLES];
+type AllowedAdvancedTable = 'player_stats_advanced' | 'player_stats_playoffs_advanced';
+type AllowedStandingsTable = 'standings' | 'standings_playoffs';
 type AllowedTable = AllowedStatsTable | AllowedAdvancedTable | AllowedStandingsTable;
 
 function resolveStatsTable(seasonType: SeasonType, hasPlayoff: boolean): AllowedStatsTable {
   if (seasonType === 'playoffs' && hasPlayoff) return ALLOWED_STATS_TABLES.playoffs;
   return ALLOWED_STATS_TABLES.regular;
-}
-
-function resolveAdvancedTable(seasonType: SeasonType, hasPlayoff: boolean): AllowedAdvancedTable {
-  if (seasonType === 'playoffs' && hasPlayoff) return ALLOWED_ADVANCED_TABLES.playoffs;
-  return ALLOWED_ADVANCED_TABLES.regular;
 }
 
 // ── Helpers ─────────────────────────────────────────────────────────────────

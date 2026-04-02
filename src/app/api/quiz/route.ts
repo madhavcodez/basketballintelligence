@@ -7,6 +7,8 @@ import {
 } from '@/lib/db';
 import { handleApiError } from '@/lib/api-error';
 
+export const dynamic = 'force-dynamic';
+
 /**
  * GET /api/quiz
  *

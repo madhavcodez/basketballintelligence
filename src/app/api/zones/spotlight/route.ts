@@ -1,10 +1,12 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { getDb } from '@/lib/db';
 import { handleApiError } from '@/lib/api-error';
 import { jsonWithCache } from '@/lib/api-response';
 
+export const dynamic = 'force-dynamic';
+
 // Returns a random interesting zone stat for the "Zone of the Day" feature
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     const db = getDb();
 

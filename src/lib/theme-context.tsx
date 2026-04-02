@@ -18,17 +18,20 @@ export function useTheme() {
   return useContext(ThemeContext);
 }
 
-export function ThemeProvider({ children }: { readonly children: ReactNode }) {
-  const [theme, setTheme] = useState<Theme>('light');
+function getInitialTheme(): Theme {
+  if (typeof window === 'undefined') return 'light';
+  const stored = localStorage.getItem('bi-theme');
+  if (stored === 'dark' || stored === 'light') return stored;
+  return 'light';
+}
 
-  // Initialize from localStorage on mount
+export function ThemeProvider({ children }: { readonly children: ReactNode }) {
+  const [theme, setTheme] = useState<Theme>(getInitialTheme);
+
+  // Apply theme class on mount (initializer can't access DOM)
   useEffect(() => {
-    const stored = localStorage.getItem('bi-theme') as Theme | null;
-    if (stored === 'dark' || stored === 'light') {
-      setTheme(stored);
-      document.documentElement.classList.toggle('dark', stored === 'dark');
-    }
-  }, []);
+    document.documentElement.classList.toggle('dark', theme === 'dark');
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps -- run once on mount to sync DOM
 
   const toggleTheme = useCallback(() => {
     setTheme((prev) => {

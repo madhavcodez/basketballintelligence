@@ -127,8 +127,16 @@ export default function CareerTimeline({
     [ppgData],
   );
 
-  // Track a global event index for alternating sides
-  let globalIndex = 0;
+  // Precompute cumulative start indices for each year group
+  const groupStartIndices = useMemo(() => {
+    const indices: number[] = [];
+    let acc = 0;
+    for (const group of yearGroups) {
+      indices.push(acc);
+      acc += group.events.length;
+    }
+    return indices;
+  }, [yearGroups]);
 
   return (
     <div ref={containerRef} className="relative mx-auto w-full max-w-4xl">
@@ -167,20 +175,15 @@ export default function CareerTimeline({
 
       {/* Year groups */}
       <div className="relative space-y-2">
-        {yearGroups.map((group) => {
-          const startIndex = globalIndex;
-          globalIndex += group.events.length;
-
-          return (
+        {yearGroups.map((group, gi) => (
             <YearGroupSection
               key={group.year}
               group={group}
               highlightType={highlightType}
               onEventClick={onEventClick}
-              startIndex={startIndex}
+              startIndex={groupStartIndices[gi]}
             />
-          );
-        })}
+        ))}
       </div>
     </div>
   );
@@ -211,8 +214,6 @@ function PpgTrendOverlay({
     const y = (i / Math.max(ppgData.length - 1, 1)) * 100;
     return { x, y, ppg: p.ppg, isPeak: p.ppg === peakPpg };
   });
-
-  const polylinePoints = points.map((p) => `${p.x},${p.y}%`).join(' ');
 
   // Use absolute pixel Y for SVG — we need a viewBox approach
   const svgHeight = totalYearGroups * 120;

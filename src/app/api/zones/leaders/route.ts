@@ -5,6 +5,8 @@ import type { ZoneName } from '@/lib/shot-constants';
 import { handleApiError } from '@/lib/api-error';
 import { jsonWithCache } from '@/lib/api-response';
 
+export const dynamic = 'force-dynamic';
+
 const DEFAULT_LIMIT = 10;
 const MAX_LIMIT = 50;
 const DEFAULT_MIN_ATTEMPTS = 50;

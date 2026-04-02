@@ -207,12 +207,10 @@ export default function ShotDNACard({
   const [error, setError] = useState(false);
 
   useEffect(() => {
+    let cancelled = false;
     const url = season
       ? `/api/zones/player/${encodeURIComponent(playerName)}?season=${encodeURIComponent(season)}`
       : `/api/zones/player/${encodeURIComponent(playerName)}`;
-
-    setLoading(true);
-    setError(false);
 
     fetch(url)
       .then((response) => {
@@ -220,19 +218,22 @@ export default function ShotDNACard({
         return response.json();
       })
       .then((payload: unknown) => {
+        if (cancelled) return;
         const d = payload as PlayerZoneResponse;
         if (d.zones && d.zones.length > 0) {
           setData(d);
+          setError(false);
         } else {
           setError(true);
         }
       })
       .catch(() => {
-        setError(true);
+        if (!cancelled) setError(true);
       })
       .finally(() => {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       });
+    return () => { cancelled = true; };
   }, [playerName, season]);
 
   // Ensure all 7 zones are represented, filling missing ones with zero values

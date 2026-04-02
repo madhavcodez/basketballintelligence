@@ -4,6 +4,8 @@ import { getPlayerStatsV2, getPlayerAdvancedV2, parseSeasonType } from '@/lib/pl
 import { handleApiError } from '@/lib/api-error';
 import { jsonWithCache } from '@/lib/api-response';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ name: string }> },

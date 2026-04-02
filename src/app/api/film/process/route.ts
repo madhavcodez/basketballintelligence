@@ -11,6 +11,8 @@ import {
 } from '@/lib/film-db';
 import { handleApiError } from '@/lib/api-error';
 
+export const dynamic = 'force-dynamic';
+
 const MOCK_PLAY_TYPES = [
   'pick_and_roll',
   'isolation',

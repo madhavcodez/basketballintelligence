@@ -4,6 +4,8 @@ import { classifyZone } from '@/lib/zone-engine';
 import { handleApiError } from '@/lib/api-error';
 import { jsonWithCache } from '@/lib/api-response';
 
+export const dynamic = 'force-dynamic';
+
 const DEFAULT_LIMIT = 5000;
 const MAX_LIMIT = 10000;
 

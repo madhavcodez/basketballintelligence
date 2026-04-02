@@ -86,11 +86,6 @@ export default function MiniCourt({
     return sorted.slice(0, 2);
   }, [zoneStats]);
 
-  const topZoneNames = useMemo(
-    () => new Set(topZones.map((z) => z.zone)),
-    [topZones],
-  );
-
   const highlightSet = useMemo(
     () => new Set(highlightZones),
     [highlightZones],

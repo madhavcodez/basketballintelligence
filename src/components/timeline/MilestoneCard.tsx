@@ -14,19 +14,10 @@ interface MilestoneCardProps {
   readonly side: 'left' | 'right';
 }
 
-// ── Decorative Star SVG ────────────────────────────────────────────────────
-
-function StarSvg({ size }: { readonly size: number }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 20 20" fill="currentColor">
-      <path d="M10 0l2.5 7.5H20l-6 4.5 2.5 7.5-6.5-5-6.5 5L6 12 0 7.5h7.5z" />
-    </svg>
-  );
-}
-
 // ── Component ──────────────────────────────────────────────────────────────
 
-export default function MilestoneCard({ event, side }: MilestoneCardProps) {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export default function MilestoneCard({ event, side: _side }: MilestoneCardProps) {
   return (
     <motion.div
       className="relative w-full"

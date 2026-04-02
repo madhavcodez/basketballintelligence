@@ -3,6 +3,8 @@ import { getShotZoneStatsV2, parseSeasonType } from '@/lib/playoffs-db';
 import { handleApiError } from '@/lib/api-error';
 import { jsonWithCache } from '@/lib/api-response';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(req: NextRequest) {
   try {
     const searchParams = req.nextUrl.searchParams;
