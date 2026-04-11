@@ -72,7 +72,6 @@ def extract_key_frames(
 
         fps = cap.get(cv2.CAP_PROP_FPS) or 30.0
         total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
-        video_duration = total_frames / fps
 
         start_frame = int(start_time * fps)
         end_frame = int(end_time * fps) if end_time else total_frames

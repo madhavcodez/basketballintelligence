@@ -43,103 +43,100 @@ def verify_database() -> None:
         print(f"Tables found: {len(table_names)}")
         print_separator("=")
 
-    total_rows = 0
+        total_rows = 0
 
-    for table_name in table_names:
-        # Row count
-        row_count = conn.execute(f'SELECT COUNT(*) AS cnt FROM "{table_name}"').fetchone()["cnt"]
-        total_rows += row_count
+        for table_name in table_names:
+            # Row count
+            row_count = conn.execute(f'SELECT COUNT(*) AS cnt FROM "{table_name}"').fetchone()["cnt"]
+            total_rows += row_count
 
-        # Column info
-        col_info = conn.execute(f'PRAGMA table_info("{table_name}")').fetchall()
-        columns = [c["name"] for c in col_info]
+            # Column info
+            col_info = conn.execute(f'PRAGMA table_info("{table_name}")').fetchall()
+            columns = [c["name"] for c in col_info]
 
-        # Indexes
-        indexes = conn.execute(
-            f'PRAGMA index_list("{table_name}")'
-        ).fetchall()
-        index_names = [idx["name"] for idx in indexes]
+            # Indexes
+            indexes = conn.execute(f'PRAGMA index_list("{table_name}")').fetchall()
+            index_names = [idx["name"] for idx in indexes]
 
-        print(f"\nTable: {table_name}")
-        print(f"  Rows:    {row_count:,}")
-        print(f"  Columns: {len(columns)}")
-        print(f"    {', '.join(columns)}")
-        if index_names:
-            print(f"  Indexes: {', '.join(index_names)}")
+            print(f"\nTable: {table_name}")
+            print(f"  Rows:    {row_count:,}")
+            print(f"  Columns: {len(columns)}")
+            print(f"    {', '.join(columns)}")
+            if index_names:
+                print(f"  Indexes: {', '.join(index_names)}")
+            else:
+                print("  Indexes: (none)")
+
+            # Sample rows (first 3)
+            sample = conn.execute(f'SELECT * FROM "{table_name}" LIMIT 3').fetchall()
+            if sample:
+                print("  Sample rows:")
+                for row in sample:
+                    row_dict = dict(row)
+                    display_items = []
+                    for k, v in row_dict.items():
+                        v_str = str(v) if v is not None else "NULL"
+                        if len(v_str) > 40:
+                            v_str = v_str[:37] + "..."
+                        display_items.append(f"{k}={v_str}")
+                    print(f"    {{ {', '.join(display_items)} }}")
+
+            print_separator()
+
+        print(f"\nTotal rows across all tables: {total_rows:,}")
+
+        # Expected tables check
+        expected_tables = [
+            # Original 13 tables
+            "players",
+            "player_stats_pergame",
+            "player_stats_advanced",
+            "shots",
+            "player_game_logs",
+            "team_game_logs",
+            "lineups",
+            "awards",
+            "draft",
+            "standings",
+            "team_stats_advanced",
+            "tracking",
+            "career_leaders",
+            # New 18 tables (Tier 1: BBRef multi-season)
+            "player_stats_per100poss",
+            "player_stats_per36min",
+            "player_stats_totals",
+            "player_stats_playoffs_pergame_bbref",
+            "player_shooting_splits",
+            # New 18 tables (Tier 2: Enrichment)
+            "all_nba_teams",
+            "all_defense_teams",
+            "all_star_selections_new",
+            "awards_major",
+            "contracts",
+            "draft_combine",
+            "team_four_factors",
+            "team_opponent_pergame",
+            "player_stats_defense_new",
+            "player_stats_scoring_new",
+            "player_stats_usage_new",
+            # New 18 tables (Tier 3: Playoff extended)
+            "playoff_game_logs",
+            "injury_history",
+        ]
+
+        print("\nExpected tables check:")
+        all_present = True
+        for t in expected_tables:
+            present = t in table_names
+            status = "OK" if present else "MISSING"
+            if not present:
+                all_present = False
+            print(f"  [{status}] {t}")
+
+        if all_present:
+            print("\nAll expected tables are present.")
         else:
-            print("  Indexes: (none)")
-
-        # Sample rows (first 3)
-        sample = conn.execute(f'SELECT * FROM "{table_name}" LIMIT 3').fetchall()
-        if sample:
-            print("  Sample rows:")
-            for row in sample:
-                row_dict = dict(row)
-                # Truncate long values for display
-                display_items = []
-                for k, v in row_dict.items():
-                    v_str = str(v) if v is not None else "NULL"
-                    if len(v_str) > 40:
-                        v_str = v_str[:37] + "..."
-                    display_items.append(f"{k}={v_str}")
-                print(f"    {{ {', '.join(display_items)} }}")
-
-        print_separator()
-
-    print(f"\nTotal rows across all tables: {total_rows:,}")
-
-    # Expected tables check
-    expected_tables = [
-        # Original 13 tables
-        "players",
-        "player_stats_pergame",
-        "player_stats_advanced",
-        "shots",
-        "player_game_logs",
-        "team_game_logs",
-        "lineups",
-        "awards",
-        "draft",
-        "standings",
-        "team_stats_advanced",
-        "tracking",
-        "career_leaders",
-        # New 18 tables (Tier 1: BBRef multi-season)
-        "player_stats_per100poss",
-        "player_stats_per36min",
-        "player_stats_totals",
-        "player_stats_playoffs_pergame_bbref",
-        "player_shooting_splits",
-        # New 18 tables (Tier 2: Enrichment)
-        "all_nba_teams",
-        "all_defense_teams",
-        "all_star_selections_new",
-        "awards_major",
-        "contracts",
-        "draft_combine",
-        "team_four_factors",
-        "team_opponent_pergame",
-        "player_stats_defense_new",
-        "player_stats_scoring_new",
-        "player_stats_usage_new",
-        # New 18 tables (Tier 3: Playoff extended)
-        "playoff_game_logs",
-        "injury_history",
-    ]
-
-    print("\nExpected tables check:")
-    all_present = True
-    for t in expected_tables:
-        present = t in table_names
-        status = "OK" if present else "MISSING"
-        if not present:
-            all_present = False
-        print(f"  [{status}] {t}")
-
-    if all_present:
-        print("\nAll expected tables are present.")
-    else:
-        print("\nWARNING: Some expected tables are missing!")
+            print("\nWARNING: Some expected tables are missing!")
 
     finally:
         conn.close()

@@ -173,7 +173,7 @@ def _real_detection(
             players: list[DetectedObject] = []
             court_detected = False
 
-            if preds and len(preds) > 0:
+            if preds:
                 boxes = preds[0].boxes
                 if boxes is not None:
                     for i in range(len(boxes)):

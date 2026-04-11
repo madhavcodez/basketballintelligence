@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import logging
 import random
+import sqlite3
 import sys
 import time
 from pathlib import Path
@@ -121,7 +122,6 @@ def main(clips: int, db: str, export_json: bool, seed: int) -> None:
     home_team, away_team = rng.choice(SAMPLE_TEAMS)
     video_duration = rng.uniform(120.0, 600.0)
 
-    import sqlite3
     conn = sqlite3.connect(str(config.film_db_path))
     try:
         cursor = conn.execute(

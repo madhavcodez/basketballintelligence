@@ -37,7 +37,6 @@ def _segment_with_opencv(
 
     fps = cap.get(cv2.CAP_PROP_FPS) or 30.0
     total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
-    duration = total_frames / fps
 
     # Sample at the configured analysis FPS
     sample_interval = max(1, int(fps / config.target_fps))
@@ -103,7 +102,11 @@ def _segment_uniform_fallback(
     config: PipelineConfig,
 ) -> list[ClipSegment]:
     """Fallback: split into uniform segments when OpenCV is unavailable."""
-    clip_len = 10.0  # Default 10-second clips
+    # Pick a clip length that respects the configured min/max bounds.
+    clip_len = max(
+        config.min_clip_duration,
+        min(10.0, config.max_clip_duration),
+    )
     segments: list[ClipSegment] = []
     current = 0.0
 
@@ -147,17 +150,20 @@ def segment_video(
         fallback_duration = duration_hint if duration_hint is not None else 120.0
         segments = _segment_uniform_fallback(fallback_duration, config)
 
-    # Apply padding: add extra time before and after each segment
-    padding = getattr(config, 'clip_padding', 1.0)
+    # Apply padding: add extra time before and after each segment.
+    # Build a new list rather than mutating in place.
+    padding = config.clip_padding
     if padding > 0:
         total_duration = duration_hint or 9999.0
-        for i, seg in enumerate(segments):
-            segments[i] = ClipSegment(
+        segments = [
+            ClipSegment(
                 start_time=round(max(0, seg.start_time - padding), 2),
                 end_time=round(min(total_duration, seg.end_time + padding), 2),
                 confidence=seg.confidence,
                 quarter=seg.quarter,
                 game_clock=seg.game_clock,
             )
+            for seg in segments
+        ]
 
     return segments

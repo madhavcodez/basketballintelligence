@@ -75,20 +75,17 @@ class ScoreboardReading:
 # ---------------------------------------------------------------------------
 # Mock data returned when OCR is unavailable or confidence is too low
 # ---------------------------------------------------------------------------
-_MOCK_READING: ScoreboardReading | None = None
+_MOCK_READING = ScoreboardReading(
+    home_score=105,
+    away_score=98,
+    game_clock="4:32",
+    shot_clock=14.0,
+    quarter=3,
+    confidence=0.1,
+)
 
 
 def _mock_reading() -> ScoreboardReading:
-    global _MOCK_READING  # noqa: PLW0603
-    if _MOCK_READING is None:
-        _MOCK_READING = ScoreboardReading(
-            home_score=105,
-            away_score=98,
-            game_clock="4:32",
-            shot_clock=14.0,
-            quarter=3,
-            confidence=0.1,
-        )
     return _MOCK_READING
 
 

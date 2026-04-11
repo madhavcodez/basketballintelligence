@@ -6,11 +6,12 @@ Reads CSV files from ~/Downloads/sportsdata/ and creates a SQLite database
 at basketball-intelligence/data/basketball.db with properly typed and indexed tables.
 """
 
+import glob
 import os
 import re
-import glob
 import sqlite3
 import sys
+import traceback
 from pathlib import Path
 
 import pandas as pd
@@ -569,7 +570,6 @@ def main() -> None:
         print("=" * 60)
     except Exception as exc:
         print(f"\nFATAL ERROR: {exc}")
-        import traceback
         traceback.print_exc()
         sys.exit(1)
     finally:
