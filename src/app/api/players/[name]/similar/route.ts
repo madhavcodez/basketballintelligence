@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { parseSeasonType, findSimilarPlayersV2 } from '@/lib/playoffs-db';
 import { handleApiError } from '@/lib/api-error';
 import { jsonWithCache } from '@/lib/api-response';

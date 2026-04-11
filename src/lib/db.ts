@@ -237,12 +237,6 @@ export function getTeamRoster(teamAbbr: string, season?: string) {
   `).all(teamAbbr, seasonFilter);
 }
 
-// Lineup queries — lineups table not yet populated; return empty gracefully
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-export function getLineups(_teamAbbr: string, _season?: string): unknown[] {
-  return [];
-}
-
 // Compare queries
 export function comparePlayers(name1: string, name2: string, season?: string) {
   const db = getDb();
@@ -357,52 +351,6 @@ export function getDataEdition() {
   };
 }
 
-// Percentile calculation for player context
-export function getPercentiles(season: string, stat: string) {
-  const db = getDb();
-  const validStats: Record<string, string> = {
-    points: 'PTS', rebounds: 'TRB', assists: 'AST', steals: 'STL',
-    blocks: 'BLK', fgPct: 'FGPct', fg3Pct: '"3PPct"', ftPct: 'FTPct',
-    minutes: 'MP', games: 'G'
-  };
-  const col = validStats[stat];
-  if (!col) return [];
-  return db.prepare(`
-    SELECT Player as name, CAST(${col} as FLOAT) as value
-    FROM player_stats_pergame
-    WHERE Season = ? AND CAST(G as INTEGER) >= 20
-    ORDER BY value ASC
-  `).all(season);
-}
-
-// Similar players by stat profile
-export function findSimilarPlayers(playerName: string, season: string, limit = 5) {
-  const db = getDb();
-  const target = db.prepare(`
-    SELECT CAST(PTS as FLOAT) as pts, CAST(TRB as FLOAT) as trb,
-           CAST(AST as FLOAT) as ast, CAST(STL as FLOAT) as stl,
-           CAST(BLK as FLOAT) as blk, CAST(MP as FLOAT) as mp
-    FROM player_stats_pergame WHERE Player = ? AND Season = ?
-  `).get(playerName, season) as { pts: number; trb: number; ast: number; stl: number; blk: number; mp: number } | undefined;
-
-  if (!target) return [];
-
-  return db.prepare(`
-    SELECT s.Player as name, s.Tm as team, s.Season as season,
-           CAST(s.PTS as FLOAT) as points, CAST(s.TRB as FLOAT) as rebounds,
-           CAST(s.AST as FLOAT) as assists,
-           ABS(CAST(s.PTS as FLOAT) - ?) + ABS(CAST(s.TRB as FLOAT) - ?) +
-           ABS(CAST(s.AST as FLOAT) - ?) + ABS(CAST(s.STL as FLOAT) - ?) +
-           ABS(CAST(s.BLK as FLOAT) - ?) as distance,
-           p.person_id as personId
-    FROM player_stats_pergame s
-    LEFT JOIN players p ON p.Player = s.Player
-    WHERE s.Player != ? AND s.Season = ? AND CAST(s.G as INTEGER) >= 20
-    ORDER BY distance ASC
-    LIMIT ?
-  `).all(target.pts, target.trb, target.ast, target.stl, target.blk, playerName, season, limit);
-}
-
 // Career leaders
 export function getCareerLeaders(stat: string, limit: number | string = 25, league = 'nba') {
   const db = getDb();
@@ -483,7 +431,14 @@ export function getRandomPlayerForQuiz() {
 /** Better Season — returns two players from the same season whose chosen stat
  *  differs by at least 20 % but is within 80 % of each other (competitive
  *  question). Falls back to fully random if no matching pair is found. */
+const BETTER_SEASON_STATS = new Set(['PTS', 'TRB', 'AST'] as const);
 export function getBetterSeasonPair(stat: 'PTS' | 'TRB' | 'AST' = 'PTS') {
+  // Defense in depth: even though TS narrows `stat`, this column is interpolated
+  // into raw SQL below. A runtime guard prevents any future caller from widening
+  // the type and silently introducing SQL injection.
+  if (!BETTER_SEASON_STATS.has(stat)) {
+    throw new Error(`getBetterSeasonPair: invalid stat ${stat}`);
+  }
   const db = getDb();
 
   // Pick a random season first, then find two players within the right range
@@ -583,7 +538,7 @@ export function getShotChartQuiz(): ShotChartQuiz | null {
 
   const seasonStart = parseInt(subject.season.split('-')[0], 10);
 
-  const decoys = (db.prepare(`
+  const eraDecoys = (db.prepare(`
     SELECT DISTINCT PLAYER_NAME
     FROM shots
     WHERE PLAYER_NAME != ?
@@ -599,21 +554,23 @@ export function getShotChartQuiz(): ShotChartQuiz | null {
   ) as { PLAYER_NAME: string }[]).map((r) => r.PLAYER_NAME);
 
   // Pad decoys with any name if era filter returned fewer than 3
-  if (decoys.length < 3) {
-    const extra = (db.prepare(`
-      SELECT DISTINCT PLAYER_NAME FROM shots
-      WHERE PLAYER_NAME != ? ${decoys.map(() => "AND PLAYER_NAME != ?").join(" ")}
-      ORDER BY RANDOM()
-      LIMIT ?
-    `).all(
-      subject.PLAYER_NAME,
-      ...decoys,
-      3 - decoys.length,
-    ) as { PLAYER_NAME: string }[]).map((r) => r.PLAYER_NAME);
-    decoys.push(...extra);
-  }
+  const padded = eraDecoys.length >= 3
+    ? eraDecoys
+    : [
+        ...eraDecoys,
+        ...(db.prepare(`
+          SELECT DISTINCT PLAYER_NAME FROM shots
+          WHERE PLAYER_NAME != ? ${eraDecoys.map(() => "AND PLAYER_NAME != ?").join(" ")}
+          ORDER BY RANDOM()
+          LIMIT ?
+        `).all(
+          subject.PLAYER_NAME,
+          ...eraDecoys,
+          3 - eraDecoys.length,
+        ) as { PLAYER_NAME: string }[]).map((r) => r.PLAYER_NAME),
+      ];
 
-  const options = [subject.PLAYER_NAME, ...decoys.slice(0, 3)].sort(() => Math.random() - 0.5);
+  const options = [subject.PLAYER_NAME, ...padded.slice(0, 3)].sort(() => Math.random() - 0.5);
 
   return {
     zones,

@@ -2,6 +2,12 @@ import Database from 'better-sqlite3';
 import path from 'path';
 
 // ─── Singleton ──────────────────────────────────────────────────────────────
+//
+// NOTE: Unlike basketball.db (read-only analytics DB), film.db is intentionally
+// opened read-write. The Film Room workflow needs to insert clips, tags,
+// annotations, and processing-job rows at runtime. Schema is created on first
+// access via SCHEMA_SQL below — every CREATE statement uses IF NOT EXISTS so
+// repeated process boots are safe.
 
 let filmDb: Database.Database | null = null;
 
@@ -360,7 +366,7 @@ export function searchClips(query: string, limit?: number): ClipRow[] {
 
   // Synonym expansion for natural language
   const SYNONYMS: Record<string, string[]> = {
-    dunking: ['dunk', 'dunk'],
+    dunking: ['dunk'],
     dunks: ['dunk'],
     shooting: ['shot', 'shoot', 'jumper'],
     shoots: ['shot', 'shoot'],
@@ -680,14 +686,38 @@ export function getVideoSummary(videoId: number): {
 export function getRelatedClips(clipId: number, limit: number = 8): ClipRow[] {
   const clip = getClip(clipId);
   if (!clip) return [];
+
+  // SQL: `col = NULL` is always false. If both primary_player and play_type
+  // are null we have no signal to relate on, so bail out. Otherwise build a
+  // WHERE that only references the non-null fields, and order by the player
+  // match (when present) so player matches surface above play-type matches.
+  const hasPlayer = clip.primary_player != null;
+  const hasPlayType = clip.play_type != null;
+  if (!hasPlayer && !hasPlayType) return [];
+
+  const conditions: string[] = [];
+  const params: Array<string | number> = [clipId];
+  if (hasPlayer) {
+    conditions.push('primary_player = ?');
+    params.push(clip.primary_player as string);
+  }
+  if (hasPlayType) {
+    conditions.push('play_type = ?');
+    params.push(clip.play_type as string);
+  }
+
+  const orderBy = hasPlayer
+    ? 'ORDER BY CASE WHEN primary_player = ? THEN 0 ELSE 1 END, created_at DESC'
+    : 'ORDER BY created_at DESC';
+  if (hasPlayer) params.push(clip.primary_player as string);
+  params.push(limit);
+
   return getFilmDb().prepare(`
     SELECT * FROM clips
-    WHERE id != ? AND (primary_player = ? OR play_type = ?)
-    ORDER BY
-      CASE WHEN primary_player = ? THEN 0 ELSE 1 END,
-      created_at DESC
+    WHERE id != ? AND (${conditions.join(' OR ')})
+    ${orderBy}
     LIMIT ?
-  `).all(clipId, clip.primary_player, clip.play_type, clip.primary_player, limit) as ClipRow[];
+  `).all(...params) as ClipRow[];
 }
 
 export function getPlayTypeCounts(): Array<{ play_type: string; count: number }> {

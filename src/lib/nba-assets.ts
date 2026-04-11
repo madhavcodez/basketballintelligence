@@ -19,7 +19,7 @@ export function teamLogoUrl(teamId: number | string): string {
 }
 
 // All 30 NBA team IDs mapped by abbreviation
-export const NBA_TEAM_IDS: Record<string, number> = {
+export const NBA_TEAM_IDS = {
   ATL: 1610612737,
   BOS: 1610612738,
   BKN: 1610612751,
@@ -51,6 +51,15 @@ export const NBA_TEAM_IDS: Record<string, number> = {
   UTA: 1610612762,
   WAS: 1610612764,
 } as const;
+
+export type NbaTeamAbbr = keyof typeof NBA_TEAM_IDS;
+
+/** Safe lookup: accepts any string, returns undefined for unknown abbreviations. */
+export function getTeamIdByAbbr(abbr: string | null | undefined): number | undefined {
+  if (!abbr) return undefined;
+  const key = abbr.toUpperCase() as NbaTeamAbbr;
+  return NBA_TEAM_IDS[key];
+}
 
 // Reverse map: team full name → abbreviation → team ID
 export const TEAM_NAME_TO_ID: Record<string, number> = {

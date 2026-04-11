@@ -234,55 +234,67 @@ function StoryCard({ config }: { readonly config: StoryConfig }) {
     if (storyData) return;
     setLoading(true);
 
-    const result: Record<string, unknown> = {};
+    try {
+      const result: Record<string, unknown> = {};
 
-    if (config.id === 'three-point') {
-      const explore = await fetchJSON<ExploreData>('/api/explore');
-      const curryData = await fetchJSON<PlayerData>(`/api/players/${encodeURIComponent('Stephen Curry')}`);
-      result.explore = explore;
-      result.curryStats = curryData?.stats ?? [];
-      result.allTimeScorers = explore?.allTimeScorers ?? [];
-    } else if (config.id === 'paint') {
-      const playerResults: { name: string; zones: readonly ShotZone[] }[] = [];
-      for (const name of PAINT_PLAYERS) {
-        const shotData = await fetchJSON<{ zones: readonly ShotZone[] }>(
-          `/api/players/${encodeURIComponent(name)}/shots?zones=true`
+      if (config.id === 'three-point') {
+        // Independent fetches → run in parallel
+        const [explore, curryData] = await Promise.all([
+          fetchJSON<ExploreData>('/api/explore'),
+          fetchJSON<PlayerData>(`/api/players/${encodeURIComponent('Stephen Curry')}`),
+        ]);
+        result.explore = explore;
+        result.curryStats = curryData?.stats ?? [];
+        result.allTimeScorers = explore?.allTimeScorers ?? [];
+      } else if (config.id === 'paint') {
+        const settled = await Promise.all(
+          PAINT_PLAYERS.map(async (name) => {
+            const shotData = await fetchJSON<{ zones: readonly ShotZone[] }>(
+              `/api/players/${encodeURIComponent(name)}/shots?zones=true`,
+            );
+            return shotData?.zones ? { name, zones: shotData.zones } : null;
+          }),
         );
-        if (shotData?.zones) {
-          playerResults.push({ name, zones: shotData.zones });
-        }
+        result.paintData = settled.filter((r): r is { name: string; zones: readonly ShotZone[] } => r !== null);
+      } else if (config.id === 'rookie') {
+        const settled = await Promise.all(
+          ROOKIE_PLAYERS.map(async (name) => {
+            const playerData = await fetchJSON<PlayerData>(`/api/players/${encodeURIComponent(name)}`);
+            if (!playerData?.stats) return null;
+            return {
+              name,
+              stats: playerData.stats,
+              awards: playerData.awards ?? [],
+            };
+          }),
+        );
+        result.rookies = settled.filter(
+          (r): r is { name: string; stats: readonly PlayerSeason[]; awards: readonly { awardType: string; season: string; team: string }[] } =>
+            r !== null,
+        );
+      } else if (config.id === 'mvp') {
+        const settled = await Promise.all(
+          MVP_PLAYERS.map(async (name) => {
+            const playerData = await fetchJSON<PlayerData>(`/api/players/${encodeURIComponent(name)}`);
+            if (!playerData?.stats) return null;
+            return {
+              name,
+              stats: playerData.stats,
+              awards: playerData.awards ?? [],
+            };
+          }),
+        );
+        result.mvps = settled.filter(
+          (r): r is { name: string; stats: readonly PlayerSeason[]; awards: readonly { awardType: string; season: string; team: string }[] } =>
+            r !== null,
+        );
       }
-      result.paintData = playerResults;
-    } else if (config.id === 'rookie') {
-      const rookieResults: { name: string; stats: readonly PlayerSeason[]; awards: readonly { awardType: string; season: string }[] }[] = [];
-      for (const name of ROOKIE_PLAYERS) {
-        const playerData = await fetchJSON<PlayerData>(`/api/players/${encodeURIComponent(name)}`);
-        if (playerData?.stats) {
-          rookieResults.push({
-            name,
-            stats: playerData.stats,
-            awards: playerData.awards ?? [],
-          });
-        }
-      }
-      result.rookies = rookieResults;
-    } else if (config.id === 'mvp') {
-      const mvpResults: { name: string; stats: readonly PlayerSeason[]; awards: readonly { awardType: string; season: string }[] }[] = [];
-      for (const name of MVP_PLAYERS) {
-        const playerData = await fetchJSON<PlayerData>(`/api/players/${encodeURIComponent(name)}`);
-        if (playerData?.stats) {
-          mvpResults.push({
-            name,
-            stats: playerData.stats,
-            awards: playerData.awards ?? [],
-          });
-        }
-      }
-      result.mvps = mvpResults;
-    }
 
-    setStoryData(result);
-    setLoading(false);
+      setStoryData(result);
+    } finally {
+      // Always release the spinner — even if a fetch chain throws.
+      setLoading(false);
+    }
   }, [config.id, storyData]);
 
   const handleToggle = useCallback(() => {

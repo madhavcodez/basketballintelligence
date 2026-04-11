@@ -55,7 +55,7 @@ export const ZONES = {
 
 export type ZoneName = keyof typeof ZONES;
 
-export const ZONE_LIST: ZoneName[] = [
+export const ZONE_LIST: readonly ZoneName[] = [
   'Restricted Area',
   'In The Paint (Non-RA)',
   'Mid-Range',
@@ -63,7 +63,7 @@ export const ZONE_LIST: ZoneName[] = [
   'Right Corner 3',
   'Above the Break 3',
   'Backcourt',
-];
+] as const;
 
 // Efficiency color stops (FG% diff from league avg)
 export const EFFICIENCY_STOPS = {

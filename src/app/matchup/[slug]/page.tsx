@@ -175,7 +175,7 @@ const fadeUp = {
 
 interface StatBarConfig {
   readonly label: string;
-  readonly key: string;
+  readonly key: keyof GameStats;
   readonly format: 'number' | 'percentage';
 }
 
@@ -193,10 +193,7 @@ const STAT_BARS: readonly StatBarConfig[] = [
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
-function getStatValue(
-  averages: Record<string, number>,
-  key: string,
-): number {
+function getStatValue(averages: GameStats, key: keyof GameStats): number {
   return averages[key] ?? 0;
 }
 
@@ -497,8 +494,8 @@ export default function MatchupSlugPage({
 
   // ── Computed Values ────────────────────────────────────────────────────────
 
-  const p1Avgs = summary.p1Averages as unknown as Record<string, number>;
-  const p2Avgs = summary.p2Averages as unknown as Record<string, number>;
+  const p1Avgs = summary.p1Averages;
+  const p2Avgs = summary.p2Averages;
   const hasMoreGames = games.length < totalGames;
 
   // Win Streak Tracker — compute from the first 10 games

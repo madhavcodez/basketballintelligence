@@ -1,4 +1,3 @@
-import { NextResponse } from 'next/server';
 import { getTeams } from '@/lib/db';
 import { handleApiError } from '@/lib/api-error';
 import { jsonWithCache } from '@/lib/api-response';

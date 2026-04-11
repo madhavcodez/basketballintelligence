@@ -7,8 +7,10 @@ export const dynamic = 'force-dynamic';
 
 export async function GET(request: NextRequest) {
   const q = request.nextUrl.searchParams.get('q') || '';
-  const limit = request.nextUrl.searchParams.get('limit') || '20';
-  const offset = request.nextUrl.searchParams.get('offset') || '0';
+  const rawLimit = parseInt(request.nextUrl.searchParams.get('limit') || '20', 10);
+  const rawOffset = parseInt(request.nextUrl.searchParams.get('offset') || '0', 10);
+  const limit = Number.isFinite(rawLimit) ? Math.min(Math.max(rawLimit, 1), 100) : 20;
+  const offset = Number.isFinite(rawOffset) ? Math.max(rawOffset, 0) : 0;
   if (q.length < 2) return NextResponse.json([]);
   try {
     const players = searchPlayers(q, limit, offset);

@@ -1,10 +1,12 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { findSimilarPlayersV2, parseSeasonType } from '@/lib/playoffs-db';
 import { findSimilarPlayersAdvanced } from '@/lib/similarity-engine';
 import { handleApiError } from '@/lib/api-error';
 import { jsonWithCache } from '@/lib/api-response';
 
 export const dynamic = 'force-dynamic';
+
+const SIMILAR_MAX_LIMIT = 50;
 
 export async function GET(
   req: NextRequest,
@@ -19,8 +21,10 @@ export async function GET(
     const season = searchParams.get('season')
       ? decodeURIComponent(searchParams.get('season')!)
       : undefined;
-    const limit = searchParams.get('limit')
-      ? parseInt(searchParams.get('limit')!, 10)
+    const rawLimit = searchParams.get('limit');
+    const parsedLimit = rawLimit ? parseInt(rawLimit, 10) : NaN;
+    const limit = Number.isFinite(parsedLimit)
+      ? Math.min(Math.max(parsedLimit, 1), SIMILAR_MAX_LIMIT)
       : undefined;
     const method = searchParams.get('method') ?? 'advanced';
 

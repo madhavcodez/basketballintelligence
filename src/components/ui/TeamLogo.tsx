@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import clsx from 'clsx';
-import { teamLogoUrl, NBA_TEAM_IDS } from '@/lib/nba-assets';
+import { teamLogoUrl, getTeamIdByAbbr } from '@/lib/nba-assets';
 
 type LogoSize = 'sm' | 'md' | 'lg' | 'xl';
 
@@ -31,7 +31,7 @@ export default function TeamLogo({
   const styles = sizeMap[size];
 
   // Resolve team ID from abbreviation if not provided directly
-  const resolvedId = teamId ?? (teamAbbr ? NBA_TEAM_IDS[teamAbbr.toUpperCase()] : null);
+  const resolvedId = teamId ?? getTeamIdByAbbr(teamAbbr);
   const hasLogo = resolvedId && !imgError;
 
   return (

@@ -24,19 +24,21 @@ export async function GET(
       );
     }
 
-    const stats = getPlayerStatsV2(decoded, seasonType);
-    const advanced = getPlayerAdvancedV2(decoded, seasonType);
+    const statsResult = getPlayerStatsV2(decoded, seasonType);
+    const advancedResult = getPlayerAdvancedV2(decoded, seasonType);
     const awards = getPlayerAwards(decoded);
     const draft = getDraftPick(decoded);
 
+    // Match v1 response shape: clients expect `stats` to be the row array,
+    // not the wrapped { data, seasonType, playoffAvailable } envelope.
     return jsonWithCache({
       player,
-      stats,
-      advanced,
+      stats: statsResult.data,
+      advanced: advancedResult.data,
       awards,
       draft,
-      seasonType: stats.seasonType,
-      playoffAvailable: stats.playoffAvailable,
+      seasonType: statsResult.seasonType,
+      playoffAvailable: statsResult.playoffAvailable,
     }, 120);
   } catch (e) { return handleApiError(e, 'v2-player-detail'); }
 }

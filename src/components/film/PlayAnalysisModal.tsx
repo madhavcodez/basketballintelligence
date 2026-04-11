@@ -131,6 +131,9 @@ export default function PlayAnalysisModal({ open, onClose, playType, playerName,
 
           {/* Modal */}
           <motion.div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="play-analysis-title"
             className="relative w-full max-w-lg rounded-[24px] overflow-hidden"
             style={{ boxShadow: '0 24px 80px rgba(0,0,0,0.5)' }}
             initial={{ scale: 0.92, y: 20 }}
@@ -144,6 +147,7 @@ export default function PlayAnalysisModal({ open, onClose, playType, playerName,
               <button
                 type="button"
                 onClick={onClose}
+                aria-label="Close play analysis"
                 className="absolute top-4 right-4 h-8 w-8 rounded-full bg-white/10 flex items-center justify-center text-white/50 hover:text-white hover:bg-white/20 transition-colors"
               >
                 <X size={16} />
@@ -155,7 +159,7 @@ export default function PlayAnalysisModal({ open, onClose, playType, playerName,
                   Play Analysis
                 </span>
               </div>
-              <h2 className="text-xl font-display font-extrabold text-white tracking-tight">
+              <h2 id="play-analysis-title" className="text-xl font-display font-extrabold text-white tracking-tight">
                 {play.label}
               </h2>
               {clipTitle && (

@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { getPlayerShotSeasons } from '@/lib/db';
 import { parseSeasonType, getPlayerShotsV2, getShotZoneStatsV2 } from '@/lib/playoffs-db';
 import { handleApiError } from '@/lib/api-error';
@@ -14,8 +14,14 @@ export async function GET(
   const playerName = decodeURIComponent(name);
   const season = request.nextUrl.searchParams.get('season') || undefined;
   const zonesOnly = request.nextUrl.searchParams.get('zones') === 'true';
-  const limit = parseInt(request.nextUrl.searchParams.get('limit') || '5000', 10);
-  const offset = parseInt(request.nextUrl.searchParams.get('offset') || '0', 10);
+  const limit = Math.min(
+    Math.max(parseInt(request.nextUrl.searchParams.get('limit') || '5000', 10) || 5000, 1),
+    10000,
+  );
+  const offset = Math.max(
+    parseInt(request.nextUrl.searchParams.get('offset') || '0', 10) || 0,
+    0,
+  );
   const seasonType = parseSeasonType(request.nextUrl.searchParams.get('seasonType'));
   try {
     const seasons = getPlayerShotSeasons(playerName);

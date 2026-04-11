@@ -85,8 +85,6 @@ const fadeSlideUp = {
   },
 };
 
-// ── Play type color mapping ─────────────────────────────────────────────────
-
 // ── Play type visual definitions (court diagram arrows + dots) ──────────────
 
 const PLAY_TYPE_VISUAL: Record<string, { color: string; abbr: string; paths: string[]; dots: [number, number][] }> = {

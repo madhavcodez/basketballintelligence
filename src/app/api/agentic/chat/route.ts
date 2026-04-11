@@ -107,6 +107,9 @@ interface ChatMessage {
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
+// Force a hard cap on returned rows regardless of what the model emits.
+const SQL_HARD_LIMIT = 50;
+
 function sanitizeSql(sql: string): string | null {
   // Strip to first statement only, reject multi-statement inputs
   const firstStatement = sql.split(';')[0].trim();
@@ -120,13 +123,49 @@ function sanitizeSql(sql: string): string | null {
     return null;
   }
 
-  // Reject any dangerous keyword using word-boundary regex
-  const FORBIDDEN = /\b(INSERT|UPDATE|DELETE|DROP|ALTER|CREATE|ATTACH|DETACH|PRAGMA|VACUUM|EXEC|EXECUTE)\b/;
+  // Reject any dangerous keyword using word-boundary regex.
+  // LOAD_EXTENSION is in the list because some SQLite builds permit it even
+  // on a `readonly: true` connection — defense in depth against jailbroken
+  // model output.
+  const FORBIDDEN =
+    /\b(INSERT|UPDATE|DELETE|DROP|ALTER|CREATE|ATTACH|DETACH|PRAGMA|VACUUM|EXEC|EXECUTE|LOAD_EXTENSION)\b/;
   if (FORBIDDEN.test(normalized)) {
     return null;
   }
 
+  // Force a LIMIT clause if the model didn't supply one. We don't trust the
+  // system-prompt instruction alone — capping in code prevents pathological
+  // queries from materializing millions of rows in memory before slicing.
+  if (!/\bLIMIT\b/.test(normalized)) {
+    return `${firstStatement} LIMIT ${SQL_HARD_LIMIT}`;
+  }
   return firstStatement;
+}
+
+// ─── History validation ─────────────────────────────────────────────────────
+//
+// History comes from the client. Without validation a caller can inject
+// arbitrary "previous turns" containing fake instructions, which Gemini will
+// happily incorporate. Validate shape and clamp content length per message.
+
+const HISTORY_MAX_MESSAGES = 6;
+const HISTORY_CONTENT_MAX_CHARS = 2000;
+
+function validateHistory(input: unknown): readonly ChatMessage[] {
+  if (!Array.isArray(input)) return [];
+  const out: ChatMessage[] = [];
+  for (const item of input) {
+    if (!item || typeof item !== 'object') continue;
+    const obj = item as Record<string, unknown>;
+    if (obj.role !== 'user' && obj.role !== 'assistant') continue;
+    if (typeof obj.content !== 'string') continue;
+    out.push({
+      role: obj.role,
+      content: obj.content.slice(0, HISTORY_CONTENT_MAX_CHARS),
+    });
+    if (out.length >= HISTORY_MAX_MESSAGES) break;
+  }
+  return out;
 }
 
 function getGeminiClient(): GoogleGenerativeAI | null {
@@ -139,13 +178,11 @@ function getGeminiClient(): GoogleGenerativeAI | null {
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
-    const { message, history } = body as {
-      message: string;
-      history?: readonly ChatMessage[];
-    };
+    const body = (await request.json()) as { message?: unknown; history?: unknown };
+    const message = typeof body.message === 'string' ? body.message : '';
+    const history = validateHistory(body.history);
 
-    if (!message || typeof message !== 'string' || message.trim().length === 0) {
+    if (!message || message.trim().length === 0) {
       return NextResponse.json(
         { error: 'Message is required' },
         { status: 400 }
@@ -167,9 +204,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Build conversation context
-    const conversationHistory = (history ?? []).slice(-6).map((msg: ChatMessage) => ({
-      role: msg.role === 'user' ? 'user' as const : 'model' as const,
+    // Build conversation context (history is already validated + clamped)
+    const conversationHistory = history.map((msg) => ({
+      role: msg.role === 'user' ? ('user' as const) : ('model' as const),
       parts: [{ text: msg.content }],
     }));
 

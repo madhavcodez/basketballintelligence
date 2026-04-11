@@ -78,17 +78,29 @@ const fadeUp = {
 };
 
 // ── Stat categories ──────────────────────────────────────────────────────────
+// Constraining `key` to keyof PlayerStats means CATEGORIES can never silently
+// reference a stat that PlayerStats does not declare, and removes the need to
+// double-cast `data.player1` when indexing it below.
 
-const CATEGORIES = [
-  { key: 'points', label: 'PPG', format: (v: number) => Number(v).toFixed(1), higherBetter: true },
-  { key: 'rebounds', label: 'RPG', format: (v: number) => Number(v).toFixed(1), higherBetter: true },
-  { key: 'assists', label: 'APG', format: (v: number) => Number(v).toFixed(1), higherBetter: true },
-  { key: 'steals', label: 'SPG', format: (v: number) => Number(v).toFixed(1), higherBetter: true },
-  { key: 'blocks', label: 'BPG', format: (v: number) => Number(v).toFixed(1), higherBetter: true },
-  { key: 'fgPct', label: 'FG%', format: (v: number) => `${(Number(v) * 100).toFixed(1)}`, higherBetter: true },
-  { key: 'fg3Pct', label: '3P%', format: (v: number) => `${(Number(v) * 100).toFixed(1)}`, higherBetter: true },
-  { key: 'ftPct', label: 'FT%', format: (v: number) => `${(Number(v) * 100).toFixed(1)}`, higherBetter: true },
-  { key: 'efgPct', label: 'EFG%', format: (v: number) => `${(Number(v) * 100).toFixed(1)}`, higherBetter: true },
+type StatKey = Extract<keyof PlayerStats, 'points' | 'rebounds' | 'assists' | 'steals' | 'blocks' | 'fgPct' | 'fg3Pct' | 'ftPct' | 'efgPct'>;
+
+interface StatCategory {
+  readonly key: StatKey;
+  readonly label: string;
+  readonly format: (v: number) => string;
+  readonly higherBetter: boolean;
+}
+
+const CATEGORIES: readonly StatCategory[] = [
+  { key: 'points', label: 'PPG', format: (v) => Number(v).toFixed(1), higherBetter: true },
+  { key: 'rebounds', label: 'RPG', format: (v) => Number(v).toFixed(1), higherBetter: true },
+  { key: 'assists', label: 'APG', format: (v) => Number(v).toFixed(1), higherBetter: true },
+  { key: 'steals', label: 'SPG', format: (v) => Number(v).toFixed(1), higherBetter: true },
+  { key: 'blocks', label: 'BPG', format: (v) => Number(v).toFixed(1), higherBetter: true },
+  { key: 'fgPct', label: 'FG%', format: (v) => `${(Number(v) * 100).toFixed(1)}`, higherBetter: true },
+  { key: 'fg3Pct', label: '3P%', format: (v) => `${(Number(v) * 100).toFixed(1)}`, higherBetter: true },
+  { key: 'ftPct', label: 'FT%', format: (v) => `${(Number(v) * 100).toFixed(1)}`, higherBetter: true },
+  { key: 'efgPct', label: 'EFG%', format: (v) => `${(Number(v) * 100).toFixed(1)}`, higherBetter: true },
 ] as const;
 
 // ── Helper: zone color ───────────────────────────────────────────────────────
@@ -235,8 +247,8 @@ function ComparePageInner() {
     let w1 = 0;
     let w2 = 0;
     for (const cat of CATEGORIES) {
-      const v1 = Number((data.player1 as unknown as Record<string, unknown>)[cat.key] ?? 0);
-      const v2 = Number((data.player2 as unknown as Record<string, unknown>)[cat.key] ?? 0);
+      const v1 = Number(data.player1[cat.key] ?? 0);
+      const v2 = Number(data.player2[cat.key] ?? 0);
       if (cat.higherBetter ? v1 > v2 : v1 < v2) w1++;
       else if (cat.higherBetter ? v2 > v1 : v2 < v1) w2++;
     }
@@ -442,8 +454,8 @@ function ComparePageInner() {
               <GlassCard className="p-4 sm:p-6">
                 <div className="flex flex-col gap-3">
                   {CATEGORIES.map((cat, i) => {
-                    const v1 = Number((data.player1 as unknown as Record<string, unknown>)[cat.key] ?? 0);
-                    const v2 = Number((data.player2 as unknown as Record<string, unknown>)[cat.key] ?? 0);
+                    const v1 = Number(data.player1![cat.key] ?? 0);
+                    const v2 = Number(data.player2![cat.key] ?? 0);
                     const p1IsWinner = cat.higherBetter ? v1 > v2 : v1 < v2;
                     const p2IsWinner = cat.higherBetter ? v2 > v1 : v2 < v1;
                     const maxVal = Math.max(v1, v2, 0.001);

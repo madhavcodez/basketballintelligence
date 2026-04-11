@@ -283,6 +283,7 @@ export default function ZonesExplorerPage() {
                 value={searchQuery}
                 onChange={(e) => handleSearch(e.target.value)}
                 placeholder="Search player..."
+                aria-label="Search for a player"
                 className="flex-1 bg-transparent px-3 py-3 text-sm text-[#1D1D1F] placeholder:text-[#86868B] outline-none"
               />
               {searchQuery && (
@@ -561,9 +562,11 @@ export default function ZonesExplorerPage() {
             ) : leaders.length > 0 ? (
               <div className="divide-y divide-black/[0.06]">
                 {leaders.map((leader, i) => (
-                  <motion.div
+                  <motion.button
+                    type="button"
                     key={leader.player}
-                    className={`flex items-center gap-4 px-5 py-3.5 hover:bg-[#F5F5F7] transition-colors cursor-pointer ${i % 2 === 1 ? 'bg-[#F5F5F7]' : 'bg-white'}`}
+                    aria-label={`Select ${leader.player}`}
+                    className={`w-full text-left flex items-center gap-4 px-5 py-3.5 hover:bg-[#F5F5F7] focus:bg-[#F5F5F7] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B35]/40 transition-colors cursor-pointer ${i % 2 === 1 ? 'bg-[#F5F5F7]' : 'bg-white'}`}
                     onClick={() => selectPlayer(leader.player)}
                     initial={{ opacity: 0, x: -12 }}
                     animate={{ opacity: 1, x: 0 }}
@@ -586,7 +589,7 @@ export default function ZonesExplorerPage() {
                     <span className="text-xs text-[#86868B] tabular-nums w-16 text-right">
                       {leader.attempts} att
                     </span>
-                  </motion.div>
+                  </motion.button>
                 ))}
               </div>
             ) : (
@@ -810,6 +813,7 @@ function CompareSearch({
           onChange={(e) => handleInput(e.target.value)}
           onFocus={() => { if (results.length > 0) setOpen(true); }}
           placeholder={placeholder}
+          aria-label={placeholder}
           className="flex-1 bg-transparent text-[#1D1D1F] placeholder:text-[#86868B] outline-none"
         />
       </div>

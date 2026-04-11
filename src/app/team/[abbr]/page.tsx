@@ -24,7 +24,7 @@ import Badge from '@/components/ui/Badge';
 import TeamLogo from '@/components/ui/TeamLogo';
 import PlayerAvatar from '@/components/ui/PlayerAvatar';
 import { useSeasonType } from '@/lib/season-context';
-import { NBA_TEAM_IDS } from '@/lib/nba-assets';
+import { getTeamIdByAbbr } from '@/lib/nba-assets';
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -137,6 +137,15 @@ const itemVariants = {
     transition: { type: 'spring' as const, stiffness: 120, damping: 14 },
   },
 };
+
+// Approximate league averages used for the rating bars. Hoisted out of render
+// so we don't allocate a fresh object on every re-render.
+const LEAGUE_AVG = {
+  offRating: 112,
+  defRating: 112,
+  netRating: 0,
+  pace: 100,
+} as const;
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -457,20 +466,19 @@ export default function TeamDNAPage() {
       .slice(-8);
   }, [data?.stats]);
 
-  // Sort handler
-  const handleSort = useCallback((field: SortField) => {
-    setSortField((prev) => {
-      if (prev === field) {
+  // Sort handler — never call setState inside another setter's updater
+  // (React 19 may invoke updaters speculatively in concurrent mode).
+  const handleSort = useCallback(
+    (field: SortField) => {
+      if (field === sortField) {
         setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'));
-        return field;
+      } else {
+        setSortField(field);
+        setSortDir('desc');
       }
-      setSortDir('desc');
-      return field;
-    });
-  }, []);
-
-  // League average placeholders (approximate NBA averages)
-  const leagueAvg = { offRating: 112, defRating: 112, netRating: 0, pace: 100 };
+    },
+    [sortField],
+  );
 
   if (loading) return <TeamSkeleton />;
 
@@ -513,7 +521,7 @@ export default function TeamDNAPage() {
       <motion.div variants={itemVariants}>
         <GlassCard className="p-6 sm:p-8">
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-            <TeamLogo teamAbbr={abbr} teamId={NBA_TEAM_IDS[abbr]} size="xl" />
+            <TeamLogo teamAbbr={abbr} teamId={getTeamIdByAbbr(abbr)} size="xl" />
             <div className="flex-1">
               <div className="flex items-center gap-3 flex-wrap">
                 <h1 className="text-3xl sm:text-5xl font-extrabold tracking-[-0.02em] text-text-primary font-display">
@@ -576,7 +584,7 @@ export default function TeamDNAPage() {
             <RatingBar
               label="Offensive Rating"
               value={Number(advancedForSeason.offRating)}
-              leagueAvg={leagueAvg.offRating}
+              leagueAvg={LEAGUE_AVG.offRating}
               color="#FF6B35"
               min={95}
               max={125}
@@ -584,7 +592,7 @@ export default function TeamDNAPage() {
             <RatingBar
               label="Defensive Rating"
               value={Number(advancedForSeason.defRating)}
-              leagueAvg={leagueAvg.defRating}
+              leagueAvg={LEAGUE_AVG.defRating}
               color="#4DA6FF"
               min={95}
               max={125}
@@ -592,7 +600,7 @@ export default function TeamDNAPage() {
             <RatingBar
               label="Net Rating"
               value={Number(advancedForSeason.netRating)}
-              leagueAvg={leagueAvg.netRating}
+              leagueAvg={LEAGUE_AVG.netRating}
               color="#34D399"
               min={-15}
               max={15}
@@ -600,7 +608,7 @@ export default function TeamDNAPage() {
             <RatingBar
               label="Pace"
               value={Number(advancedForSeason.pace)}
-              leagueAvg={leagueAvg.pace}
+              leagueAvg={LEAGUE_AVG.pace}
               color="#A78BFA"
               min={90}
               max={110}
@@ -799,14 +807,17 @@ export default function TeamDNAPage() {
             }
           />
           <GlassCard className="mt-3 p-5">
-            {shotZones ? (
+            {shotZones ? (() => {
+              // Hoist out of the per-zone .map() — was being recomputed for
+              // every row, scanning the full list each time.
+              const maxAttempts = Math.max(...shotZones.map((z) => z.attempts), 1);
+              return (
               <div className="space-y-3">
                 {shotZones
                   .filter((z) => z.attempts > 0)
                   .sort((a, b) => b.attempts - a.attempts)
                   .slice(0, 6)
                   .map((zone) => {
-                    const maxAttempts = Math.max(...shotZones.map((z) => z.attempts), 1);
                     const pct = Math.max(0, Math.min(100, (zone.attempts / maxAttempts) * 100));
                     const efficiency = zone.fgPct < 1 ? zone.fgPct * 100 : zone.fgPct;
                     const isHot = efficiency >= 55;
@@ -851,7 +862,8 @@ export default function TeamDNAPage() {
                   <span>Zone FG% — green = hot zone (55%+)</span>
                 </div>
               </div>
-            ) : (
+              );
+            })() : (
               <div className="flex items-center justify-center py-6 gap-2 text-sm text-[#86868B]">
                 <Crosshair size={16} className="text-[#86868B] animate-pulse" />
                 Loading shot data...

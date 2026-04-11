@@ -21,6 +21,17 @@ import { type ZoneAggregation, generateSignatureNarrative } from '@/lib/zone-eng
 import { colors, motionPresets } from '@/lib/design-tokens';
 import { useSeasonType } from '@/lib/season-context';
 
+// Hoisted out of render — was being recreated twice per render inside two
+// separate .map() callbacks (stacked bar + legend).
+const ZONE_BAR_COLORS: Record<string, string> = {
+  'Restricted Area': colors.accentRed,
+  'In The Paint (Non-RA)': colors.accentOrange,
+  'Mid-Range': colors.accentGold,
+  'Left Corner 3': colors.accentGreen,
+  'Right Corner 3': '#34D399',
+  'Above the Break 3': colors.accentBlue,
+};
+
 // ── Types ────────────────────────────────────────────────────────────────────
 
 interface PlayerZoneData {
@@ -348,49 +359,29 @@ export default function PlayerZonePage() {
                     <div className="flex h-3 rounded-full overflow-hidden gap-[1px]">
                       {sortedZones
                         .filter((z) => z.zone !== 'Backcourt')
-                        .map((z) => {
-                          const zoneColors: Record<string, string> = {
-                            'Restricted Area': colors.accentRed,
-                            'In The Paint (Non-RA)': colors.accentOrange,
-                            'Mid-Range': colors.accentGold,
-                            'Left Corner 3': colors.accentGreen,
-                            'Right Corner 3': '#34D399',
-                            'Above the Break 3': colors.accentBlue,
-                          };
-                          return (
-                            <motion.div
-                              key={z.zone}
-                              className="h-full first:rounded-l-full last:rounded-r-full"
-                              style={{ background: zoneColors[z.zone] ?? colors.chromeDim }}
-                              initial={{ width: 0 }}
-                              animate={{ width: `${z.attPct * 100}%` }}
-                              transition={{ duration: 0.6, ease: [0.4, 0, 0.2, 1], delay: 0.3 }}
-                              title={`${ZONES[z.zone as ZoneName]?.label}: ${(z.attPct * 100).toFixed(1)}%`}
-                            />
-                          );
-                        })}
+                        .map((z) => (
+                          <motion.div
+                            key={z.zone}
+                            className="h-full first:rounded-l-full last:rounded-r-full"
+                            style={{ background: ZONE_BAR_COLORS[z.zone] ?? colors.chromeDim }}
+                            initial={{ width: 0 }}
+                            animate={{ width: `${z.attPct * 100}%` }}
+                            transition={{ duration: 0.6, ease: [0.4, 0, 0.2, 1], delay: 0.3 }}
+                            title={`${ZONES[z.zone as ZoneName]?.label}: ${(z.attPct * 100).toFixed(1)}%`}
+                          />
+                        ))}
                     </div>
                     <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2.5">
                       {sortedZones
                         .filter((z) => z.zone !== 'Backcourt')
-                        .map((z) => {
-                          const zoneColors: Record<string, string> = {
-                            'Restricted Area': colors.accentRed,
-                            'In The Paint (Non-RA)': colors.accentOrange,
-                            'Mid-Range': colors.accentGold,
-                            'Left Corner 3': colors.accentGreen,
-                            'Right Corner 3': '#34D399',
-                            'Above the Break 3': colors.accentBlue,
-                          };
-                          return (
-                            <div key={z.zone} className="flex items-center gap-1.5">
-                              <div className="w-2 h-2 rounded-full" style={{ background: zoneColors[z.zone] ?? colors.chromeDim }} />
-                              <span className="text-[9px] text-[#86868B]">
-                                {ZONES[z.zone as ZoneName]?.shortLabel} {(z.attPct * 100).toFixed(0)}%
-                              </span>
-                            </div>
-                          );
-                        })}
+                        .map((z) => (
+                          <div key={z.zone} className="flex items-center gap-1.5">
+                            <div className="w-2 h-2 rounded-full" style={{ background: ZONE_BAR_COLORS[z.zone] ?? colors.chromeDim }} />
+                            <span className="text-[9px] text-[#86868B]">
+                              {ZONES[z.zone as ZoneName]?.shortLabel} {(z.attPct * 100).toFixed(0)}%
+                            </span>
+                          </div>
+                        ))}
                     </div>
                   </GlassCard>
                 </motion.div>

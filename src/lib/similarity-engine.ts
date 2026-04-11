@@ -30,7 +30,6 @@ const PERGAME_TABLES = { regular: 'player_stats_pergame', playoffs: 'player_stat
 
 const SIMILARITY_STATS = ['TSPct', 'USGPct', 'off_rating', 'def_rating', 'efg_pct', 'ASTPct', 'TRBPct', 'pie'] as const;
 const DISPLAY_STATS = ['PTS', 'TRB', 'AST'] as const;
-const STAT_KEYS = ['TSPct', 'USGPct', 'off_rating', 'def_rating', 'efg_pct', 'ASTPct', 'TRBPct', 'pie'] as const;
 
 // ── Pure math helpers ───────────────────────────────────────────────────────
 
@@ -122,8 +121,8 @@ export function findSimilarPlayersAdvanced(
   if (rows.length < 3) return empty;
 
   // Build raw stat matrix and compute Z-scores column-by-column
-  const rawMatrix = rows.map((row) => STAT_KEYS.map((k) => toFloat(row[k])));
-  const numStats = STAT_KEYS.length;
+  const rawMatrix = rows.map((row) => SIMILARITY_STATS.map((k) => toFloat(row[k])));
+  const numStats = SIMILARITY_STATS.length;
   const zMatrix: number[][] = Array.from({ length: rows.length }, () => Array(numStats).fill(0) as number[]);
 
   for (let col = 0; col < numStats; col++) {

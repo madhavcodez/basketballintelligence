@@ -18,9 +18,9 @@ vi.mock('framer-motion', async () => {
     motion: new Proxy(
       {},
       {
-        get: (_target, prop: string) =>
+        get: (_target, prop) =>
           ({ children, ...rest }: React.HTMLAttributes<HTMLElement> & { children?: React.ReactNode }) =>
-            React.createElement(prop as keyof JSX.IntrinsicElements, rest, children),
+            React.createElement(String(prop), rest, children),
       },
     ),
     LayoutGroup: ({ children }: { children: React.ReactNode }) => React.createElement(React.Fragment, null, children),
@@ -57,17 +57,17 @@ describe('Badge', () => {
   });
 
   it('renders with accent variant without crashing', () => {
-    render(React.createElement(Badge, { variant: 'accent' }, 'HOF'));
+    render(React.createElement(Badge, { variant: 'accent', children: 'HOF' }));
     expect(screen.getByText('HOF')).toBeTruthy();
   });
 
   it('renders with success variant without crashing', () => {
-    render(React.createElement(Badge, { variant: 'success' }, 'Champion'));
+    render(React.createElement(Badge, { variant: 'success', children: 'Champion' }));
     expect(screen.getByText('Champion')).toBeTruthy();
   });
 
   it('renders with warning variant without crashing', () => {
-    render(React.createElement(Badge, { variant: 'warning' }, 'MVP'));
+    render(React.createElement(Badge, { variant: 'warning', children: 'MVP' }));
     expect(screen.getByText('MVP')).toBeTruthy();
   });
 });
