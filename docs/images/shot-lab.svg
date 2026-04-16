@@ -1,0 +1,108 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 560 420" width="560" height="420" role="img" aria-label="Shot Lab — hex heatmap and what-if panel">
+  <defs>
+    <filter id="sl-shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="4" stdDeviation="10" flood-color="#000" flood-opacity="0.08"/>
+    </filter>
+  </defs>
+  <rect width="560" height="420" fill="#F5F5F7"/>
+
+  <g filter="url(#sl-shadow)">
+    <rect x="16" y="16" width="528" height="388" rx="20" fill="#FFFFFF"/>
+  </g>
+
+  <!-- Header -->
+  <g font-family="'Inter', system-ui, sans-serif" transform="translate(36, 40)">
+    <text font-size="11" font-weight="700" fill="#FF6B35" letter-spacing="1.6">SHOT LAB</text>
+    <text y="22" font-size="22" font-weight="700" fill="#1D1D1F">Stephen Curry · 2022-23</text>
+    <text y="42" font-size="12" fill="#6E6E73">Regular season · 1,453 shots</text>
+  </g>
+
+  <!-- Mini court with hexbins -->
+  <g transform="translate(36, 100)">
+    <svg width="300" height="282" viewBox="0 0 500 470">
+      <rect width="500" height="470" fill="#FAFAFA" stroke="#DDD" stroke-width="1.5"/>
+      <rect x="170" y="0" width="160" height="190" fill="none" stroke="#333" stroke-width="1.5"/>
+      <circle cx="250" cy="190" r="60" fill="none" stroke="#333" stroke-width="1.5"/>
+      <line x1="220" y1="40" x2="280" y2="40" stroke="#333" stroke-width="2"/>
+      <circle cx="250" cy="52.5" r="9" fill="none" stroke="#FF6B35" stroke-width="2"/>
+      <path d="M 210 52.5 A 40 40 0 0 1 290 52.5" fill="none" stroke="#333" stroke-width="1.5"/>
+      <line x1="30" y1="0" x2="30" y2="142" stroke="#333" stroke-width="1.5"/>
+      <line x1="470" y1="0" x2="470" y2="142" stroke="#333" stroke-width="1.5"/>
+      <path d="M 30 142 A 237.5 237.5 0 0 1 470 142" fill="none" stroke="#333" stroke-width="1.5"/>
+
+      <!-- Rim hot -->
+      <g opacity="0.92">
+        <polygon points="250,55 262,62 262,76 250,83 238,76 238,62" fill="#FF3D00"/>
+        <polygon points="226,69 238,76 238,90 226,97 214,90 214,76" fill="#FF6B35"/>
+        <polygon points="274,69 286,76 286,90 274,97 262,90 262,76" fill="#FF6B35"/>
+        <polygon points="250,83 262,90 262,104 250,111 238,104 238,90" fill="#FF3D00"/>
+      </g>
+      <!-- Left corner 3 -->
+      <g opacity="0.9">
+        <polygon points="50,80 62,87 62,101 50,108 38,101 38,87" fill="#FF6B35"/>
+        <polygon points="50,108 62,115 62,129 50,136 38,129 38,115" fill="#FF3D00"/>
+        <polygon points="78,87 90,94 90,108 78,115 66,108 66,94" fill="#FF9B6B"/>
+      </g>
+      <!-- Right corner 3 -->
+      <g opacity="0.9">
+        <polygon points="438,80 450,87 450,101 438,108 426,101 426,87" fill="#FF9B6B"/>
+        <polygon points="438,108 450,115 450,129 438,136 426,129 426,115" fill="#FFB199"/>
+      </g>
+      <!-- Above-the-break 3 Curry range -->
+      <g opacity="0.9">
+        <polygon points="250,240 262,247 262,261 250,268 238,261 238,247" fill="#FF3D00"/>
+        <polygon points="200,250 212,257 212,271 200,278 188,271 188,257" fill="#FF6B35"/>
+        <polygon points="300,250 312,257 312,271 300,278 288,271 288,257" fill="#FF6B35"/>
+        <polygon points="150,280 162,287 162,301 150,308 138,301 138,287" fill="#FF9B6B"/>
+        <polygon points="350,280 362,287 362,301 350,308 338,301 338,287" fill="#FF9B6B"/>
+        <polygon points="250,270 262,277 262,291 250,298 238,291 238,277" fill="#FF6B35"/>
+        <polygon points="250,300 262,307 262,321 250,328 238,321 238,307" fill="#FFB199"/>
+      </g>
+      <!-- Mid range cold -->
+      <g opacity="0.7">
+        <polygon points="150,150 162,157 162,171 150,178 138,171 138,157" fill="#BDD8F4"/>
+        <polygon points="350,150 362,157 362,171 350,178 338,171 338,157" fill="#BDD8F4"/>
+        <polygon points="180,175 192,182 192,196 180,203 168,196 168,182" fill="#8EC2F6"/>
+        <polygon points="320,175 332,182 332,196 320,203 308,196 308,182" fill="#8EC2F6"/>
+      </g>
+    </svg>
+  </g>
+
+  <!-- What-if panel -->
+  <g transform="translate(356, 100)" font-family="'Inter', system-ui, sans-serif">
+    <rect width="168" height="282" rx="16" fill="#F5F5F7" stroke="rgba(0,0,0,0.06)"/>
+
+    <text x="14" y="26" font-size="10" font-weight="700" fill="#6E6E73" letter-spacing="1.4">WHAT-IF</text>
+    <text x="14" y="48" font-size="13" font-weight="600" fill="#1D1D1F">Remove Mid-Range</text>
+
+    <!-- Zone chip list -->
+    <g transform="translate(14, 64)" font-size="11">
+      <rect width="140" height="26" rx="8" fill="#FFFFFF" stroke="rgba(0,0,0,0.08)"/>
+      <text x="12" y="17" fill="#1D1D1F">Restricted Area</text>
+      <text x="128" y="17" fill="#34D399" font-weight="600" text-anchor="end">71%</text>
+
+      <g transform="translate(0,32)">
+        <rect width="140" height="26" rx="8" fill="#FFFFFF" stroke="rgba(0,0,0,0.08)"/>
+        <text x="12" y="17" fill="#1D1D1F">Above-Break 3</text>
+        <text x="128" y="17" fill="#34D399" font-weight="600" text-anchor="end">43%</text>
+      </g>
+      <g transform="translate(0,64)">
+        <rect width="140" height="26" rx="8" fill="#FFFFFF" stroke="rgba(0,0,0,0.08)"/>
+        <text x="12" y="17" fill="#1D1D1F">Corner 3</text>
+        <text x="128" y="17" fill="#34D399" font-weight="600" text-anchor="end">46%</text>
+      </g>
+      <g transform="translate(0,96)" opacity="0.4">
+        <rect width="140" height="26" rx="8" fill="#FFFFFF" stroke="rgba(0,0,0,0.08)" stroke-dasharray="3 3"/>
+        <text x="12" y="17" fill="#1D1D1F">Mid-Range</text>
+        <text x="128" y="17" fill="#F87171" font-weight="600" text-anchor="end">38%</text>
+      </g>
+    </g>
+
+    <!-- Delta -->
+    <g transform="translate(14, 210)">
+      <text font-size="9" font-weight="700" fill="#6E6E73" letter-spacing="1.2">eFG% DELTA</text>
+      <text y="28" font-size="28" font-weight="800" fill="#34D399">+4.7%</text>
+      <text y="50" font-size="10" fill="#6E6E73">with mid-range removed</text>
+    </g>
+  </g>
+</svg>

@@ -1,0 +1,136 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 600" width="1400" height="600" role="img" aria-label="Basketball Intelligence — 5.7M shots, 45 years, 55 tables">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FAFAFA"/>
+      <stop offset="1" stop-color="#F5F5F7"/>
+    </linearGradient>
+    <radialGradient id="spot" cx="0.5" cy="0.3" r="0.7">
+      <stop offset="0" stop-color="#FF6B35" stop-opacity="0.18"/>
+      <stop offset="1" stop-color="#FF6B35" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="8" stdDeviation="14" flood-color="#000" flood-opacity="0.08"/>
+    </filter>
+  </defs>
+
+  <rect width="1400" height="600" fill="url(#bg)"/>
+  <circle cx="1050" cy="180" r="380" fill="url(#spot)"/>
+
+  <!-- Left: Title block -->
+  <g transform="translate(70, 90)">
+    <text x="0" y="0" font-family="'Syne', 'Inter', system-ui, sans-serif" font-weight="800" font-size="72" fill="#1D1D1F" letter-spacing="-2">BASKETBALL</text>
+    <text x="0" y="76" font-family="'Syne', 'Inter', system-ui, sans-serif" font-weight="800" font-size="72" fill="#FF6B35" letter-spacing="-2">INTELLIGENCE</text>
+    <text x="0" y="130" font-family="'Inter', system-ui, sans-serif" font-weight="400" font-size="22" fill="#6E6E73">Full-stack NBA analytics. Local-first. Built on 45 years of data.</text>
+
+    <!-- Stat pills -->
+    <g transform="translate(0, 180)" font-family="'JetBrains Mono', 'SF Mono', monospace">
+      <g>
+        <rect width="200" height="92" rx="20" fill="#FFFFFF" filter="url(#shadow)"/>
+        <text x="22" y="46" font-size="34" font-weight="700" fill="#1D1D1F">5.7M</text>
+        <text x="22" y="68" font-size="11" fill="#6E6E73" letter-spacing="1.2">SHOT RECORDS</text>
+        <text x="22" y="82" font-size="10" fill="#86868B">1997 – 2025</text>
+      </g>
+      <g transform="translate(220, 0)">
+        <rect width="200" height="92" rx="20" fill="#FFFFFF" filter="url(#shadow)"/>
+        <text x="22" y="46" font-size="34" font-weight="700" fill="#1D1D1F">452K</text>
+        <text x="22" y="68" font-size="11" fill="#6E6E73" letter-spacing="1.2">GAME LOGS</text>
+        <text x="22" y="82" font-size="10" fill="#86868B">1980 – 2025</text>
+      </g>
+      <g transform="translate(440, 0)">
+        <rect width="200" height="92" rx="20" fill="#FFFFFF" filter="url(#shadow)"/>
+        <text x="22" y="46" font-size="34" font-weight="700" fill="#1D1D1F">55</text>
+        <text x="22" y="68" font-size="11" fill="#6E6E73" letter-spacing="1.2">SQL TABLES</text>
+        <text x="22" y="82" font-size="10" fill="#86868B">one local .db file</text>
+      </g>
+    </g>
+
+    <!-- Tech chips -->
+    <g transform="translate(0, 310)" font-family="'Inter', system-ui, sans-serif" font-size="13" font-weight="500">
+      <g>
+        <rect width="120" height="32" rx="16" fill="#1D1D1F"/>
+        <text x="60" y="21" fill="#FFFFFF" text-anchor="middle">Next.js 16</text>
+      </g>
+      <g transform="translate(130, 0)">
+        <rect width="110" height="32" rx="16" fill="#1D1D1F"/>
+        <text x="55" y="21" fill="#FFFFFF" text-anchor="middle">React 19</text>
+      </g>
+      <g transform="translate(250, 0)">
+        <rect width="90" height="32" rx="16" fill="#0071E3"/>
+        <text x="45" y="21" fill="#FFFFFF" text-anchor="middle">SQLite</text>
+      </g>
+      <g transform="translate(350, 0)">
+        <rect width="90" height="32" rx="16" fill="#FF6B35"/>
+        <text x="45" y="21" fill="#FFFFFF" text-anchor="middle">YOLOv11</text>
+      </g>
+      <g transform="translate(450, 0)">
+        <rect width="110" height="32" rx="16" fill="#A78BFA"/>
+        <text x="55" y="21" fill="#FFFFFF" text-anchor="middle">Gemini AI</text>
+      </g>
+    </g>
+  </g>
+
+  <!-- Right: Court with hex heat -->
+  <g transform="translate(830, 60)" filter="url(#shadow)">
+    <rect width="500" height="480" rx="24" fill="#FFFFFF"/>
+    <g transform="translate(20, 20)">
+      <svg width="460" height="440" viewBox="0 0 500 470">
+        <rect x="0" y="0" width="500" height="470" fill="#FFFFFF"/>
+        <rect x="0" y="0" width="500" height="470" fill="none" stroke="#333" stroke-width="1.5"/>
+        <rect x="170" y="0" width="160" height="190" fill="none" stroke="#333" stroke-width="1.5"/>
+        <circle cx="250" cy="190" r="60" fill="none" stroke="#333" stroke-width="1.5"/>
+        <line x1="220" y1="40" x2="280" y2="40" stroke="#333" stroke-width="2"/>
+        <circle cx="250" cy="52.5" r="9" fill="none" stroke="#FF6B35" stroke-width="2"/>
+        <path d="M 210 52.5 A 40 40 0 0 1 290 52.5" fill="none" stroke="#333" stroke-width="1.5"/>
+        <line x1="30" y1="0" x2="30" y2="142" stroke="#333" stroke-width="1.5"/>
+        <line x1="470" y1="0" x2="470" y2="142" stroke="#333" stroke-width="1.5"/>
+        <path d="M 30 142 A 237.5 237.5 0 0 1 470 142" fill="none" stroke="#333" stroke-width="1.5"/>
+        <line x1="0" y1="470" x2="500" y2="470" stroke="#333" stroke-width="1.5"/>
+
+        <!-- Hex heat density near rim -->
+        <g opacity="0.92">
+          <polygon points="250,50 262,57 262,71 250,78 238,71 238,57" fill="#FF3D00"/>
+          <polygon points="226,64 238,71 238,85 226,92 214,85 214,71" fill="#FF6B35"/>
+          <polygon points="274,64 286,71 286,85 274,92 262,85 262,71" fill="#FF6B35"/>
+          <polygon points="250,78 262,85 262,99 250,106 238,99 238,85" fill="#FF3D00"/>
+          <polygon points="226,92 238,99 238,113 226,120 214,113 214,99" fill="#FF6B35"/>
+          <polygon points="274,92 286,99 286,113 274,120 262,113 262,99" fill="#FF6B35"/>
+          <polygon points="202,78 214,85 214,99 202,106 190,99 190,85" fill="#FF9B6B"/>
+          <polygon points="298,78 310,85 310,99 298,106 286,99 286,85" fill="#FF9B6B"/>
+          <polygon points="250,106 262,113 262,127 250,134 238,127 238,113" fill="#FFB199"/>
+        </g>
+
+        <!-- Corner 3 bursts -->
+        <g opacity="0.9">
+          <polygon points="50,85 62,92 62,106 50,113 38,106 38,92" fill="#FF6B35"/>
+          <polygon points="50,113 62,120 62,134 50,141 38,134 38,120" fill="#FF9B6B"/>
+          <polygon points="78,92 90,99 90,113 78,120 66,113 66,99" fill="#FFB199"/>
+          <polygon points="438,85 450,92 450,106 438,113 426,106 426,92" fill="#FF6B35"/>
+          <polygon points="438,113 450,120 450,134 438,141 426,134 426,120" fill="#FF9B6B"/>
+          <polygon points="410,92 422,99 422,113 410,120 398,113 398,99" fill="#FFB199"/>
+        </g>
+
+        <!-- Above-the-break 3 (warm) -->
+        <g opacity="0.85">
+          <polygon points="250,230 262,237 262,251 250,258 238,251 238,237" fill="#FF9B6B"/>
+          <polygon points="200,240 212,247 212,261 200,268 188,261 188,247" fill="#FFB199"/>
+          <polygon points="300,240 312,247 312,261 300,268 288,261 288,247" fill="#FFB199"/>
+          <polygon points="160,260 172,267 172,281 160,288 148,281 148,267" fill="#FFD6BF"/>
+          <polygon points="340,260 352,267 352,281 340,288 328,281 328,267" fill="#FFD6BF"/>
+        </g>
+
+        <!-- Mid-range (cold) -->
+        <g opacity="0.7">
+          <polygon points="150,160 162,167 162,181 150,188 138,181 138,167" fill="#8EC2F6"/>
+          <polygon points="350,160 362,167 362,181 350,188 338,181 338,167" fill="#8EC2F6"/>
+          <polygon points="180,180 192,187 192,201 180,208 168,201 168,187" fill="#BDD8F4"/>
+          <polygon points="320,180 332,187 332,201 320,208 308,201 308,187" fill="#BDD8F4"/>
+        </g>
+
+        <g font-family="'Inter', system-ui, sans-serif">
+          <rect x="16" y="424" width="170" height="30" rx="8" fill="#1D1D1F" opacity="0.92"/>
+          <text x="24" y="444" fill="#FFFFFF" font-size="12" font-weight="600" letter-spacing="1.2">HEX HEATMAP · FG%</text>
+        </g>
+      </svg>
+    </g>
+  </g>
+</svg>

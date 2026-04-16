@@ -1,0 +1,98 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 300" width="1200" height="300" role="img" aria-label="Video ML pipeline — nine stages from raw footage to film.db">
+  <defs>
+    <filter id="fp-shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="3" stdDeviation="6" flood-color="#000" flood-opacity="0.08"/>
+    </filter>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#86868B"/>
+    </marker>
+  </defs>
+  <rect width="1200" height="300" fill="#F5F5F7"/>
+
+  <!-- Title -->
+  <g font-family="'Inter', system-ui, sans-serif" transform="translate(40, 40)">
+    <text font-size="11" font-weight="700" fill="#FF6B35" letter-spacing="1.6">VIDEO ML · 9-STAGE PIPELINE</text>
+    <text y="22" font-size="20" font-weight="700" fill="#1D1D1F">Game footage → structured clips in SQLite</text>
+  </g>
+
+  <!-- Pipeline stages -->
+  <g font-family="'Inter', system-ui, sans-serif" transform="translate(40, 110)">
+    <!-- Stage 1: Input video -->
+    <g filter="url(#fp-shadow)">
+      <rect width="120" height="110" rx="14" fill="#FFFFFF"/>
+      <text x="60" y="26" font-size="24" text-anchor="middle">🎬</text>
+      <text x="60" y="58" font-size="11" font-weight="700" fill="#1D1D1F" text-anchor="middle">Game MP4</text>
+      <text x="60" y="76" font-size="9" fill="#6E6E73" text-anchor="middle">raw footage</text>
+      <text x="60" y="94" font-size="9" fill="#86868B" text-anchor="middle">ffprobe</text>
+    </g>
+    <line x1="126" y1="55" x2="155" y2="55" stroke="#86868B" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <!-- Stage 2: Scene detect -->
+    <g transform="translate(160, 0)" filter="url(#fp-shadow)">
+      <rect width="120" height="110" rx="14" fill="#FFFFFF"/>
+      <text x="60" y="26" font-size="24" text-anchor="middle">✂️</text>
+      <text x="60" y="58" font-size="11" font-weight="700" fill="#1D1D1F" text-anchor="middle">Scene Detect</text>
+      <text x="60" y="76" font-size="9" fill="#6E6E73" text-anchor="middle">segment plays</text>
+      <text x="60" y="94" font-size="9" fill="#86868B" text-anchor="middle">PySceneDetect</text>
+    </g>
+    <line x1="286" y1="55" x2="315" y2="55" stroke="#86868B" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <!-- Stage 3: YOLO -->
+    <g transform="translate(320, 0)" filter="url(#fp-shadow)">
+      <rect width="120" height="110" rx="14" fill="#FF6B35"/>
+      <text x="60" y="26" font-size="24" text-anchor="middle">🎯</text>
+      <text x="60" y="58" font-size="11" font-weight="700" fill="#FFFFFF" text-anchor="middle">YOLO Detect</text>
+      <text x="60" y="76" font-size="9" fill="#FFE5D9" text-anchor="middle">players · ball</text>
+      <text x="60" y="94" font-size="9" fill="#FFE5D9" text-anchor="middle">YOLOv11</text>
+    </g>
+    <line x1="446" y1="55" x2="475" y2="55" stroke="#86868B" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <!-- Stage 4: Classify -->
+    <g transform="translate(480, 0)" filter="url(#fp-shadow)">
+      <rect width="120" height="110" rx="14" fill="#FFFFFF"/>
+      <text x="60" y="26" font-size="24" text-anchor="middle">🏷️</text>
+      <text x="60" y="58" font-size="11" font-weight="700" fill="#1D1D1F" text-anchor="middle">Classify</text>
+      <text x="60" y="76" font-size="9" fill="#6E6E73" text-anchor="middle">action tags</text>
+      <text x="60" y="94" font-size="9" fill="#86868B" text-anchor="middle">shot · PnR · drive</text>
+    </g>
+    <line x1="606" y1="55" x2="635" y2="55" stroke="#86868B" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <!-- Stage 5: OCR scoreboard -->
+    <g transform="translate(640, 0)" filter="url(#fp-shadow)">
+      <rect width="120" height="110" rx="14" fill="#FFFFFF"/>
+      <text x="60" y="26" font-size="24" text-anchor="middle">🔢</text>
+      <text x="60" y="58" font-size="11" font-weight="700" fill="#1D1D1F" text-anchor="middle">Scoreboard OCR</text>
+      <text x="60" y="76" font-size="9" fill="#6E6E73" text-anchor="middle">clock · score</text>
+      <text x="60" y="94" font-size="9" fill="#86868B" text-anchor="middle">EasyOCR</text>
+    </g>
+    <line x1="766" y1="55" x2="795" y2="55" stroke="#86868B" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <!-- Stage 6: PBP align -->
+    <g transform="translate(800, 0)" filter="url(#fp-shadow)">
+      <rect width="120" height="110" rx="14" fill="#0071E3"/>
+      <text x="60" y="26" font-size="24" text-anchor="middle">⏱️</text>
+      <text x="60" y="58" font-size="11" font-weight="700" fill="#FFFFFF" text-anchor="middle">PBP Align</text>
+      <text x="60" y="76" font-size="9" fill="#CFE5FF" text-anchor="middle">match timestamps</text>
+      <text x="60" y="94" font-size="9" fill="#CFE5FF" text-anchor="middle">to play-by-play</text>
+    </g>
+    <line x1="926" y1="55" x2="955" y2="55" stroke="#86868B" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <!-- Stage 7: Embed -->
+    <g transform="translate(960, 0)" filter="url(#fp-shadow)">
+      <rect width="120" height="110" rx="14" fill="#FFFFFF"/>
+      <text x="60" y="26" font-size="24" text-anchor="middle">🧬</text>
+      <text x="60" y="58" font-size="11" font-weight="700" fill="#1D1D1F" text-anchor="middle">Embed</text>
+      <text x="60" y="76" font-size="9" fill="#6E6E73" text-anchor="middle">vector search</text>
+      <text x="60" y="94" font-size="9" fill="#86868B" text-anchor="middle">sentence-transformers</text>
+    </g>
+
+    <!-- Arrow down to film.db -->
+    <line x1="1020" y1="115" x2="1020" y2="145" stroke="#86868B" stroke-width="1.5" marker-end="url(#arrow)"/>
+  </g>
+
+  <!-- film.db output -->
+  <g font-family="'JetBrains Mono', 'SF Mono', monospace" transform="translate(936, 260)">
+    <rect width="168" height="30" rx="8" fill="#1D1D1F"/>
+    <text x="84" y="20" font-size="12" font-weight="700" fill="#FFFFFF" text-anchor="middle">film.db · 427 clips</text>
+  </g>
+</svg>
